@@ -100,6 +100,11 @@ const config = {
     minReindexationInterval: 60 * 60 * 1000,
   },
 
+  federation: {
+    // Set to 'https://inventaire.io' in ./local-dev.cjs to use inventaire.io entities locally
+    remoteEntitiesOrigin: null,
+  },
+
   // See server/data/dataseed/dataseed.js
   dataseed: {
     enabled: false,

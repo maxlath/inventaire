@@ -8,6 +8,7 @@ import config from '#server/config'
 
 // 'swift' or 'local'
 const { mode } = config.mediaStorage
+const federatedEntities = config.federation.remoteEntitiesOrigin != null
 
 info(`media storage: ${mode}`)
 
@@ -32,6 +33,14 @@ const transformAndPutImage = (container, fn) => async fileData => {
   return { id, url }
 }
 
+let entitiesContainer
+if (!federatedEntities) {
+  entitiesContainer = {
+    putImage: transformAndPutImage('entities', removeExif),
+    deleteImage,
+  }
+}
+
 export const containers = {
   users: {
     putImage: transformAndPutImage('users', shrinkAndFormat),
@@ -43,10 +52,7 @@ export const containers = {
     deleteImage,
   },
 
-  entities: {
-    putImage: transformAndPutImage('entities', removeExif),
-    deleteImage,
-  },
+  entities: entitiesContainer,
 
   // Placeholder to add 'remote' to the list of containers, when it's actually
   // used to fetch remote images
@@ -55,8 +61,6 @@ export const containers = {
   assets: {},
 }
 
-export const uploadContainersNames = [
-  'entities',
-  'groups',
-  'users',
-] as const
+export const uploadContainersNames = federatedEntities
+  ? [ 'groups', 'users' ] as const
+  : [ 'entities', 'groups', 'users' ] as const

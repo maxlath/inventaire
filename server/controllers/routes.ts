@@ -33,6 +33,8 @@ import user from '#controllers/user/user'
 import users from '#controllers/users/users'
 import config from '#server/config'
 
+const federatedEntities = config.federation.remoteEntitiesOrigin != null
+
 // Routes structure:
 // 1 - api is the default prefix for server-side routes
 // 2 - the controller / module name
@@ -44,7 +46,6 @@ const addRoute = AddRoute(routes)
 addRoute('api/auth', auth)
 addRoute('api/config', configEndpoint)
 addRoute('api/data', data)
-addRoute('api/entities', entities)
 addRoute('api/feedback', feedback)
 addRoute('api/feeds', feeds)
 addRoute('api/groups', groups)
@@ -61,7 +62,6 @@ addRoute('api/reports', reports)
 addRoute('api/search', search)
 addRoute('api/shelves', shelves)
 addRoute('api/submit', fakeSubmit)
-addRoute('api/tasks', tasks)
 addRoute('api/tests*', tests)
 addRoute('api/token', authToken)
 addRoute('api/transactions', transactions)
@@ -70,6 +70,11 @@ addRoute('api/users', users)
 addRoute('api/activitypub', activitypub)
 addRoute('img/*', resizeImages)
 addRoute('.well-known/webfinger', webfinger)
+
+if (!federatedEntities) {
+  addRoute('api/entities', entities)
+  addRoute('api/tasks', tasks)
+}
 
 if (config.i18n.autofix) {
   addRoute('api/i18n', i18n)

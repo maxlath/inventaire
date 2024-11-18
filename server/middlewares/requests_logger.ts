@@ -2,7 +2,7 @@ import parseUrl from 'parseurl'
 import { coloredElapsedTime } from '#lib/time'
 import config from '#server/config'
 
-const host = config.getPublicOrigin()
+const publicOrigin = config.getPublicOrigin()
 const { mutedDomains, mutedPath } = config.requestsLogger
 
 // Adapted from https://github.com/expressjs/morgan 1.1.1
@@ -43,9 +43,14 @@ function logRequest (req, res) {
 
   if (user) line += ` - u:${user._id}`
 
-  const { origin } = req.headers
-  // Log cross-site requests origin
-  if (origin != null && origin !== host) line += ` - origin:${origin}`
+  const { origin, 'user-agent': reqUserAgent } = req.headers
+  if (origin != null && origin !== publicOrigin) {
+    // Log cross-site requests origin
+    line += ` - origin:${origin}`
+  } else if (!user && reqUserAgent && !looksLikeABrowserUserAgent(reqUserAgent)) {
+    // Log non-browsers requests user agents (especially federated servers)
+    line += ` - agent:"${reqUserAgent}"`
+  }
 
   if (status === 302) {
     const location = res.get('location')
@@ -72,3 +77,5 @@ const statusCategoryColor = {
   2: green,
   undefined: resetColors,
 }
+
+const looksLikeABrowserUserAgent = (str: string) => str.startsWith('Mozilla/5.0')

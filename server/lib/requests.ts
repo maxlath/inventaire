@@ -19,9 +19,12 @@ import type { Agent } from 'node:http'
 import type { Stream } from 'node:stream'
 import type OAuth from 'oauth-1.0a'
 
-const { repository } = requireJson(absolutePath('root', 'package.json'))
+const { version } = requireJson(absolutePath('root', 'package.json'))
 const { logStart, logEnd, logOngoingAtInterval, ongoingRequestLogInterval, bodyLogLimit } = config.outgoingRequests
-export const userAgent = `${config.name} (${repository.url})`
+const publicOrigin = config.getPublicOrigin()
+
+export const userAgent = `${config.name}/${version}; +${publicOrigin}`
+
 const defaultTimeout = 30 * 1000
 
 let requestCount = 0

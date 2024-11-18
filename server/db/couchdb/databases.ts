@@ -15,30 +15,25 @@ import { views as shelvesViews } from '#db/couchdb/design_docs/shelves'
 import { views as tasksViews } from '#db/couchdb/design_docs/tasks'
 import { views as transactionsViews } from '#db/couchdb/design_docs/transactions'
 import { views as usersViews } from '#db/couchdb/design_docs/users'
-import config from '#server/config'
 import type { DatabaseName } from '#types/couchdb'
 import type { DatabaseConfig } from '#types/couchdb_init'
 
-const federatedEntities = config.federation.remoteEntitiesOrigin != null
-
 export type Databases = Record<DatabaseName, DatabaseConfig['designDocs']>
 
-let entitiesRelatedDatabases
-if (federatedEntities) {
-  entitiesRelatedDatabases = {}
-} else {
-  entitiesRelatedDatabases = {
-    entities: {
-      entities: entitiesViews,
-      entities_deduplicate: entitiesDeduplicateViews,
-    },
-    patches: {
-      patches: patchesViews,
-    },
-    tasks: {
-      tasks: tasksViews,
-    },
-  }
+// Always create entities-related databases, even when in federated mode
+// to avoid having to create switches everywhere in the code base,
+// but those database should remain empty
+const entitiesRelatedDatabases = {
+  entities: {
+    entities: entitiesViews,
+    entities_deduplicate: entitiesDeduplicateViews,
+  },
+  patches: {
+    patches: patchesViews,
+  },
+  tasks: {
+    tasks: tasksViews,
+  },
 }
 
 export const databases: Databases = {

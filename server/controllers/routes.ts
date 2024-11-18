@@ -8,7 +8,8 @@ import authToken from '#controllers/auth/token'
 import configEndpoint from '#controllers/config'
 import data from '#controllers/data/data'
 import { AddRoute } from '#controllers/endpoint'
-import entities from '#controllers/entities/entities'
+import { localEntitiesControllers } from '#controllers/entities/entities'
+import { federatedEntitiesControllers } from '#controllers/entities/federated_entities'
 import extensionsRedirections from '#controllers/extensions_redirections'
 import feedback from '#controllers/feedback'
 import feeds from '#controllers/feeds/feeds'
@@ -71,8 +72,10 @@ addRoute('api/activitypub', activitypub)
 addRoute('img/*', resizeImages)
 addRoute('.well-known/webfinger', webfinger)
 
-if (!federatedEntities) {
-  addRoute('api/entities', entities)
+if (federatedEntities) {
+  addRoute('api/entities', federatedEntitiesControllers)
+} else {
+  addRoute('api/entities', localEntitiesControllers)
   addRoute('api/tasks', tasks)
 }
 

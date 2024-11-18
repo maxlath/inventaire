@@ -20,7 +20,7 @@ import revertMerge from './revert_merge.js'
 import updateClaim from './update_claim.js'
 import updateLabel from './update_label.js'
 
-export default {
+export const localEntitiesControllers = {
   get: actionsControllersFactory({
     public: {
       'by-uris': byUrisGet,

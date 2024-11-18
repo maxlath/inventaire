@@ -1,8 +1,7 @@
 import { uniq } from 'lodash-es'
 import { getWorksAuthorsUris } from '#controllers/entities/lib/entities'
-import { getEntitiesList } from '#controllers/entities/lib/get_entities_list'
-import { getEntityByUri } from '#controllers/entities/lib/get_entity_by_uri'
 import { getFirstClaimValue } from '#controllers/entities/lib/inv_claims_utils'
+import { getEntitiesList, getEntityByUri } from '#controllers/entities/lib/remote/instance_agnostic_entities'
 import { newError } from '#lib/error/error'
 
 export default async function (item) {

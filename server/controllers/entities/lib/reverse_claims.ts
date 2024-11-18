@@ -29,7 +29,7 @@ const denylistedProperties = [
   'wdt:P407',
 ]
 
-interface ReverseClaimsParams {
+export interface ReverseClaimsParams {
   property?: PropertyUri
   value?: InvSnakValue
   refresh?: boolean

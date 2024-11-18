@@ -1,7 +1,6 @@
 import { getInvEntitiesUrisByClaims, getInvUrisByClaim } from '#controllers/entities/lib/entities'
-import { getEntitiesByUris } from '#controllers/entities/lib/get_entities_by_uris'
-import { getEntityByUri } from '#controllers/entities/lib/get_entity_by_uri'
 import { workAuthorRelationsProperties } from '#controllers/entities/lib/properties/properties'
+import { getEntitiesByUris, getEntityByUri } from '#controllers/entities/lib/remote/instance_agnostic_entities'
 import { saveSnapshotsInBatch } from '#controllers/items/lib/snapshot/snapshot'
 import { debounceByKey } from '#lib/debounce_by_key'
 import { info, warn } from '#lib/utils/logs'

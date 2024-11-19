@@ -2,7 +2,7 @@ import { getAggregatedPropertiesValues } from '#controllers/entities/lib/entitie
 import { workAuthorRelationsProperties } from '#controllers/entities/lib/properties/properties'
 import { getEntitiesByUris, getEntityByUri } from '#controllers/entities/lib/remote/instance_agnostic_entities'
 import { assertArray } from '#lib/utils/assert_types'
-import type { EntityUri } from '#types/entity'
+import type { EntityUri, PropertyUri } from '#types/entity'
 import { aggregateClaims } from './helpers.js'
 
 const getRelativeEntities = relationProperties => async entity => {

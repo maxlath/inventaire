@@ -8,7 +8,7 @@ import type { Listing } from '#types/listing'
 import type { Shelf } from '#types/shelf'
 import type { User } from '#types/user'
 
-const federatedEntities = config.federation.remoteEntitiesOrigin != null
+const federatedMode = config.federation.remoteEntitiesOrigin != null
 
 // Using CouchDB database names + environment suffix as indexes names
 const indexesData = [
@@ -17,7 +17,7 @@ const indexesData = [
   { indexBaseName: 'users', index: config.db.name('users'), sync: true },
   { indexBaseName: 'shelves', index: config.db.name('shelves'), sync: true },
   { indexBaseName: 'lists', index: config.db.name('lists'), sync: true },
-  ...(federatedEntities
+  ...(federatedMode
     ? []
     : [
       { indexBaseName: 'wikidata', index: 'wikidata', sync: false },

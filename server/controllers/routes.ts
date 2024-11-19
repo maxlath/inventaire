@@ -34,7 +34,7 @@ import user from '#controllers/user/user'
 import users from '#controllers/users/users'
 import config from '#server/config'
 
-const federatedEntities = config.federation.remoteEntitiesOrigin != null
+const federatedMode = config.federation.remoteEntitiesOrigin != null
 
 // Routes structure:
 // 1 - api is the default prefix for server-side routes
@@ -72,7 +72,7 @@ addRoute('api/activitypub', activitypub)
 addRoute('img/*', resizeImages)
 addRoute('.well-known/webfinger', webfinger)
 
-if (federatedEntities) {
+if (federatedMode) {
   addRoute('api/entities', federatedEntitiesControllers)
 } else {
   addRoute('api/entities', localEntitiesControllers)

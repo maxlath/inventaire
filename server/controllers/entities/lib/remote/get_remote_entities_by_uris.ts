@@ -8,24 +8,24 @@ import type { EntityUri } from '#server/types/entity'
 
 const { remoteEntitiesOrigin } = config.federation
 
-export async function getEntitiesByUrisFromRemoteInstance ({ uris }: Pick<GetEntitiesByUrisParams, 'uris'>) {
+export async function getRemoteEntitiesByUris ({ uris }: Pick<GetEntitiesByUrisParams, 'uris'>) {
   // if (uris.length === 0) return { entities: {}, redirects: {} } as GetEntitiesByUrisResponse
   const path = buildUrl(`${remoteEntitiesOrigin}/api/entities`, { action: 'by-uris', uris: uris.join('|') })
   const res = await requests_.get(path)
   return res as GetEntitiesByUrisResponse
 }
 
-export async function getEntitiesListFromRemoteInstance (uris: EntityUri[]) {
-  const { entities } = await getEntitiesByUrisFromRemoteInstance({ uris })
+export async function getRemoteEntitiesList (uris: EntityUri[]) {
+  const { entities } = await getRemoteEntitiesByUris({ uris })
   return Object.values(entities)
 }
 
-export async function getEntityByUriFromRemoteInstance ({ uri }: { uri: EntityUri }) {
-  const [ entity ] = await getEntitiesListFromRemoteInstance([ uri ])
+export async function getRemoteEntityByUri ({ uri }: { uri: EntityUri }) {
+  const [ entity ] = await getRemoteEntitiesList([ uri ])
   return entity
 }
 
-export async function getReverseClaimsFromRemoteInstance (params: ReverseClaimsParams) {
+export async function getRemoteReverseClaims (params: ReverseClaimsParams) {
   const path = buildUrl(`${remoteEntitiesOrigin}/api/entities`, { action: 'reverse-claims', ...params })
   const { uris } = await requests_.get(path)
   return uris as EntityUri[]

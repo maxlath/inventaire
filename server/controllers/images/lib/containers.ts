@@ -8,7 +8,7 @@ import config from '#server/config'
 
 // 'swift' or 'local'
 const { mode } = config.mediaStorage
-const federatedEntities = config.federation.remoteEntitiesOrigin != null
+const federatedMode = config.federation.remoteEntitiesOrigin != null
 
 info(`media storage: ${mode}`)
 
@@ -34,7 +34,7 @@ const transformAndPutImage = (container, fn) => async fileData => {
 }
 
 let entitiesContainer
-if (!federatedEntities) {
+if (!federatedMode) {
   entitiesContainer = {
     putImage: transformAndPutImage('entities', removeExif),
     deleteImage,
@@ -61,6 +61,6 @@ export const containers = {
   assets: {},
 }
 
-export const uploadContainersNames = federatedEntities
+export const uploadContainersNames = federatedMode
   ? [ 'groups', 'users' ] as const
   : [ 'entities', 'groups', 'users' ] as const

@@ -22,7 +22,7 @@ import { createPatch } from './patches/create_patch.js'
 import { validateProperty } from './properties/validations.js'
 import type { DocumentViewResponse } from 'blue-cot/types/nano.js'
 
-const federatedEntities = config.federation.remoteEntitiesOrigin != null
+const federatedMode = config.federation.remoteEntitiesOrigin != null
 
 const db = await dbFactory('entities')
 
@@ -155,7 +155,7 @@ export const getUrlFromEntityImageHash = (imageHash: ImageHash) => getUrlFromIma
 export const uniqByUri = entities => uniqBy(entities, getUri)
 
 export async function imageIsUsed (imageHash: ImageHash) {
-  if (federatedEntities) return false
+  if (federatedMode) return false
   assertString(imageHash)
   const { rows } = await getInvEntitiesByClaim('invp:P2', imageHash)
   return rows.length > 0

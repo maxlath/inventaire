@@ -1,5 +1,5 @@
 import { groupBy, map, pick, difference, sortBy } from 'lodash-es'
-import { getEntitiesByUris } from '#controllers/entities/lib/remote/instance_agnostic_entities'
+import { getEntitiesByUris } from '#controllers/entities/lib/federation/instance_agnostic_entities'
 import { createListingElements, deleteListingsElements, getElementsByListing, getElementsByListings } from '#controllers/listings/lib/elements'
 import { filterFoundElementsUris } from '#controllers/listings/lib/helpers'
 import { dbFactory } from '#db/couchdb/base'

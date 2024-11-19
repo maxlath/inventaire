@@ -1,6 +1,6 @@
 import { getAggregatedPropertiesValues } from '#controllers/entities/lib/entities'
+import { getEntitiesByUris, getEntityByUri } from '#controllers/entities/lib/federation/instance_agnostic_entities'
 import { workAuthorRelationsProperties } from '#controllers/entities/lib/properties/properties'
-import { getEntitiesByUris, getEntityByUri } from '#controllers/entities/lib/remote/instance_agnostic_entities'
 import { assertArray } from '#lib/utils/assert_types'
 import type { EntityUri, PropertyUri } from '#types/entity'
 import { aggregateClaims } from './helpers.js'

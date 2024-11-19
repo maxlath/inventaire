@@ -9,7 +9,6 @@ import type { EntityUri } from '#server/types/entity'
 const { remoteEntitiesOrigin } = config.federation
 
 export async function getRemoteEntitiesByUris ({ uris }: Pick<GetEntitiesByUrisParams, 'uris'>) {
-  // if (uris.length === 0) return { entities: {}, redirects: {} } as GetEntitiesByUrisResponse
   const path = buildUrl(`${remoteEntitiesOrigin}/api/entities`, { action: 'by-uris', uris: uris.join('|') })
   const res = await requests_.get(path)
   return res as GetEntitiesByUrisResponse

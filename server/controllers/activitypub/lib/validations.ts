@@ -1,4 +1,4 @@
-import { getEntityByUri } from '#controllers/entities/lib/remote/instance_agnostic_entities'
+import { getEntityByUri } from '#controllers/entities/lib/federation/instance_agnostic_entities'
 import { getShelfById } from '#controllers/shelves/lib/shelves'
 import { findUserByUsername, getUserById } from '#controllers/user/lib/user'
 import { isCouchUuid } from '#lib/boolean_validations'

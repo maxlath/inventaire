@@ -1,5 +1,5 @@
 import { difference, map, uniq } from 'lodash-es'
-import { getEntitiesByUris } from '#controllers/entities/lib/remote/instance_agnostic_entities'
+import { getEntitiesByUris } from '#controllers/entities/lib/federation/instance_agnostic_entities'
 import { warn } from '#lib/utils/logs'
 import type { SerializedEntitiesByUris } from '#types/entity'
 

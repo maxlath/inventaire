@@ -1,6 +1,6 @@
+import { getEntitiesList } from '#controllers/entities/lib/federation/instance_agnostic_entities'
 import { getFirstClaimValue } from '#controllers/entities/lib/inv_claims_utils'
 import { prefixifyInv } from '#controllers/entities/lib/prefix'
-import { getEntitiesList } from '#controllers/entities/lib/remote/instance_agnostic_entities'
 import { i18n } from '#lib/emails/i18n/i18n'
 import { getBestLangValue } from '#lib/get_best_lang_value'
 import config from '#server/config'

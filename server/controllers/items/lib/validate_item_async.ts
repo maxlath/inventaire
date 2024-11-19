@@ -1,5 +1,5 @@
 import { property, uniq } from 'lodash-es'
-import { getEntitiesByUris } from '#controllers/entities/lib/remote/instance_agnostic_entities'
+import { getEntitiesByUris } from '#controllers/entities/lib/federation/instance_agnostic_entities'
 import { getShelvesByIds } from '#controllers/shelves/lib/shelves'
 import { isNonEmptyArray } from '#lib/boolean_validations'
 import { addErrorContext, newError } from '#lib/error/error'

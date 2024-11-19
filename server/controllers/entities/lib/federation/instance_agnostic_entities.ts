@@ -1,7 +1,7 @@
+import { getRemoteEntitiesByUris, getRemoteEntitiesList, getRemoteEntityByUri, getRemoteReverseClaims } from '#controllers/entities/lib/federation/get_remote_entities_by_uris'
 import { getEntitiesByUris as getLocalEntitiesByUris, type GetEntitiesByUrisParams } from '#controllers/entities/lib/get_entities_by_uris'
 import { getEntitiesList as getLocalEntitiesList } from '#controllers/entities/lib/get_entities_list'
 import { getEntityByUri as getLocalEntityByUri } from '#controllers/entities/lib/get_entity_by_uri'
-import { getRemoteEntitiesByUris, getRemoteEntitiesList, getRemoteEntityByUri, getRemoteReverseClaims } from '#controllers/entities/lib/remote/get_remote_entities_by_uris'
 import { getReverseClaims as getLocalReverseClaims, type ReverseClaimsParams } from '#controllers/entities/lib/reverse_claims'
 import { info } from '#lib/utils/logs'
 import config from '#server/config'

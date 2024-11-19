@@ -8,11 +8,14 @@ import passport_ from '#lib/passport/passport'
 import { expired } from '#lib/utils/base'
 import config from '#server/config'
 
-const { name, cookieMaxAge, publicProtocol } = config
+const { name, cookieMaxAge, publicHostname, publicProtocol, env } = config
+// Use a different cookie session name per env when working from localhost,
+// to avoid having cookies overriden from one env to the other and needing to re-sign-in
+const suffix = publicHostname === 'localhost' ? `:${env}` : ''
 
 // See https://github.com/expressjs/cookie-session/#cookie-options
 const cookieSessionParams = {
-  name: `${name}:session`,
+  name: `${name}${suffix}:session`,
   maxAge: cookieMaxAge,
 
   // For a list of available algorithms, run `openssl list -digest-algorithms`

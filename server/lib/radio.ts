@@ -8,7 +8,7 @@ export const radio = new EventEmitter()
 // It's convenient in tests to have the guaranty that event listeners were called,
 // but in production, that would mean delaying API responses for secondary actions
 // (setting notifications, sending emails, analytics, etc)
-const waitForListeners = config.env.startsWith('tests')
+const waitForListeners = config.env.includes('tests')
 
 export let emit
 

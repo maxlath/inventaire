@@ -38,6 +38,7 @@
     "start-built-server": "./scripts/typescript/start_built_server.sh",
     "start-tests-server": "./scripts/tests/api/start_tests_server.sh",
     "test": "./scripts/tests/run_tests.sh",
+    "test-federated": "export INV_FEDERATED_TESTS=true ; ./scripts/tests/run_tests.sh",
     "test-api": "./scripts/tests/run_api_slow_tests.sh",
     "test-api-quick": "./scripts/tests/run_api_quick_tests.sh",
     "test-integration": "./scripts/tests/run_integration_tests.sh",

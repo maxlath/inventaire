@@ -103,6 +103,11 @@ const config = {
   federation: {
     // Set to 'https://inventaire.io' in ./local-dev.cjs to use inventaire.io entities locally
     remoteEntitiesOrigin: null,
+    instanceClientCustomization: {
+      name: 'inventaire',
+      orgName: 'Example Organization',
+      orgUrl: 'https://inventaire.example.org',
+    },
   },
 
   // See server/data/dataseed/dataseed.js

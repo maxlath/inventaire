@@ -9,7 +9,7 @@ import type { EntityUri } from '#server/types/entity'
 
 const { remoteEntitiesOrigin } = config.federation
 const federatedMode = remoteEntitiesOrigin != null
-if (federatedMode) info({ remoteEntitiesOrigin }, 'federated entities mode')
+if (federatedMode) info(config.federation, 'federated entities mode')
 
 export async function getEntitiesByUris ({ uris }: Pick<GetEntitiesByUrisParams, 'uris'>) {
   if (federatedMode) {

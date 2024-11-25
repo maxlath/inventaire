@@ -23,3 +23,7 @@ interface AccessLevelControllers {
 export type ActionsControllers = {
   [K in AccessLevel]?: AccessLevelControllers
 }
+
+export type HttpVerb = 'get' | 'post' | 'put' | 'delete'
+
+export type VerbsAndActionsControllers = Partial<Record<HttpVerb, ActionsControllers>>

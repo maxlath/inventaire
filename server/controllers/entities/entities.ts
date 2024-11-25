@@ -1,5 +1,6 @@
 import removeLabel from '#controllers/entities/remove_label'
-import { actionsControllersFactory } from '#lib/actions_controllers'
+import { verbAndActionsControllersFactory } from '#lib/actions_controllers'
+import type { VerbsAndActionsControllers } from '#server/types/controllers'
 import byUrisGet from './by_uris_get.js'
 import contributions from './contributions.js'
 import contributionsCount from './contributions_count.js'
@@ -20,8 +21,8 @@ import revertMerge from './revert_merge.js'
 import updateClaim from './update_claim.js'
 import updateLabel from './update_label.js'
 
-export const localEntitiesControllers = {
-  get: actionsControllersFactory({
+export const localEntitiesControllersParams = {
+  get: {
     public: {
       'by-uris': byUrisGet,
       'reverse-claims': reverseClaims,
@@ -39,9 +40,9 @@ export const localEntitiesControllers = {
     admin: {
       'contributions-count': contributionsCount,
     },
-  }),
+  },
 
-  post: actionsControllersFactory({
+  post: {
     public: {
       'by-uris': byUrisGet,
     },
@@ -50,9 +51,9 @@ export const localEntitiesControllers = {
       resolve,
       delete: delet,
     },
-  }),
+  },
 
-  put: actionsControllersFactory({
+  put: {
     authentified: {
       'update-claim': updateClaim,
       'update-label': updateLabel,
@@ -65,5 +66,7 @@ export const localEntitiesControllers = {
     dataadmin: {
       'revert-merge': revertMerge,
     },
-  }),
-}
+  },
+} as VerbsAndActionsControllers
+
+export const localEntitiesControllers = verbAndActionsControllersFactory(localEntitiesControllersParams)

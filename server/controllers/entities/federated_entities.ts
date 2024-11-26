@@ -1,3 +1,4 @@
+import { pick } from 'lodash-es'
 import { localEntitiesControllersParams } from '#controllers/entities/entities'
 import { verbAndActionsControllersFactory } from '#lib/actions_controllers'
 import { requests_ } from '#lib/requests'
@@ -29,8 +30,15 @@ for (const [ verb, verbParams ] of objectEntries(localEntitiesControllersParams)
 }
 
 function proxiedController (verb: HttpVerb, action: string, actionController: ActionController) {
+  let sanitization, track, transferableParams
+  if (typeof actionController !== 'function') {
+    ;({ sanitization, track } = actionController)
+    transferableParams = sanitization ? Object.keys(sanitization) : []
+  }
   async function controller (params: Record<string, unknown>) {
     let remoteUrl, body
+    // Drop sanitization built parameters (ex: reqUserId)
+    if (params) params = pick(params, transferableParams)
     if (verb === 'get' || verb === 'delete') {
       remoteUrl = buildUrl(`${remoteEntitiesOrigin}/api/entities`, { action, ...params })
     } else {
@@ -44,7 +52,6 @@ function proxiedController (verb: HttpVerb, action: string, actionController: Ac
     return controller
   } else {
     // Sanitize locally before proxying
-    const { sanitization, track } = actionController
     return { controller, sanitization, track }
   }
 }

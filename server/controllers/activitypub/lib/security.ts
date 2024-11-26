@@ -7,7 +7,7 @@ import { expired } from '#lib/time'
 import { assertObject } from '#lib/utils/assert_types'
 import { warn } from '#lib/utils/logs'
 import config from '#server/config'
-import type { Req } from '#server/types/server'
+import type { MaybeSignedReq, SignedReq } from '#server/types/server'
 import type { AbsoluteUrl, HttpHeaders } from '#types/common'
 
 const { sanitizeUrls } = config.activitypub
@@ -32,7 +32,7 @@ export function sign (params) {
   return `keyId="${keyId}",headers="(request-target) ${signedHeadersNames}",signature="${signatureB64}"`
 }
 
-export async function verifySignature (req: Req) {
+export async function verifySignature (req: MaybeSignedReq) {
   const { method, path: pathname, headers: reqHeaders } = req
   const { date, signature } = reqHeaders
   // 30 seconds time window for that signature to be considered valid
@@ -55,20 +55,24 @@ export async function verifySignature (req: Req) {
     pathname,
   })
   verifier.update(signedString)
-  if (!(verifier.verify(publicKey.publicKeyPem, signatureString, 'base64'))) {
+  if (verifier.verify(publicKey.publicKeyPem, signatureString, 'base64')) {
+    const { host } = new URL(actorUrl)
+    req.signed = { host }
+    return req as SignedReq
+  } else {
     throw newError('signature verification failed', 400, { publicKey })
   }
   // TODO: verify date
 }
 
-export function signRequest ({ url, method, keyId, privateKey, body }) {
+export function signRequest ({ url, method, keyId, privateKey, body, headers = {} }) {
   const date = new Date().toUTCString()
   const { host, pathname } = new URL(url)
   // The minimum recommended data to sign is the (request-target), host, and date.
   // Source: https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures-10#appendix-C.2
   // The digest is additionnal required by Mastodon
   // Source: https://github.com/mastodon/mastodon/blob/main/app/controllers/concerns/signature_verification.rb
-  const reqHeaders: HttpHeaders = { host, date }
+  const reqHeaders: HttpHeaders = { host, date, ...headers }
   if (body) {
     assertObject(body)
     reqHeaders.digest = `SHA-256=${getSha256Base64Digest(JSON.stringify(body))}`

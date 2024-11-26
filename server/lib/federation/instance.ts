@@ -2,8 +2,8 @@ import { makeActorKeyUrl, makeActorUrl } from '#controllers/activitypub/lib/get_
 import { context } from '#controllers/activitypub/lib/helpers'
 import { getSharedKeyPair } from '#controllers/activitypub/lib/shared_key_pair'
 
-const instanceActorName = 'instance'
-const instanceActorUrl = makeActorUrl(instanceActorName)
+export const instanceActorName = 'instance'
+export const instanceActorUrl = makeActorUrl(instanceActorName)
 
 let instanceActor
 export async function getInstanceActor () {

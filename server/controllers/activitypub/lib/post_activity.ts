@@ -1,3 +1,5 @@
+import { map, uniq } from 'lodash-es'
+import { makeActorKeyUrl } from '#controllers/activitypub/lib/get_actor'
 import { signRequest } from '#controllers/activitypub/lib/security'
 import { isUrl } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
@@ -8,23 +10,20 @@ import config from '#server/config'
 import type { ActorName, PostActivity, BodyTo } from '#types/activity'
 import type { AbsoluteUrl } from '#types/common'
 import { getFollowActivitiesByObject } from './activities.js'
-import { makeUrl } from './helpers.js'
 import { getSharedKeyPair } from './shared_key_pair.js'
+
 // Arbitrary timeout
 const timeout = 30 * 1000
 const { sanitizeUrls } = config.activitypub
 
 export async function postActivity ({ actorName, inboxUri, bodyTo, activity }: { actorName: ActorName, inboxUri: AbsoluteUrl, bodyTo: BodyTo, activity: PostActivity }) {
   const { privateKey, publicKeyHash } = await getSharedKeyPair()
-
-  const keyActorUrl = makeUrl({ params: { action: 'actor', name: actorName } })
-
   const body: PostActivity = Object.assign({}, activity)
   body.to = bodyTo
   const postHeaders = signRequest({
     url: inboxUri,
     method: 'post',
-    keyId: `${keyActorUrl}#${publicKeyHash}`,
+    keyId: makeActorKeyUrl(actorName, publicKeyHash),
     privateKey,
     body,
   })

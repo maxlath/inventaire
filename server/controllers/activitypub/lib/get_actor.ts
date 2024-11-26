@@ -10,7 +10,7 @@ import { getSharedKeyPair } from './shared_key_pair.js'
 import { validateShelf, validateUser, validateEntity } from './validations.js'
 
 const origin = config.getPublicOrigin()
-const publicOrigin = origin.split('://')[1]
+const host = origin.split('://')[1]
 
 async function getShelfActor (name: ShelfActorName) {
   const { shelf, owner } = await validateShelf(name)
@@ -52,7 +52,7 @@ async function getEntityActor (name: EntityActorName) {
   const url = entityUrl(uri)
   const links: ActivityLink[] = [
     {
-      name: publicOrigin,
+      name: host,
       url,
     },
   ]
@@ -78,11 +78,19 @@ async function getEntityActor (name: EntityActorName) {
   })
 }
 
+export function makeActorUrl (actorName: string) {
+  return `${origin}/api/activitypub?action=actor&name=${actorName}` as LocalActorUrl
+}
+
+export function makeActorKeyUrl (actorName: string, publicKeyHash: string) {
+  return `${makeActorUrl(actorName)}#${publicKeyHash}`
+}
+
 async function buildActorObject ({ actorName, displayName, summary, imagePath, links, attachment = [] }: ActorParams) {
   const { publicKey, publicKeyHash } = await getSharedKeyPair()
-  const actorUrl: LocalActorUrl = `${origin}/api/activitypub?action=actor&name=${actorName}`
+  const actorUrl = makeActorUrl(actorName)
   // Use the key hash to bust any cached version of an old key
-  const keyUrl: LocalActorUrl = `${actorUrl}#${publicKeyHash}`
+  const keyUrl = makeActorKeyUrl(actorName, publicKeyHash)
 
   const actor: ActorActivity = {
     '@context': [

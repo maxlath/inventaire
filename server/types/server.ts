@@ -9,10 +9,10 @@ export interface AuthentifiedReq extends Express.Request {
 }
 
 /** See https://en.wikipedia.org/wiki/Acct_URI_scheme */
-export type AccountUri = `${UserId}@${Host}`
+export type UserAccountUri = `${UserId}@${Host}`
 
 export interface RemoteUser {
-  acct: AccountUri
+  acct: UserAccountUri
 }
 
 export interface SignedReq extends Express.Request {

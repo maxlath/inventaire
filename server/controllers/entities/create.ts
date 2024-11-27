@@ -36,10 +36,16 @@ async function controller (params: SanitizedParameters, req: AuthentifiedReq | R
       throw newError('A remote user can not edit a Wikidata edition', 403)
     }
   } else {
+    let userAcct
+    if ('user' in req) {
+      userAcct = getLocalUserAcct(reqUserId)
+    } else {
+      userAcct = req.remoteUser.acct
+    }
     entity = await createInvEntity({
       labels,
       claims,
-      userAcct: getLocalUserAcct(reqUserId),
+      userAcct,
     })
   }
   // Re-request the entity's data to get it formatted

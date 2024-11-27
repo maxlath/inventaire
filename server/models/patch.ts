@@ -3,14 +3,14 @@ import { cloneDeep, get, isArray, pick } from 'lodash-es'
 import { newError } from '#lib/error/error'
 import { assertNumber, assertObject, assertString } from '#lib/utils/assert_types'
 import { createBlankEntityDoc } from '#models/entity'
-import type { AccountUri } from '#server/types/server'
 import type { InvEntityDoc, NewInvEntity } from '#types/entity'
 import type { BatchId, Patch, PatchContext } from '#types/patch'
+import type { UserAccountUri } from '#types/server'
 import { versioned } from './attributes/entity.js'
 import validations from './validations/common.js'
 
 interface CreatePatchDocParams {
-  userAcct: AccountUri
+  userAcct: UserAccountUri
   currentDoc: NewInvEntity | InvEntityDoc
   updatedDoc: InvEntityDoc
   context?: PatchContext

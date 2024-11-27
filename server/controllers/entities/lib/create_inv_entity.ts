@@ -5,14 +5,14 @@ import { log, success } from '#lib/utils/logs'
 import { addEntityDocClaims, createBlankEntityDoc, setEntityDocLabels } from '#models/entity'
 import type { InvEntity } from '#types/entity'
 import type { BatchId } from '#types/patch'
-import type { AccountUri } from '#types/server'
+import type { UserAccountUri } from '#types/server'
 import { prefixifyInv } from './prefix.js'
 import { validateInvEntity } from './validate_entity.js'
 
 interface CreateInvEntityParams {
   labels?: InvEntity['labels']
   claims: InvEntity['claims']
-  userAcct: AccountUri
+  userAcct: UserAccountUri
   batchId?: BatchId
   userAccessLevels?: AccessLevel[]
 }

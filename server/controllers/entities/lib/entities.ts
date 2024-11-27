@@ -16,7 +16,7 @@ import config from '#server/config'
 import type { EntityUri, InvEntityDoc, EntityValue, PropertyUri, InvEntity, Isbn, InvClaimValue, SerializedEntity, WdEntityId, WdEntityUri, EntityType, Claims, NewInvEntity } from '#types/entity'
 import type { EntityImagePath, ImageHash } from '#types/image'
 import type { BatchId, PatchContext } from '#types/patch'
-import type { AccountUri } from '#types/server'
+import type { UserAccountUri } from '#types/server'
 import { getInvEntityCanonicalUri } from './get_inv_entity_canonical_uri.js'
 import { createPatch } from './patches/create_patch.js'
 import { validateProperty } from './properties/validations.js'
@@ -97,7 +97,7 @@ export async function getInvEntitiesClaimValueCount (value: InvClaimValue) {
 }
 
 interface PutInvEntityCommonParams {
-  userAcct: AccountUri
+  userAcct: UserAccountUri
   batchId?: BatchId
   context?: PatchContext
 }

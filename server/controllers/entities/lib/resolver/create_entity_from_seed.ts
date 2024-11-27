@@ -1,6 +1,7 @@
 import { chain, compact, map } from 'lodash-es'
 import { findClaimByValue, getFirstClaimValue } from '#controllers/entities/lib/inv_claims_utils'
 import { convertAndCleanupImageUrl } from '#controllers/images/lib/convert_and_cleanup_image_url'
+import { getLocalUserAcct } from '#controllers/user/lib/user'
 import { getImageByIsbn } from '#data/dataseed/dataseed'
 import { isNonEmptyString } from '#lib/boolean_validations'
 import { toIsbn13h } from '#lib/isbn/isbn'
@@ -94,7 +95,7 @@ async function createEntityFromSeed ({ seed, userId, batchId }: { seed: EntitySe
     entity = await createInvEntity({
       labels: seed.labels,
       claims: seed.claims,
-      userId,
+      userAcct: getLocalUserAcct(userId),
       batchId,
     })
   } catch (err) {

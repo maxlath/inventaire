@@ -1,16 +1,16 @@
 import jiff from 'jiff'
 import { cloneDeep, get, isArray, pick } from 'lodash-es'
 import { newError } from '#lib/error/error'
-import { assertNumber, assertObject } from '#lib/utils/assert_types'
+import { assertNumber, assertObject, assertString } from '#lib/utils/assert_types'
 import { createBlankEntityDoc } from '#models/entity'
+import type { AccountUri } from '#server/types/server'
 import type { InvEntityDoc, NewInvEntity } from '#types/entity'
 import type { BatchId, Patch, PatchContext } from '#types/patch'
-import type { UserId } from '#types/user'
 import { versioned } from './attributes/entity.js'
 import validations from './validations/common.js'
 
 interface CreatePatchDocParams {
-  userId: UserId
+  userAcct: AccountUri
   currentDoc: NewInvEntity | InvEntityDoc
   updatedDoc: InvEntityDoc
   context?: PatchContext
@@ -18,8 +18,8 @@ interface CreatePatchDocParams {
 }
 
 export function createPatchDoc (params: CreatePatchDocParams) {
-  const { userId, currentDoc, updatedDoc, context, batchId } = params
-  validations.pass('userId', userId)
+  const { userAcct, currentDoc, updatedDoc, context, batchId } = params
+  assertString(userAcct)
   assertObject(currentDoc)
   assertObject(updatedDoc)
   validations.pass('couchUuid', updatedDoc._id)
@@ -44,7 +44,7 @@ export function createPatchDoc (params: CreatePatchDocParams) {
   const patch: Partial<Patch> = {
     _id: `${entityId}:${entityVersion}`,
     type: 'patch',
-    user: userId,
+    user: userAcct,
     timestamp: now,
     operations: getPatchDiff(currentDoc, updatedDoc),
   }

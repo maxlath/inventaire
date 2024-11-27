@@ -16,7 +16,7 @@ import config from '#server/config'
 import type { EntityUri, InvEntityDoc, EntityValue, PropertyUri, InvEntity, Isbn, InvClaimValue, SerializedEntity, WdEntityId, WdEntityUri, EntityType, Claims, NewInvEntity } from '#types/entity'
 import type { EntityImagePath, ImageHash } from '#types/image'
 import type { BatchId, PatchContext } from '#types/patch'
-import type { UserId } from '#types/user'
+import type { AccountUri } from '#types/server'
 import { getInvEntityCanonicalUri } from './get_inv_entity_canonical_uri.js'
 import { createPatch } from './patches/create_patch.js'
 import { validateProperty } from './properties/validations.js'
@@ -97,7 +97,7 @@ export async function getInvEntitiesClaimValueCount (value: InvClaimValue) {
 }
 
 interface PutInvEntityCommonParams {
-  userId: UserId
+  userAcct: AccountUri
   batchId?: BatchId
   context?: PatchContext
 }
@@ -112,8 +112,8 @@ interface PutInvEntityUpdateParams extends PutInvEntityCommonParams {
   create?: false
 }
 export async function putInvEntityUpdate <T extends InvEntityDoc = InvEntity> (params: PutInvEntityCreationParams | PutInvEntityUpdateParams) {
-  const { userId, currentDoc, updatedDoc, create, batchId, context } = params
-  assertTypes([ 'string', 'object', 'object' ], [ userId, currentDoc, updatedDoc ])
+  const { userAcct, currentDoc, updatedDoc, create, batchId, context } = params
+  assertTypes([ 'string', 'object', 'object' ], [ userAcct, currentDoc, updatedDoc ])
   if (currentDoc === updatedDoc) {
     // @ts-expect-error TS2345
     throw newError('currentDoc and updatedDoc can not be the same object', 500, params)
@@ -132,7 +132,7 @@ export async function putInvEntityUpdate <T extends InvEntityDoc = InvEntity> (p
 
   try {
     const patchCreationParams = {
-      userId,
+      userAcct,
       currentDoc,
       updatedDoc: docAfterUpdate as T,
       batchId,

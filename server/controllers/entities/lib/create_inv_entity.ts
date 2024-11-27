@@ -5,20 +5,20 @@ import { log, success } from '#lib/utils/logs'
 import { addEntityDocClaims, createBlankEntityDoc, setEntityDocLabels } from '#models/entity'
 import type { InvEntity } from '#types/entity'
 import type { BatchId } from '#types/patch'
-import type { UserId } from '#types/user'
+import type { AccountUri } from '#types/server'
 import { prefixifyInv } from './prefix.js'
 import { validateInvEntity } from './validate_entity.js'
 
 interface CreateInvEntityParams {
   labels?: InvEntity['labels']
   claims: InvEntity['claims']
-  userId: UserId
+  userAcct: AccountUri
   batchId?: BatchId
   userAccessLevels?: AccessLevel[]
 }
 
 export async function createInvEntity (params: CreateInvEntityParams) {
-  const { labels = {}, claims, userId, batchId, userAccessLevels } = params
+  const { labels = {}, claims, userAcct, batchId, userAccessLevels } = params
   log(params, 'inv entity creation')
 
   await validateInvEntity({ labels, claims }, userAccessLevels)
@@ -27,7 +27,7 @@ export async function createInvEntity (params: CreateInvEntityParams) {
   let updatedDoc = cloneDeep(currentDoc)
   updatedDoc = setEntityDocLabels(updatedDoc, labels)
   updatedDoc = addEntityDocClaims(updatedDoc, claims)
-  const updateParams = { userId, currentDoc, updatedDoc, batchId, create: true } as PutInvEntityCreationParams
+  const updateParams = { userAcct, currentDoc, updatedDoc, batchId, create: true } as PutInvEntityCreationParams
   const createdEntity = await putInvEntityUpdate(updateParams)
   // @ts-expect-error
   createdEntity.uri = prefixifyInv(createdEntity._id)

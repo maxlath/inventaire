@@ -1,4 +1,5 @@
 import type { ParsedForm } from '#controllers/images/lib/parse_form'
+import type { RemoteUser } from '#lib/federation/remote_user'
 import type { RelativeUrl, Host } from '#types/common'
 import type { User, UserId } from '#types/user'
 import type Express from 'express'
@@ -10,10 +11,6 @@ export interface AuthentifiedReq extends Express.Request {
 
 /** See https://en.wikipedia.org/wiki/Acct_URI_scheme */
 export type UserAccountUri = `${UserId}@${Host}`
-
-export interface RemoteUser {
-  acct: UserAccountUri
-}
 
 export interface SignedReq extends Express.Request {
   signed: {

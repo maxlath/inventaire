@@ -5,7 +5,7 @@ import { getEntityByUri as getLocalEntityByUri } from '#controllers/entities/lib
 import { getReverseClaims as getLocalReverseClaims, type ReverseClaimsParams } from '#controllers/entities/lib/reverse_claims'
 import { info } from '#lib/utils/logs'
 import config from '#server/config'
-import type { EntityUri } from '#server/types/entity'
+import type { EntityUri } from '#types/entity'
 
 const { remoteEntitiesOrigin } = config.federation
 const federatedMode = remoteEntitiesOrigin != null

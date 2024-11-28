@@ -1,4 +1,4 @@
-import type { UserAccountUri } from '#server/types/server'
+import type { UserAccountUri } from '#types/server'
 import type { CouchDoc } from '#types/couchdb'
 import type { EntityUri, InvClaimValue, InvEntityId, Label } from '#types/entity'
 import type { UserId } from '#types/user'

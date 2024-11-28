@@ -1,7 +1,6 @@
 import { oneDay } from '#lib/time'
 import type { ResolverEntry } from '#types/resolver'
-import type { AuthentifiedReq } from '#types/server'
-import type { UserId } from '#types/user'
+import type { AuthentifiedReq, UserAccountUri } from '#types/server'
 import { resolveUpdateAndCreate } from './lib/resolver/resolve_update_and_create.js'
 
 // Entry example:
@@ -55,7 +54,7 @@ export interface ResolverParams {
   update?: boolean
   enrich?: boolean
   strict?: boolean
-  reqUserId?: UserId
+  reqUserAcct?: UserAccountUri
 }
 
 async function controller (params: ResolverParams, req: AuthentifiedReq) {

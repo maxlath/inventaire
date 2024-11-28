@@ -2,6 +2,7 @@ import { camelCase, cloneDeep, isPlainObject } from 'lodash-es'
 import { newError } from '#lib/error/error'
 import type { ContextualizedError } from '#lib/error/format_error'
 import { newMissingError, newInvalidError } from '#lib/error/pre_filled'
+import { getLocalUserAcct } from '#lib/federation/remote_user'
 import { addWarning } from '#lib/responses'
 import { assertObject } from '#lib/utils/assert_types'
 import { obfuscate } from '#lib/utils/base'
@@ -47,6 +48,9 @@ export function sanitize (req: Req | AuthentifiedReq, res: Res, configs: Control
 
   if ('user' in req) {
     input.reqUserId = req.user._id
+    input.reqUserAcct = getLocalUserAcct(req.user._id)
+  } else if (req.remoteUser) {
+    input.reqUserAcct = req.remoteUser.acct
   }
 
   return input as SanitizedParameters

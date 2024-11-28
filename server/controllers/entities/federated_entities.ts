@@ -13,9 +13,9 @@ import type { AccessLevel } from '#lib/user_access_levels'
 import { objectEntries } from '#lib/utils/base'
 import { buildUrl } from '#lib/utils/url'
 import config from '#server/config'
-import type { AbsoluteUrl } from '#server/types/common'
-import type { ActionController, HttpVerb } from '#server/types/controllers'
-import type { AuthentifiedReq, Req } from '#server/types/server'
+import type { AbsoluteUrl } from '#types/common'
+import type { ActionController, HttpVerb } from '#types/controllers'
+import type { AuthentifiedReq, Req } from '#types/server'
 
 const { remoteEntitiesOrigin } = config.federation
 const remoteEntitiesEndpoint: AbsoluteUrl = `${remoteEntitiesOrigin}/api/entities`

@@ -8,11 +8,11 @@ import { log } from '#lib/utils/logs'
 import { convertEntityDocIntoARedirection, preventRedirectionEdit, convertEntityDocIntoALocalLayer, preventLocalLayerEdit, preventRemovedPlaceholderEdit } from '#models/entity'
 import type { Claims, EntityUri, InvEntity, InvEntityId, InvEntityUri, PropertyUri } from '#types/entity'
 import type { PatchContext } from '#types/patch'
-import type { UserId } from '#types/user'
+import type { UserAccountUri } from '#types/server'
 import propagateRedirection from './propagate_redirection.js'
 
-export async function turnIntoRedirectionOrLocalLayer ({ userId, fromId, toUri, previousToUri, context }: { userId: UserId, fromId: InvEntityId, toUri: EntityUri, previousToUri?: EntityUri, context?: PatchContext }) {
-  assertStrings([ userId, fromId, toUri ])
+export async function turnIntoRedirectionOrLocalLayer ({ userAcct, fromId, toUri, previousToUri, context }: { userAcct: UserAccountUri, fromId: InvEntityId, toUri: EntityUri, previousToUri?: EntityUri, context?: PatchContext }) {
+  assertStrings([ userAcct, fromId, toUri ])
   if (previousToUri != null) assertString(previousToUri)
 
   const fromUri = `inv:${fromId}` as InvEntityUri
@@ -26,27 +26,27 @@ export async function turnIntoRedirectionOrLocalLayer ({ userId, fromId, toUri, 
     updatedFromDoc = convertEntityDocIntoALocalLayer(currentFromDoc, toUri)
   } else {
     // If an author has no more links to it, remove it
-    const removedIds = await removeObsoletePlaceholderEntities(userId, currentFromDoc)
+    const removedIds = await removeObsoletePlaceholderEntities(userAcct, currentFromDoc)
     updatedFromDoc = convertEntityDocIntoARedirection(currentFromDoc, toUri, removedIds)
   }
   await putInvEntityUpdate({
-    userId,
+    userAcct,
     currentDoc: currentFromDoc,
     updatedDoc: updatedFromDoc,
     context,
   })
-  return propagateRedirection(userId, fromUri, toUri, previousToUri)
+  return propagateRedirection(userAcct, fromUri, toUri, previousToUri)
 }
 
 // Removing the entities that were needed only by the entity about to be turned
 // into a redirection: this entity now don't have anymore reason to be and is quite
 // probably a duplicate of an existing entity referenced by the redirection
 // destination entity.
-async function removeObsoletePlaceholderEntities (userId: UserId, entityDocBeforeRedirection: InvEntity) {
+async function removeObsoletePlaceholderEntities (userAcct: UserAccountUri, entityDocBeforeRedirection: InvEntity) {
   const entityUrisToCheck = getEntityUrisToCheck(entityDocBeforeRedirection.claims)
   log(entityUrisToCheck, 'entity uris to check for autoremoval')
   const fromId = entityDocBeforeRedirection._id
-  const removedIds = await Promise.all(entityUrisToCheck.map(deleteIfIsolated(userId, fromId)))
+  const removedIds = await Promise.all(entityUrisToCheck.map(deleteIfIsolated(userAcct, fromId)))
   return compact(removedIds)
 }
 
@@ -61,12 +61,12 @@ const propertiesToCheckForPlaceholderDeletion: PropertyUri[] = [
   'wdt:P50',
 ] as const
 
-const deleteIfIsolated = (userId: UserId, fromId: InvEntityId) => async (entityUri: EntityUri) => {
+const deleteIfIsolated = (userAcct: UserAccountUri, fromId: InvEntityId) => async (entityUri: EntityUri) => {
   const [ prefix, entityId ] = entityUri.split(':')
   // Ignore wd or isbn entities
   if (prefix !== 'inv') return
 
   let results = await getInvClaimsByClaimValue(entityUri)
   results = results.filter(result => result.entity !== fromId)
-  if (results.length === 0) return removePlaceholder(userId, entityId)
+  if (results.length === 0) return removePlaceholder(userAcct, entityId)
 }

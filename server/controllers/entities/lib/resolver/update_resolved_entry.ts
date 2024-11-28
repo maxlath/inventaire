@@ -13,36 +13,36 @@ import type { AbsoluteUrl } from '#types/common'
 import type { ClaimByDatatype, Claims, InvEntity, InvEntityDoc, SerializedWdEntity } from '#types/entity'
 import type { BatchId } from '#types/patch'
 import type { EntitySeed, ResolverEntry } from '#types/resolver'
-import type { UserId } from '#types/user'
+import type { UserAccountUri } from '#types/server'
 import { getEntityById, putInvEntityUpdate } from '../entities.js'
 
-export async function updateResolvedEntry (entry: ResolverEntry, { reqUserId, batchId }: ResolverBatchParams) {
+export async function updateResolvedEntry (entry: ResolverEntry, { reqUserAcct, batchId }: ResolverBatchParams) {
   const { edition, works, authors } = entry
 
   const allResolvedSeeds = [ edition, ...works, ...authors ].filter(hasUri)
 
-  await Promise.all(allResolvedSeeds.map(updateEntityFromSeed(reqUserId, batchId)))
+  await Promise.all(allResolvedSeeds.map(updateEntityFromSeed(reqUserAcct, batchId)))
   return entry
 }
 
 const hasUri = seed => seed.uri != null
 
-const updateEntityFromSeed = (reqUserId: UserId, batchId: BatchId) => async (seed: EntitySeed) => {
+const updateEntityFromSeed = (reqUserAcct: UserAccountUri, batchId: BatchId) => async (seed: EntitySeed) => {
   const { uri, claims: seedClaims } = seed
   const imageUrl = 'image' in seed ? seed.image : undefined
   if (!uri) return
 
   const entity = await getEntityByUri({ uri, refresh: true })
   if ('wdId' in entity) {
-    await updateWdClaims(entity, seedClaims, imageUrl, reqUserId)
+    await updateWdClaims(entity, seedClaims, imageUrl, reqUserAcct)
   } else {
     const { invId } = entity
     const entityDoc = await getEntityById(invId)
-    await updateInvClaims(entityDoc, seedClaims, imageUrl, reqUserId, batchId)
+    await updateInvClaims(entityDoc, seedClaims, imageUrl, reqUserAcct, batchId)
   }
 }
 
-async function updateInvClaims (entity: InvEntityDoc, seedClaims: Claims, imageUrl: AbsoluteUrl | undefined, reqUserId: UserId, batchId: BatchId) {
+async function updateInvClaims (entity: InvEntityDoc, seedClaims: Claims, imageUrl: AbsoluteUrl | undefined, reqUserAcct: UserAccountUri, batchId: BatchId) {
   if (!('claims' in entity)) return
   if (entity.type !== 'entity') return
   const updatedEntity: InvEntity = cloneDeep(entity)
@@ -53,15 +53,15 @@ async function updateInvClaims (entity: InvEntityDoc, seedClaims: Claims, imageU
   addEntityDocClaims(updatedEntity, seedClaims)
   if (isEqual(updatedEntity, entity)) return
   await putInvEntityUpdate({
-    userId: reqUserId,
+    userAcct: reqUserAcct,
     currentDoc: entity,
     updatedDoc: updatedEntity,
     batchId,
   })
 }
 
-async function updateWdClaims (entity: SerializedWdEntity, seedClaims: Claims, imageUrl: AbsoluteUrl | undefined, reqUserId: UserId) {
-  const user = await getUserById(reqUserId)
+async function updateWdClaims (entity: SerializedWdEntity, seedClaims: Claims, imageUrl: AbsoluteUrl | undefined, reqUserAcct: UserAccountUri) {
+  const user = await getUserById(reqUserAcct)
   const filteredSeedClaims = filterUpdatableClaims(seedClaims, entity.claims)
   const id = entity.wdId
   await addWdClaims(id, filteredSeedClaims, user)

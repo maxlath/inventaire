@@ -4,7 +4,7 @@ import type { ReverseClaimsParams } from '#controllers/entities/lib/reverse_clai
 import { requests_ } from '#lib/requests'
 import { buildUrl } from '#lib/utils/url'
 import config from '#server/config'
-import type { EntityUri } from '#server/types/entity'
+import type { EntityUri } from '#types/entity'
 
 const { remoteEntitiesOrigin } = config.federation
 

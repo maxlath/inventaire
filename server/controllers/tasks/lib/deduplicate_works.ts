@@ -7,9 +7,9 @@ import mergeEntities from '#controllers/entities/lib/merge_entities'
 import { getSuggestionsAndCreateTasks } from '#controllers/tasks/lib/merge_or_create_tasks'
 import { newError, notFoundError } from '#lib/error/error'
 import type { SerializedEntity, EntityUri } from '#types/entity'
-import type { UserId } from '#types/user'
+import type { UserAccountUri } from '#types/server'
 
-export default async function (workUri, isbn, userId) {
+export default async function (workUri: EntityUri, isbn: string, userAcct: UserAccountUri) {
   const work = await getEntityByUri({ uri: workUri })
   if (work == null) throw notFoundError({ workUri })
 
@@ -25,7 +25,7 @@ export default async function (workUri, isbn, userId) {
   const editionWorksUris = edition.claims['wdt:P629'] as EntityUri[]
   if (isEqual(editionWorksUris, [ workUri ])) return
   const editionWorks = await getEntitiesList(editionWorksUris)
-  const toEntities = await mergeIfLabelsMatch(work, editionWorks, userId)
+  const toEntities = await mergeIfLabelsMatch(work, editionWorks, userAcct)
   if (toEntities.length === 0) return
 
   return getSuggestionsAndCreateTasks({
@@ -33,18 +33,18 @@ export default async function (workUri, isbn, userId) {
     entitiesType: type,
     toEntities,
     fromEntity: work,
-    userId,
+    userAcct,
     clue: isbn,
   })
 }
 
-export async function mergeIfLabelsMatch (fromEntity: SerializedEntity, toEntities: SerializedEntity[], userId: UserId) {
+export async function mergeIfLabelsMatch (fromEntity: SerializedEntity, toEntities: SerializedEntity[], userAcct: UserAccountUri) {
   const fromEntityLabels = Object.values(fromEntity.labels)
   for (const toEntity of toEntities) {
     const toEntityLabels = Object.values(toEntity.labels)
     if (haveExactMatch(fromEntityLabels, toEntityLabels)) {
       await mergeEntities({
-        userId,
+        userAcct,
         fromUri: fromEntity.uri,
         toUri: toEntity.uri,
       })

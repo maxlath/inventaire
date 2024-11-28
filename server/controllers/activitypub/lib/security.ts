@@ -7,7 +7,7 @@ import { expired } from '#lib/time'
 import { assertObject } from '#lib/utils/assert_types'
 import { warn } from '#lib/utils/logs'
 import config from '#server/config'
-import type { MaybeSignedReq, SignedReq } from '#server/types/server'
+import type { MaybeSignedReq, SignedReq } from '#types/server'
 import type { AbsoluteUrl, HttpHeaders } from '#types/common'
 
 const { sanitizeUrls } = config.activitypub

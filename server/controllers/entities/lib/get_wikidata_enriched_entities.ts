@@ -17,6 +17,7 @@ import { hardCodedUsers } from '#db/couchdb/hard_coded_documents'
 import { addWdEntityToIndexationQueue } from '#db/elasticsearch/wikidata_entities_indexation_queue'
 import { isWdEntityUri } from '#lib/boolean_validations'
 import { cache_ } from '#lib/cache'
+import { getLocalUserAcct } from '#lib/federation/remote_user'
 import { emit } from '#lib/radio'
 import { assertString } from '#lib/utils/assert_types'
 import { arrayIncludes, objectEntries } from '#lib/utils/base'
@@ -35,7 +36,7 @@ async function importCircularDependencies () {
 }
 setImmediate(importCircularDependencies)
 
-const { _id: hookUserId } = hardCodedUsers.hook
+const hookUserAcct = getLocalUserAcct(hardCodedUsers.hook._id)
 
 export async function getWikidataEnrichedEntities (ids: WdEntityId[], { refresh, dry, includeReferences }: EntitiesGetterParams) {
   const [ remoteEntitiesByIds, localEntitiesLayersByIds ] = await Promise.all([
@@ -208,7 +209,7 @@ async function formatAndPropagateRedirection (entity: RawWdEntity, serializedEnt
     // if there is a redirection we are not aware of, and propagate it:
     // if the redirected entity is used in Inventaire claims, redirect claims
     // to their new entity
-    propagateRedirection(hookUserId, serializedEntity.redirects.from, serializedEntity.redirects.to)
+    propagateRedirection(hookUserAcct, serializedEntity.redirects.from, serializedEntity.redirects.to)
     reindexWdEntity({ _id: unprefixify(serializedEntity.redirects.from), redirect: true })
     await emit('wikidata:entity:redirect', serializedEntity.redirects.from, serializedEntity.redirects.to)
   } else if (!isWdEntityUri(serializedEntity.uri)) {

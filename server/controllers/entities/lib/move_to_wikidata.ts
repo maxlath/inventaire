@@ -10,6 +10,7 @@ import { getWikidataOAuthCredentials } from '#controllers/entities/lib/wikidata_
 import { temporarilyOverrideWdIdAndIsbnCache } from '#data/wikidata/get_wd_entities_by_isbns'
 import { isNonEmptyArray } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
+import { getUserAcct, type RemoteUser } from '#lib/federation/remote_user'
 import { normalizeIsbn } from '#lib/isbn/isbn'
 import { logError } from '#lib/utils/logs'
 import wdEdit from '#lib/wikidata/edit'
@@ -21,8 +22,8 @@ import mergeEntities from './merge_entities.js'
 import { unprefixify } from './prefix.js'
 import { cacheEntityRelations } from './temporarily_cache_relations.js'
 
-export async function moveInvEntityToWikidata (user: User, invEntityUri: InvEntityUri) {
-  const { _id: reqUserId } = user
+export async function moveInvEntityToWikidata (user: User | RemoteUser, invEntityUri: InvEntityUri) {
+  const userAcct = getUserAcct(user)
 
   const entityId = unprefixify(invEntityUri)
 
@@ -84,7 +85,7 @@ export async function moveInvEntityToWikidata (user: User, invEntityUri: InvEnti
   await cacheEntityRelations(invEntityUri)
 
   await mergeEntities({
-    userId: reqUserId,
+    userAcct,
     fromUri: invEntityUri,
     toUri: wdEntityUri,
     context: {
@@ -134,7 +135,7 @@ function buildDescriptions (claims: ExpandedClaims): Descriptions {
   }
 }
 
-async function setReverseClaims (claims: ExpandedClaims, wdEntityUri: WdEntityUri, user: User) {
+async function setReverseClaims (claims: ExpandedClaims, wdEntityUri: WdEntityUri, user: User | RemoteUser) {
   const credentials = getWikidataOAuthCredentials(user)
   const entityType = getInvEntityType(claims['wdt:P31'])
   const newEntityId = unprefixify(wdEntityUri)

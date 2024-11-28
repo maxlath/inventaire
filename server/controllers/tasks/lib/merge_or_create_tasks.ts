@@ -9,13 +9,13 @@ import { updateTasks, getExistingTasks, createTasksFromSuggestions, getTasksBySu
 import { someMatch } from '#lib/utils/base'
 import { log } from '#lib/utils/logs'
 import type { SerializedEntity, EntityUri, EntityType } from '#types/entity'
+import type { UserAccountUri } from '#types/server'
 import type { Task, Suggestion, TaskType } from '#types/task'
-import type { UserId } from '#types/user'
 
-export async function getSuggestionsAndCreateTasks ({ type, entitiesType, toEntities, fromEntity, userId, clue }: { type: TaskType, entitiesType?: EntityType, toEntities: SerializedEntity[], fromEntity: SerializedEntity, userId?: UserId, clue?: string }) {
+export async function getSuggestionsAndCreateTasks ({ type, entitiesType, toEntities, fromEntity, userAcct, clue }: { type: TaskType, entitiesType?: EntityType, toEntities: SerializedEntity[], fromEntity: SerializedEntity, userAcct?: UserAccountUri, clue?: string }) {
   const existingTasks: Task[] = await getExistingTasks(fromEntity.uri)
   const newToEntities: SerializedEntity[] = filterNewSuggestionEntities(toEntities, existingTasks)
-  const suggestions: Suggestion[] = map(newToEntities, addToSuggestion(userId, clue))
+  const suggestions: Suggestion[] = map(newToEntities, addToSuggestion(userAcct, clue))
   const suspectUri = fromEntity.uri
 
   log({ suspectUri, suggestions: map(suggestions, 'uri') }, 'creating tasks from suggestions')
@@ -32,8 +32,8 @@ function filterNewSuggestionEntities (entities, existingTasks) {
   return entities.filter(entity => !existingTasksUris.includes(entity.uri))
 }
 
-const addToSuggestion = (userId, clue) => suggestion => {
-  suggestion.reporter = userId
+const addToSuggestion = (userAcct, clue) => suggestion => {
+  suggestion.reporter = userAcct
   suggestion.clue = clue
   return suggestion
 }
@@ -43,10 +43,10 @@ interface LabelsMatchMergeParams {
   toUri: EntityUri
   fromEntity: SerializedEntity
   toEntity: SerializedEntity
-  userId: UserId
+  userAcct: UserAccountUri
 }
 const mergeIfLabelsMatchByType = {
-  work: async function ({ fromUri, toUri, fromEntity, toEntity, userId }: LabelsMatchMergeParams) {
+  work: async function ({ fromUri, toUri, fromEntity, toEntity, userAcct }: LabelsMatchMergeParams) {
     const [ fromEntityAuthors, toEntityAuthors ] = await Promise.all([
       getAuthorsFromWorksUris([ fromEntity.uri ]),
       getAuthorsFromWorksUris([ toEntity.uri ]),
@@ -63,12 +63,12 @@ const mergeIfLabelsMatchByType = {
 
     return validateAndMergeEntities({
       validation: haveExactMatch(fromAuthorsLabels, toAuthorsLabels),
-      userId,
+      userAcct,
       fromUri,
       toUri,
     })
   },
-  collection: async function ({ fromUri, toUri, fromEntity, toEntity, userId }: LabelsMatchMergeParams) {
+  collection: async function ({ fromUri, toUri, fromEntity, toEntity, userAcct }: LabelsMatchMergeParams) {
     const [ fromPublishers, toPublishers ] = await Promise.all([
       getPublishersFromPublicationsUris([ fromEntity.uri ]),
       getPublishersFromPublicationsUris([ toEntity.uri ]),
@@ -77,12 +77,12 @@ const mergeIfLabelsMatchByType = {
     const toLabels = uniq(toPublishers.flatMap(getEntityNormalizedTerms))
     return validateAndMergeEntities({
       validation: haveExactMatch(fromLabels, toLabels),
-      userId,
+      userAcct,
       fromUri,
       toUri,
     })
   },
-  human: async function ({ fromUri, toUri, fromEntity, toEntity, userId }: LabelsMatchMergeParams) {
+  human: async function ({ fromUri, toUri, fromEntity, toEntity, userAcct }: LabelsMatchMergeParams) {
     const [ fromEntityWorksData, toEntityWorksData ] = await Promise.all([
       getAuthorWorksData(fromEntity._id),
       getAuthorWorksData(toEntity._id),
@@ -91,12 +91,12 @@ const mergeIfLabelsMatchByType = {
     const { labels: toEntityWorksLabels } = toEntityWorksData
     return validateAndMergeEntities({
       validation: haveExactMatch(fromEntityWorksLabels, toEntityWorksLabels),
-      userId,
+      userAcct,
       fromUri,
       toUri,
     })
   },
-  edition: async function ({ fromUri, toUri, fromEntity, toEntity, userId }: LabelsMatchMergeParams) {
+  edition: async function ({ fromUri, toUri, fromEntity, toEntity, userAcct }: LabelsMatchMergeParams) {
     const [ fromEditionWorks, toEditionWorks ] = await Promise.all([
       getEditionWorks(fromEntity),
       getEditionWorks(toEntity),
@@ -105,7 +105,7 @@ const mergeIfLabelsMatchByType = {
     const toLabels = uniq(toEditionWorks.flatMap(getEntityNormalizedTerms))
     return validateAndMergeEntities({
       validation: haveExactMatch(fromLabels, toLabels),
-      userId,
+      userAcct,
       fromUri,
       toUri,
     })
@@ -117,10 +117,10 @@ async function getEditionWorks (edition) {
   return getEntitiesList(worksUris)
 }
 
-export async function mergeOrCreateOrUpdateTask (entitiesType: EntityType, fromUri: EntityUri, toUri: EntityUri, fromEntity: SerializedEntity, toEntity: SerializedEntity, userId: UserId) {
+export async function mergeOrCreateOrUpdateTask (entitiesType: EntityType, fromUri: EntityUri, toUri: EntityUri, fromEntity: SerializedEntity, toEntity: SerializedEntity, userAcct: UserAccountUri) {
   const mergeIfLabelsMatch = mergeIfLabelsMatchByType[entitiesType]
   if (mergeIfLabelsMatch) {
-    const isMerged = await mergeIfLabelsMatch({ fromUri, toUri, fromEntity, toEntity, userId })
+    const isMerged = await mergeIfLabelsMatch({ fromUri, toUri, fromEntity, toEntity, userAcct })
     if (isMerged) {
       log({ fromUri, toUri }, 'entities have been merged')
       return isMerged
@@ -133,7 +133,7 @@ export async function mergeOrCreateOrUpdateTask (entitiesType: EntityType, fromU
     [ taskRes ] = await updateTasks({
       ids: [ existingTask._id ],
       attribute: 'reporter',
-      newValue: userId,
+      newValue: userAcct,
     })
   } else {
     [ taskRes ] = await getSuggestionsAndCreateTasks({
@@ -141,7 +141,7 @@ export async function mergeOrCreateOrUpdateTask (entitiesType: EntityType, fromU
       entitiesType,
       toEntities: [ toEntity ],
       fromEntity,
-      userId,
+      userAcct,
     })
   }
   return {
@@ -150,9 +150,9 @@ export async function mergeOrCreateOrUpdateTask (entitiesType: EntityType, fromU
   }
 }
 
-async function validateAndMergeEntities ({ validation, userId, fromUri, toUri }) {
+async function validateAndMergeEntities ({ validation, userAcct, fromUri, toUri }) {
   if (!validation) { return false }
-  await mergeEntities({ userId, fromUri, toUri })
+  await mergeEntities({ userAcct, fromUri, toUri })
   return { ok: true }
 }
 

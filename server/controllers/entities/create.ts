@@ -1,6 +1,4 @@
 import { expandInvClaims } from '#controllers/entities/lib/inv_claims_utils'
-import { getLocalUserAcct } from '#controllers/user/lib/user'
-import { newError } from '#lib/error/error'
 import type { SanitizedParameters } from '#types/controllers_input_sanitization_parameters'
 import type { AuthentifiedReq, RemoteUserAuthentifiedReq } from '#types/server'
 import { createInvEntity } from './lib/create_inv_entity.js'
@@ -22,30 +20,20 @@ const sanitization = {
 }
 
 async function controller (params: SanitizedParameters, req: AuthentifiedReq | RemoteUserAuthentifiedReq) {
-  const { prefix, labels, claims, reqUserId } = params
+  const { prefix, labels, claims, reqUserAcct } = params
   let entity
   if (prefix === 'wd') {
-    if ('user' in req) {
-      entity = await createWdEntity({
-        labels,
-        claims: expandInvClaims(claims),
-        user: req.user,
-      })
-    } else {
-      // TODO: allow remote users to get Wikidata OAuth tokens OR use botAccountWikidataOAuth
-      throw newError('A remote user can not edit a Wikidata edition', 403)
-    }
+    let user = 'user' in req ? req.user : req.remoteUser
+    entity = await createWdEntity({
+      labels,
+      claims: expandInvClaims(claims),
+      user,
+    })
   } else {
-    let userAcct
-    if ('user' in req) {
-      userAcct = getLocalUserAcct(reqUserId)
-    } else {
-      userAcct = req.remoteUser.acct
-    }
     entity = await createInvEntity({
       labels,
       claims,
-      userAcct,
+      userAcct: reqUserAcct,
     })
   }
   // Re-request the entity's data to get it formatted

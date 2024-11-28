@@ -5,7 +5,7 @@ import { oneDay } from '#lib/time'
 import { assertNumber } from '#lib/utils/assert_types'
 import { objectEntries, simpleDay } from '#lib/utils/base'
 import { addVersionsSnapshots } from '#models/patch'
-import type { InvClaimValue, InvEntityId } from '#types/entity'
+import type { EntityUri, InvClaimValue, InvEntityId } from '#types/entity'
 import type { Patch, PatchId } from '#types/patch'
 import type { UserId } from '#types/user'
 import type { ViewKey } from 'blue-cot/types/types.js'
@@ -84,7 +84,9 @@ export async function getPatchesByUserIdAndFilter ({ userId, filter, limit, offs
   return formatPatchesPage(viewRes, limit, offset, total)
 }
 
-export const getPatchesByRedirectUri = db.getDocsByViewKey.bind(null, 'byRedirectUri')
+export function getPatchesByRedirectUri (uri: EntityUri) {
+  return db.getDocsByViewKey<Patch>('byRedirectUri', uri)
+}
 
 export async function getPatchesWithSnapshots (entityId: InvEntityId) {
   const patches = await getPatchesByEntityId(entityId)

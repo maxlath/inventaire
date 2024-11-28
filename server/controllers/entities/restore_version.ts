@@ -5,8 +5,8 @@ const sanitization = {
   patch: {},
 }
 
-async function controller ({ patchId, reqUserId }: SanitizedParameters) {
-  await restoreVersion(patchId, reqUserId)
+async function controller ({ patchId, reqUserAcct }: SanitizedParameters) {
+  await restoreVersion(patchId, reqUserAcct)
   return { ok: true }
 }
 

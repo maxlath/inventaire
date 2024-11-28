@@ -7,6 +7,7 @@ import type { ImageHash } from '#types/image'
 import type { ItemId } from '#types/item'
 import type { ListingId } from '#types/listing'
 import type { PatchId } from '#types/patch'
+import type { UserAccountUri } from '#types/server'
 import type { ShelfId } from '#types/shelf'
 import type { TransactionId } from '#types/transaction'
 import type { Email, UserId, Username } from '#types/user'
@@ -121,6 +122,7 @@ interface OtherSanitizedParameters {
 
 interface RequestParameters {
   reqUserId: UserId
+  reqUserAcct: UserAccountUri
 }
 
 // TODO: accept `typeof sanitization` as type parameter to customize the controller `params` types

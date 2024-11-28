@@ -1,10 +1,10 @@
 import type { ResolverBatchParams } from '#controllers/entities/lib/resolver/resolve_update_and_create'
 import type { BatchId } from '#types/patch'
 import type { EntitySeed, SanitizedResolverEntry } from '#types/resolver'
-import type { UserId } from '#types/user'
+import type { UserAccountUri } from '#types/server'
 import { createEdition, createWork, createAuthor } from './create_entity_from_seed.js'
 
-export async function createUnresolvedEntry (entry: SanitizedResolverEntry, { reqUserId, batchId, enrich }: ResolverBatchParams) {
+export async function createUnresolvedEntry (entry: SanitizedResolverEntry, { reqUserAcct, batchId, enrich }: ResolverBatchParams) {
   const { edition, works, authors } = entry
 
   // If the edition has been resolved but not its associated works
@@ -17,21 +17,21 @@ export async function createUnresolvedEntry (entry: SanitizedResolverEntry, { re
 
   // Create authors before works, so that the created entities uris
   // can be set on the entry, and used in works claims
-  await createAuthors(entry, reqUserId, batchId)
+  await createAuthors(entry, reqUserAcct, batchId)
   // Idem for works being created before the edition
-  await createWorks(entry, reqUserId, batchId)
-  await createEdition(edition, works, reqUserId, batchId, enrich)
+  await createWorks(entry, reqUserAcct, batchId)
+  await createEdition(edition, works, reqUserAcct, batchId, enrich)
   return entry
 }
 
-function createAuthors (entry: SanitizedResolverEntry, reqUserId: UserId, batchId: BatchId) {
+function createAuthors (entry: SanitizedResolverEntry, reqUserAcct: UserAccountUri, batchId: BatchId) {
   const { authors } = entry
-  return Promise.all(authors.map(createAuthor(reqUserId, batchId)))
+  return Promise.all(authors.map(createAuthor(reqUserAcct, batchId)))
 }
 
-function createWorks (entry: SanitizedResolverEntry, reqUserId: UserId, batchId: BatchId) {
+function createWorks (entry: SanitizedResolverEntry, reqUserAcct: UserAccountUri, batchId: BatchId) {
   const { works, authors } = entry
-  return Promise.all(works.map(createWork(reqUserId, batchId, authors)))
+  return Promise.all(works.map(createWork(reqUserAcct, batchId, authors)))
 }
 
 function addNotCreatedFlag (seed: EntitySeed) {

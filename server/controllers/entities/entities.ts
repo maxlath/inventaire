@@ -1,6 +1,6 @@
 import removeLabel from '#controllers/entities/remove_label'
 import { verbAndActionsControllersFactory } from '#lib/actions_controllers'
-import type { VerbsAndActionsControllers } from '#server/types/controllers'
+import type { VerbsAndActionsControllers } from '#types/controllers'
 import byUrisGet from './by_uris_get.js'
 import contributions from './contributions.js'
 import contributionsCount from './contributions_count.js'

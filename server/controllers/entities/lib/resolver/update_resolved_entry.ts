@@ -7,6 +7,7 @@ import { addWdClaims } from '#controllers/entities/lib/update_wd_claim'
 import { updateWdEntityLocalClaims } from '#controllers/entities/lib/update_wd_entity_local_claims'
 import { convertAndCleanupImageUrl } from '#controllers/images/lib/convert_and_cleanup_image_url'
 import { getUserById } from '#controllers/user/lib/user'
+import { getLocalUserIdFromAcct } from '#lib/federation/remote_user'
 import { objectKeys } from '#lib/utils/types'
 import { addEntityDocClaims } from '#models/entity'
 import type { AbsoluteUrl } from '#types/common'
@@ -14,6 +15,7 @@ import type { ClaimByDatatype, Claims, InvEntity, InvEntityDoc, SerializedWdEnti
 import type { BatchId } from '#types/patch'
 import type { EntitySeed, ResolverEntry } from '#types/resolver'
 import type { UserAccountUri } from '#types/server'
+import type { User } from '#types/user'
 import { getEntityById, putInvEntityUpdate } from '../entities.js'
 
 export async function updateResolvedEntry (entry: ResolverEntry, { reqUserAcct, batchId }: ResolverBatchParams) {
@@ -61,10 +63,12 @@ async function updateInvClaims (entity: InvEntityDoc, seedClaims: Claims, imageU
 }
 
 async function updateWdClaims (entity: SerializedWdEntity, seedClaims: Claims, imageUrl: AbsoluteUrl | undefined, reqUserAcct: UserAccountUri) {
-  const user = await getUserById(reqUserAcct)
+  const userId = getLocalUserIdFromAcct(reqUserAcct)
+  let user: User
+  if (userId) user = await getUserById(userId)
   const filteredSeedClaims = filterUpdatableClaims(seedClaims, entity.claims)
   const id = entity.wdId
-  await addWdClaims(id, filteredSeedClaims, user)
+  if (user) await addWdClaims(id, filteredSeedClaims, user)
   const imageHash = await getImageHash(entity, imageUrl)
   if (imageHash) await updateWdEntityLocalClaims(user, id, 'invp:P2', null, imageHash)
 }

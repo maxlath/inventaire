@@ -43,6 +43,11 @@ export function getLocalUserAcct (userId: UserId) {
   return `${userId}@${publicHost}` as UserAccountUri
 }
 
+export function getLocalUserIdFromAcct (userAcct: UserAccountUri): UserId | undefined {
+  const [ userId, host ] = userAcct.split('@')
+  if (host === publicHost) return userId
+}
+
 export function getUserAcct (user: User | SpecialUser | RemoteUser) {
   if ('acct' in user) {
     return user.acct

@@ -1,14 +1,21 @@
 import crypto from 'node:crypto'
 import { isNonEmptyPlainObject } from '#lib/boolean_validations'
+import { cache_ } from '#lib/cache'
 import { getSha256Base64Digest } from '#lib/crypto'
 import { newError } from '#lib/error/error'
 import { requests_, sanitizeUrl } from '#lib/requests'
-import { expired } from '#lib/time'
+import { expired, oneMonth } from '#lib/time'
 import { assertObject } from '#lib/utils/assert_types'
-import { warn } from '#lib/utils/logs'
+import { logError, warn } from '#lib/utils/logs'
 import config from '#server/config'
-import type { MaybeSignedReq, SignedReq } from '#types/server'
 import type { AbsoluteUrl, HttpHeaders } from '#types/common'
+import type { MaybeSignedReq, SignedReq } from '#types/server'
+
+interface Signature {
+  keyId: string
+  signature: string
+  headers: string
+}
 
 const { sanitizeUrls } = config.activitypub
 
@@ -33,16 +40,31 @@ export function sign (params) {
 }
 
 export async function verifySignature (req: MaybeSignedReq) {
-  const { method, path: pathname, headers: reqHeaders } = req
+  const { headers: reqHeaders } = req
   const { date, signature } = reqHeaders
   // 30 seconds time window for that signature to be considered valid
   if (thirtySecondsTimeWindow(date)) throw newError('outdated request', 400, reqHeaders)
   if (signature === undefined) throw newError('no signature header', 400, reqHeaders)
-  // "headers" below specify the list of HTTP headers included when generating the signature for the message
-  const { keyId: actorUrl, signature: signatureString, headers: signedHeadersNames } = parseSignature(signature)
-  let publicKey
+  const parsedSignature = parseSignature(signature)
+  const { keyId: actorKeyUrl } = parsedSignature
   try {
-    publicKey = await fetchActorPublicKey(actorUrl)
+    await attemptToVerifySignature(req, parsedSignature)
+  } catch (err) {
+    logError(err, 'Signature verification failed: retrying with a refreshed cache')
+    await attemptToVerifySignature(req, parsedSignature, true)
+  }
+  const { host } = new URL(actorKeyUrl)
+  req.signed = { host }
+  return req as SignedReq
+}
+
+async function attemptToVerifySignature (req: MaybeSignedReq, signature: Signature, refresh = false) {
+  // "headers" below specify the list of HTTP headers included when generating the signature for the message
+  const { keyId: actorKeyUrl, signature: signatureString, headers: signedHeadersNames } = signature
+  const { method, path: pathname, headers: reqHeaders } = req
+  let publicKeyPem
+  try {
+    publicKeyPem = await getActorPublicKeyPem(actorKeyUrl, refresh)
   } catch (err) {
     warn({ method, pathname, body: req.body }, 'could not fetch public key')
     throw err
@@ -55,12 +77,8 @@ export async function verifySignature (req: MaybeSignedReq) {
     pathname,
   })
   verifier.update(signedString)
-  if (verifier.verify(publicKey.publicKeyPem, signatureString, 'base64')) {
-    const { host } = new URL(actorUrl)
-    req.signed = { host }
-    return req as SignedReq
-  } else {
-    throw newError('signature verification failed', 400, { publicKey })
+  if (!verifier.verify(publicKeyPem, signatureString, 'base64')) {
+    throw newError('signature verification failed', 400, { actorKeyUrl, publicKeyPem })
   }
   // TODO: verify date
 }
@@ -111,7 +129,19 @@ function buildSignatureString (params) {
   return signatureString
 }
 
-async function fetchActorPublicKey (actorUrl: string) {
+async function getActorPublicKeyPem (actorUrl: string, refresh = false) {
+  const cacheKey = `actor-public-key-pem:${encodeURIComponent(actorUrl)}`
+  return cache_.get({
+    key: cacheKey,
+    fn: () => fetchActorPublicKeyPem(actorUrl),
+    // PEMs are assumed to be immutable, which is the case for Inventaire instances
+    // as a sha1 hash of the PEM is part of the actor url
+    ttl: oneMonth,
+    refresh,
+  })
+}
+
+async function fetchActorPublicKeyPem (actorUrl: string) {
   if (sanitizeUrls) actorUrl = await sanitizeUrl(actorUrl)
   const actor = await requests_.get(actorUrl as AbsoluteUrl)
   assertObject(actor)
@@ -119,6 +149,9 @@ async function fetchActorPublicKey (actorUrl: string) {
     throw newError('no publicKey found', 400, { actor })
   }
   const { publicKey } = actor
+  if (!publicKey) {
+    throw newError('no publicKey found', 400, actor)
+  }
   if (!isNonEmptyPlainObject(publicKey) || typeof publicKey.publicKeyPem !== 'string') {
     throw newError('invalid publicKey found', 400, { publicKey })
   }
@@ -127,13 +160,7 @@ async function fetchActorPublicKey (actorUrl: string) {
     throw newError('invalid publicKeyPem found', 400, { publicKey })
   }
   // TODO: handle timeout
-  return actor.publicKey
-}
-
-interface Signature {
-  keyId: string
-  signature: string
-  headers: string
+  return publicKeyPem
 }
 
 function parseSignature (signature) {

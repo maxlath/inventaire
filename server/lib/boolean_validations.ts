@@ -8,7 +8,7 @@ import type { CouchUuid } from '#types/couchdb'
 import type { InvEntityUri, IsbnEntityUri, WdEntityUri, EntityUri, PropertyUri, InvPropertyUri, WdPropertyUri, WdEntityId } from '#types/entity'
 import type { AssetImagePath, EntityImagePath, GroupImagePath, ImageHash, ImagePath, UserImagePath } from '#types/image'
 import type { PatchId } from '#types/patch'
-import type { AuthentifiedReq, Req } from '#types/server'
+import type { AuthentifiedReq, Req, UserAccountUri } from '#types/server'
 import type { Email, Username } from '#types/user'
 import type { VisibilityGroupKey } from '#types/visibility'
 import { isNormalizedIsbn } from './isbn/isbn.js'
@@ -84,6 +84,22 @@ export function isExpandedEntityUri (uri) {
   // Accept alias URIs.
   // Ex: twitter:Bouletcorp -> wd:Q1524522
   return isNonEmptyString(prefix) && isNonEmptyString(id)
+}
+
+function isHost (str: string) {
+  try {
+    const { host } = new URL(`http://${str}`)
+    return str === host
+  } catch (err) {
+    if (err.code !== 'ERR_INVALID_URL') throw err
+    return false
+  }
+}
+
+export function isUserAcct (str: unknown): str is UserAccountUri {
+  if (typeof str !== 'string') return false
+  const [ handle, host ] = str.split('@')
+  return isUserId(handle) && isHost(host)
 }
 
 export function isSimpleDay (str) {

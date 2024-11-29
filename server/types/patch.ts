@@ -1,11 +1,11 @@
-import type { UserAccountUri } from '#types/server'
 import type { CouchDoc } from '#types/couchdb'
-import type { EntityUri, InvClaimValue, InvEntityId, Label } from '#types/entity'
+import type { EntityUri, InvClaimValue, InvEntityDoc, InvEntityId, Label } from '#types/entity'
+import type { UserAccountUri } from '#types/server'
 import type { UserId } from '#types/user'
 
 export type PatchId = `${InvEntityId}:${number}`
 
-type OperationPath = '/type' | `/labels${string}` | `/claims${string}` | `/redirect${string}` | `/deletion${string}`
+export type OperationPath = '/type' | `/labels${string}` | `/claims${string}` | `/redirect${string}`
 type OperationValue = string | Label | InvClaimValue | InvClaimValue[] | EntityUri | boolean
 
 interface AddOperation {
@@ -62,6 +62,10 @@ export interface Patch extends CouchDoc {
   operations: PatchOperation[]
   batch?: BatchId
   context?: PatchContext
+}
+
+export interface PatchWithSnapshot extends Patch {
+  snapshot: InvEntityDoc
 }
 
 export type NewPatch = Omit<Patch, '_rev'>

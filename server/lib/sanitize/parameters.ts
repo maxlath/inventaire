@@ -1,5 +1,5 @@
 import { isArray, isNumber, isPlainObject, isString, uniq } from 'lodash-es'
-import { isNonEmptyArray, isLocalActivityPubActorUrl, isLang, isCollection, isPositiveIntegerString, isStrictlyPositiveInteger, isNonEmptyString, isColorHexCode, isPatchId, isPropertyUri } from '#lib/boolean_validations'
+import { isNonEmptyArray, isLocalActivityPubActorUrl, isLang, isCollection, isPositiveIntegerString, isStrictlyPositiveInteger, isNonEmptyString, isColorHexCode, isPatchId, isPropertyUri, isUserAcct } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
 import { truncateLatLng } from '#lib/geo'
 import { isValidIsbn } from '#lib/isbn/isbn'
@@ -234,6 +234,9 @@ export const genericParameters = {
 export const sanitizationParameters = {
   '@context': allowlistedStrings,
   actor: nonEmptyString,
+  acct: {
+    validate: isUserAcct,
+  },
   attribute: nonEmptyString,
   attributes: allowlistedStrings,
   bbox: {

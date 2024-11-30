@@ -1,7 +1,6 @@
 import type { CouchDoc } from '#types/couchdb'
 import type { EntityUri, InvClaimValue, InvEntityDoc, InvEntityId, Label } from '#types/entity'
 import type { UserAccountUri } from '#types/server'
-import type { UserId } from '#types/user'
 
 export type PatchId = `${InvEntityId}:${number}`
 
@@ -57,7 +56,7 @@ export type PatchContext = ActionPatchContext | MergePatchContext | RedirectedCl
 export interface Patch extends CouchDoc {
   _id: PatchId
   type: 'patch'
-  user: UserId | UserAccountUri
+  user: UserAccountUri
   timestamp: EpochTimeStamp
   operations: PatchOperation[]
   batch?: BatchId

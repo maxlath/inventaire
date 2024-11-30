@@ -7,7 +7,7 @@ import { objectEntries, simpleDay } from '#lib/utils/base'
 import { addVersionsSnapshots } from '#models/patch'
 import type { EntityUri, InvClaimValue, InvEntityId } from '#types/entity'
 import type { Patch, PatchId } from '#types/patch'
-import type { UserId } from '#types/user'
+import type { UserAccountUri } from '#types/server'
 import type { ViewKey } from 'blue-cot/types/types.js'
 
 const designDocName = 'patches'
@@ -46,11 +46,11 @@ export async function getPatchesByDate ({ limit, offset }: { limit: number, offs
   return formatPatchesPage(viewRes, limit, offset)
 }
 
-export async function getPatchesByUserId ({ userId, limit, offset }: { userId: UserId, limit: number, offset: number }) {
+export async function getPatchesByUserId ({ userAcct, limit, offset }: { userAcct: UserAccountUri, limit: number, offset: number }) {
   const [ viewRes, total ] = await Promise.all([
-    db.view<Patch>(designDocName, 'byUserIdAndDate', {
-      startkey: [ userId, maxKey ],
-      endkey: [ userId ],
+    db.view<Patch>(designDocName, 'byUserAcctAndDate', {
+      startkey: [ userAcct, maxKey ],
+      endkey: [ userAcct ],
       descending: true,
       limit,
       skip: offset,
@@ -59,17 +59,17 @@ export async function getPatchesByUserId ({ userId, limit, offset }: { userId: U
     }),
     // Unfortunately, the response doesn't gives the total range length
     // so we need to query it separately
-    getUserContributionsCount(userId),
+    getUserContributionsCount(userAcct),
   ])
 
   return formatPatchesPage(viewRes, limit, offset, total)
 }
 
-export async function getPatchesByUserIdAndFilter ({ userId, filter, limit, offset }: { userId: UserId, filter: string, limit: number, offset: number }) {
+export async function getPatchesByUserIdAndFilter ({ userAcct, filter, limit, offset }: { userAcct: UserAccountUri, filter: string, limit: number, offset: number }) {
   const [ viewRes, total ] = await Promise.all([
-    db.view<Patch>(designDocName, 'byUserIdAndFilterAndDate', {
-      startkey: [ userId, filter, maxKey ],
-      endkey: [ userId, filter ],
+    db.view<Patch>(designDocName, 'byUserAcctAndFilterAndDate', {
+      startkey: [ userAcct, filter, maxKey ],
+      endkey: [ userAcct, filter ],
       descending: true,
       limit,
       skip: offset,
@@ -78,7 +78,7 @@ export async function getPatchesByUserIdAndFilter ({ userId, filter, limit, offs
     }),
     // Unfortunately, the response doesn't gives the total range length
     // so we need to query it separately
-    getUserPropertyContributionsCount(userId, filter),
+    getUserPropertyContributionsCount(userAcct, filter),
   ])
 
   return formatPatchesPage(viewRes, limit, offset, total)
@@ -95,7 +95,7 @@ export async function getPatchesWithSnapshots (entityId: InvEntityId) {
 }
 
 export async function getGlobalContributions () {
-  const { rows } = await db.view<Patch>(designDocName, 'byUserIdAndDate', { group_level: 1 })
+  const { rows } = await db.view<Patch>(designDocName, 'byUserAcctAndDate', { group_level: 1 })
   return sortAndFilterContributions(rows.map(formatRow))
   // Return only the first hundred results
   .slice(0, 100)
@@ -148,21 +148,21 @@ const formatRow = row => ({
   contributions: row.value,
 })
 
-function aggregatePeriodContributions (counts: Record<UserId, number>, row) {
-  const userId = row.key[1]
+function aggregatePeriodContributions (counts: Record<UserAccountUri, number>, row) {
+  const userAcct = row.key[1]
   const contributions = row.value
-  if (counts[userId] == null) counts[userId] = 0
-  counts[userId] += contributions
+  if (counts[userAcct] == null) counts[userAcct] = 0
+  counts[userAcct] += contributions
   return counts
 }
 
 export interface UserContributionCount {
-  user: UserId
+  user: UserAccountUri
   contributions: number
 }
-function convertToArray (counts: Record<UserId, number>) {
+function convertToArray (counts: Record<UserAccountUri, number>) {
   const data = objectEntries(counts)
-    .map(([ userId, contributions ]) => ({ user: userId, contributions }))
+    .map(([ userAcct, contributions ]) => ({ user: userAcct, contributions }))
   return sortAndFilterContributions(data)
 }
 
@@ -176,19 +176,19 @@ function sortAndFilterContributions (userContributionCounts: UserContributionCou
 // see server/db/couchdb/hard_coded_documents.js
 const noSpecialUser = row => !row.user.startsWith('000000000000000000000000000000')
 
-function getUserContributionsCount (userId: UserId) {
+function getUserContributionsCount (userAcct: UserAccountUri) {
   return getRangeLength({
-    viewName: 'byUserIdAndDate',
-    startkey: [ userId ],
-    endkey: [ userId, maxKey ],
+    viewName: 'byUserAcctAndDate',
+    startkey: [ userAcct ],
+    endkey: [ userAcct, maxKey ],
   })
 }
 
-function getUserPropertyContributionsCount (userId: UserId, filter) {
+function getUserPropertyContributionsCount (userAcct: UserAccountUri, filter) {
   return getRangeLength({
-    viewName: 'byUserIdAndFilterAndDate',
-    startkey: [ userId, filter ],
-    endkey: [ userId, filter, maxKey ],
+    viewName: 'byUserAcctAndFilterAndDate',
+    startkey: [ userAcct, filter ],
+    endkey: [ userAcct, filter, maxKey ],
   })
 }
 

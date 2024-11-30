@@ -6,11 +6,11 @@ import { newError } from '#lib/error/error'
 import { hasAdminAccess } from '#lib/user_access_levels'
 import { userShouldBeAnonymized } from '#models/user'
 import type { SanitizedParameters } from '#types/controllers_input_sanitization_parameters'
-import type { AuthentifiedReq } from '#types/server'
+import type { AuthentifiedReq, UserAccountUri } from '#types/server'
 import { anonymizePatches } from './lib/anonymize_patches.js'
 
 const sanitization = {
-  user: { optional: true },
+  acct: { optional: true },
   limit: { default: 100, max: 1000 },
   offset: { default: 0 },
   filter: {
@@ -20,39 +20,39 @@ const sanitization = {
 }
 
 async function controller (params: SanitizedParameters, req: AuthentifiedReq) {
-  const { userId, limit, offset, filter, reqUserId } = params
+  const { acct, limit, offset, filter, reqUserAcct } = params
   const reqUserHasAdminAccess = hasAdminAccess(req.user)
 
   if (filter != null && !(isPropertyUri(filter) || isLang(filter))) {
     throw newError('invalid filter', 400, params)
   }
 
-  if (userId != null && !reqUserHasAdminAccess) await checkPublicContributionsStatus({ userId, reqUserId })
+  if (acct != null && !reqUserHasAdminAccess) await checkPublicContributionsStatus({ acct, reqUserAcct })
 
-  const patchesPage = await getPatchesPage({ userId, limit, offset, filter })
+  const patchesPage = await getPatchesPage({ acct, limit, offset, filter })
   const { patches } = patchesPage
-  if (!reqUserHasAdminAccess) await anonymizePatches({ patches, reqUserId })
+  if (!reqUserHasAdminAccess) await anonymizePatches({ patches, reqUserAcct })
 
   return patchesPage
 }
 
-async function getPatchesPage ({ userId, limit, offset, filter }) {
-  if (userId != null) {
+async function getPatchesPage ({ acct, limit, offset, filter }: { acct: UserAccountUri, limit: number, offset: number, filter: string }) {
+  if (acct != null) {
     if (filter != null) {
-      return getPatchesByUserIdAndFilter({ userId, filter, limit, offset })
+      return getPatchesByUserIdAndFilter({ acct, filter, limit, offset })
     } else {
-      return getPatchesByUserId({ userId, limit, offset })
+      return getPatchesByUserId({ acct, limit, offset })
     }
   } else {
     return getPatchesByDate({ limit, offset })
   }
 }
 
-async function checkPublicContributionsStatus ({ userId, reqUserId }) {
-  if (userId === reqUserId) return
-  const user = await getUserById(userId)
+async function checkPublicContributionsStatus ({ acct, reqUserAcct }) {
+  if (acct === reqUserAcct) return
+  const user = await getUserById(acct)
   if (userShouldBeAnonymized(user)) {
-    throw newError('non-public contributions', 403, { userId })
+    throw newError('non-public contributions', 403, { acct })
   }
 }
 

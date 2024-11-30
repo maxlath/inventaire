@@ -2,6 +2,7 @@ import should from 'should'
 import { createWork } from '#fixtures/entities'
 import { someRandomCouchUuid } from '#fixtures/general'
 import { createUser } from '#fixtures/users'
+import { getLocalUserAcct } from '#lib/federation/remote_user'
 import { wait } from '#lib/promises'
 import { updateClaim, updateLabel } from '#tests/api/utils/entities'
 import { customAuthReq } from '#tests/api/utils/request'
@@ -23,7 +24,8 @@ describe('entities:contributions', () => {
     patches.should.be.an.Array()
     const lastPatch = patches[0]
     lastPatch._id.split(':')[0].should.equal(_id)
-    lastPatch.user.should.equal(user._id)
+    const userAcct = getLocalUserAcct(user._id)
+    lastPatch.user.should.equal(userAcct)
   })
 
   it('should return an empty list of patch when user does not exist', async () => {
@@ -41,7 +43,8 @@ describe('entities:contributions', () => {
 
   it('should return a list of patches ordered by timestamp', async () => {
     const { workA, workB, user } = await get2WorksAndUser()
-    const { patches } = await adminReq('get', `${endpoint}&user=${user._id}`)
+    const userAcct = getLocalUserAcct(user._id)
+    const { patches } = await adminReq('get', `${endpoint}&user=${userAcct}`)
     const patchesIds = patches.map(getPatchEntityId)
     should(patchesIds.includes(workB._id)).be.true()
     should(patchesIds.includes(workA._id)).be.true()
@@ -50,40 +53,45 @@ describe('entities:contributions', () => {
 
   it('should take a limit parameter', async () => {
     const { workB, user } = await get2WorksAndUser()
-    const { patches } = await adminReq('get', `${endpoint}&user=${user._id}&limit=1`)
+    const userAcct = getLocalUserAcct(user._id)
+    const { patches } = await adminReq('get', `${endpoint}&user=${userAcct}&limit=1`)
     patches.length.should.equal(1)
     workB._id.should.equal(patches[0]._id.split(':')[0])
   })
 
   it('should take an offset parameter', async () => {
     const { user } = await get2WorksAndUser()
-    const { patches } = await adminReq('get', `${endpoint}&user=${user._id}`)
+    const userAcct = getLocalUserAcct(user._id)
+    const { patches } = await adminReq('get', `${endpoint}&user=${userAcct}`)
     const offset = 1
-    const { patches: patches2 } = await adminReq('get', `${endpoint}&user=${user._id}&offset=${offset}`)
+    const { patches: patches2 } = await adminReq('get', `${endpoint}&user=${userAcct}&offset=${offset}`)
     should(patches.length - offset).equal(patches2.length)
   })
 
   it('should return total data', async () => {
     const { user } = await get2WorksAndUser()
-    const { total } = await adminReq('get', `${endpoint}&user=${user._id}&limit=1`)
+    const userAcct = getLocalUserAcct(user._id)
+    const { total } = await adminReq('get', `${endpoint}&user=${userAcct}&limit=1`)
     total.should.be.a.Number()
     should(total >= 2).be.true()
   })
 
   it('should return continue data', async () => {
     const { user } = await get2WorksAndUser()
-    const { continue: continu } = await adminReq('get', `${endpoint}&user=${user._id}&limit=1`)
+    const userAcct = getLocalUserAcct(user._id)
+    const { continue: continu } = await adminReq('get', `${endpoint}&user=${userAcct}&limit=1`)
     continu.should.be.a.Number()
     continu.should.equal(1)
   })
 
   it('should return increment contributions', async () => {
     const [ work, user ] = await Promise.all([ createWork(), getUser() ])
-    const { total } = await adminReq('get', `${endpoint}&user=${user._id}`)
+    const userAcct = getLocalUserAcct(user._id)
+    const { total } = await adminReq('get', `${endpoint}&user=${userAcct}`)
     should(total >= 1).be.true()
     const workB = await createWork()
     await wait(10)
-    const { patches: patches2 } = await adminReq('get', `${endpoint}&user=${user._id}`)
+    const { patches: patches2 } = await adminReq('get', `${endpoint}&user=${userAcct}`)
     getWorkId(patches2[0]._id).should.equal(workB._id)
     getWorkId(patches2[1]._id).should.equal(work._id)
   })
@@ -97,7 +105,8 @@ describe('entities:contributions', () => {
       await updateClaim({ uri, property: 'wdt:P136', newValue: 'wd:Q208505', user })
       await updateClaim({ uri, property, newValue: 'wd:Q3', user })
       await updateClaim({ uri, property, oldValue: 'wd:Q1', user })
-      const { patches, total } = await adminReq('get', `${endpoint}&user=${user._id}&filter=${property}`)
+      const userAcct = getLocalUserAcct(user._id)
+      const { patches, total } = await adminReq('get', `${endpoint}&user=${userAcct}&filter=${property}`)
       patches.length.should.equal(3)
       total.should.equal(3)
       patches.forEach(({ operations }) => {
@@ -116,7 +125,8 @@ describe('entities:contributions', () => {
           'wdt:P144': [ 'wd:Q180736' ],
         },
       })
-      const { patches } = await adminReq('get', `${endpoint}&user=${user._id}&filter=${property}`)
+      const userAcct = getLocalUserAcct(user._id)
+      const { patches } = await adminReq('get', `${endpoint}&user=${userAcct}&filter=${property}`)
       patches.length.should.be.aboveOrEqual(1)
       patches.forEach(({ operations }) => {
         operations.some(operation => operation.path.includes(`/${property}`)).should.be.true()
@@ -130,7 +140,8 @@ describe('entities:contributions', () => {
       await updateLabel({ uri, lang, value: 'foo', user })
       await updateLabel({ uri, lang: 'it', value: 'bar', user })
       await updateLabel({ uri, lang, value: 'buzz', user })
-      const { patches, total } = await adminReq('get', `${endpoint}&user=${user._id}&filter=${lang}`)
+      const userAcct = getLocalUserAcct(user._id)
+      const { patches, total } = await adminReq('get', `${endpoint}&user=${userAcct}&filter=${lang}`)
       patches.length.should.equal(2)
       total.should.equal(2)
       patches.forEach(({ operations }) => {
@@ -142,7 +153,8 @@ describe('entities:contributions', () => {
   describe('non-admin access level', () => {
     it('should reject requests for private contributions from another user', async () => {
       const { user } = await get2WorksAndUser()
-      await authReq('get', `${endpoint}&user=${user._id}`)
+      const userAcct = getLocalUserAcct(user._id)
+      await authReq('get', `${endpoint}&user=${userAcct}`)
       .then(shouldNotBeCalled)
       .catch(err => {
         err.statusCode.should.equal(403)
@@ -151,7 +163,8 @@ describe('entities:contributions', () => {
 
     it('should accept requests for private contributions from the user themselves', async () => {
       const { user } = await get2WorksAndUser()
-      const { patches } = await customAuthReq(user, 'get', `${endpoint}&user=${user._id}`)
+      const userAcct = getLocalUserAcct(user._id)
+      const { patches } = await customAuthReq(user, 'get', `${endpoint}&user=${userAcct}`)
       patches.should.be.an.Array()
     })
 

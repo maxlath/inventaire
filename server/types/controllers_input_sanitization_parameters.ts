@@ -106,6 +106,7 @@ interface PatternedSanitizedParameters {
   [key: `strict${string}`]: boolean
   [key: `with${string}`]: boolean
   [key: `${ClassicDocId}Id`]: CouchUuid
+  [key: `${string}Acct`]: UserAccountUri
 }
 
 interface AliasedSanitizedParameters {

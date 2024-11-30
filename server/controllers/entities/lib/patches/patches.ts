@@ -46,7 +46,7 @@ export async function getPatchesByDate ({ limit, offset }: { limit: number, offs
   return formatPatchesPage(viewRes, limit, offset)
 }
 
-export async function getPatchesByUserId ({ userAcct, limit, offset }: { userAcct: UserAccountUri, limit: number, offset: number }) {
+export async function getPatchesByUserAcct ({ userAcct, limit, offset }: { userAcct: UserAccountUri, limit: number, offset: number }) {
   const [ viewRes, total ] = await Promise.all([
     db.view<Patch>(designDocName, 'byUserAcctAndDate', {
       startkey: [ userAcct, maxKey ],
@@ -65,7 +65,7 @@ export async function getPatchesByUserId ({ userAcct, limit, offset }: { userAcc
   return formatPatchesPage(viewRes, limit, offset, total)
 }
 
-export async function getPatchesByUserIdAndFilter ({ userAcct, filter, limit, offset }: { userAcct: UserAccountUri, filter: string, limit: number, offset: number }) {
+export async function getPatchesByUserAcctAndFilter ({ userAcct, filter, limit, offset }: { userAcct: UserAccountUri, filter: string, limit: number, offset: number }) {
   const [ viewRes, total ] = await Promise.all([
     db.view<Patch>(designDocName, 'byUserAcctAndFilterAndDate', {
       startkey: [ userAcct, filter, maxKey ],

@@ -46,4 +46,4 @@ type GenericControllerInputSanitization = Record<OtherParameterName, GenericCont
 export type ControllerInputSanitization = Partial<WellknownControllerInputSanitization & GenericControllerInputSanitization & ControllerInputSanitizationOptions>
 
 export type FormatFunction = (value: string, name: ParameterName, config: ControllerSanitizationParameterConfig) => unknown
-export type RenameFunction = (name: ParameterName) => string
+export type RenameFunction = (name: ParameterName, config: ControllerSanitizationParameterConfig) => string

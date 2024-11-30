@@ -548,6 +548,26 @@ describe('sanitize', () => {
       }
     })
   })
+
+  describe('parameter renaming', () => {
+    it('should set ids aliases', () => {
+      const userId = 'f14b868c7e99c56252e592e1485c6125'
+      const req = { query: { user: userId } }
+      const configs = { user: {} }
+      const params = sanitize(req, {}, configs)
+      params.userId.should.equal(userId)
+      should(params.userAcct).not.be.ok()
+    })
+
+    it('should rename based on config', () => {
+      const userAcct = 'f14b868c7e99c56252e592e1485c6125@localhost:3009'
+      const req = { query: { user: userAcct } }
+      const configs = { user: { type: 'acct' } }
+      const params = sanitize(req, {}, configs)
+      params.userAcct.should.equal(userAcct)
+      should(params.userId).not.be.ok()
+    })
+  })
 })
 
 describe('validateSanitization', () => {

@@ -181,7 +181,8 @@ describe('entities:contributions', () => {
       const { patches } = await authReq('get', endpoint)
       should(patches.find(isEntityPatch(workA)).user).not.be.ok()
       should(patches.find(isEntityPatch(workB)).user).not.be.ok()
-      patches.find(isEntityPatch(workC)).user.should.equal(deanonymizedUser._id)
+      const patch = patches.find(isEntityPatch(workC))
+      patch.user.should.equal(deanonymizedUser._id)
     })
 
     it('should not anonymize contributions when the patch author is the requesting user', async () => {

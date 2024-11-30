@@ -5,6 +5,7 @@ import { newError } from '#lib/error/error'
 import { requests_ } from '#lib/requests'
 import { objectEntries } from '#lib/utils/base'
 import { buildUrl } from '#lib/utils/url'
+import type userAttributes from '#models/attributes/user'
 import { publicHost } from '#server/config'
 import type { Host } from '#types/common'
 import type { AuthentifiedReq, MaybeSignedReq, RemoteUserAuthentifiedReq, UserAccountUri } from '#types/server'
@@ -20,9 +21,17 @@ export interface RemoteUser {
   oauth?: UserOAuth
 }
 
-export interface UserWithAcct extends User {
+type PublicUserAttributes = typeof userAttributes.public[number]
+
+export interface RemoteUserWithAcct extends Pick<User, PublicUserAttributes> {
   acct: UserAccountUri
 }
+
+export interface LocalUserWithAcct extends User {
+  acct: UserAccountUri
+}
+
+export type UserWithAcct = LocalUserWithAcct | RemoteUserWithAcct
 
 export const remoteUserHeader = 'x-remote-user'
 
@@ -110,4 +119,9 @@ async function getRemoteUsersByIds (host: Host, usersIds: UserId[]) {
 function setUserAcct (user: SetOptional<UserWithAcct, 'acct'>, host: Host) {
   user.acct = `${user._id}@${host}`
   return user as UserWithAcct
+}
+
+export async function getUserByAcct (userAcct: UserAccountUri) {
+  const users = await getUsersByAccts([ userAcct ])
+  return users[0]
 }

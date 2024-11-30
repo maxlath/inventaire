@@ -9,7 +9,7 @@ import { obfuscate } from '#lib/utils/base'
 import { typeOf } from '#lib/utils/types'
 import type { ControllerInputSanitization, FormatFunction, GenericParameterName, ParameterName, ParameterPlace, ControllerSanitizationParameterConfig, SanitizationParameter, RenameFunction } from '#types/controllers_input_sanitization'
 import type { SanitizedParameters } from '#types/controllers_input_sanitization_parameters'
-import type { AuthentifiedReq, Req, Res } from '#types/server'
+import type { AuthentifiedReq, RemoteUserAuthentifiedReq, Req, Res } from '#types/server'
 import { sanitizationParameters } from './parameters.js'
 
 const { generics } = sanitizationParameters
@@ -20,7 +20,7 @@ const { generics } = sanitizationParameters
 // when something needs to be done during the current tick.
 // Example: consumers of the request (aka req) stream need to run on the same tick.
 // If they have to wait for the next tick, 'data' events might be over
-export function sanitize (req: Req | AuthentifiedReq, res: Res, configs: ControllerInputSanitization) {
+export function sanitize (req: Req | AuthentifiedReq | RemoteUserAuthentifiedReq, res: Res, configs: ControllerInputSanitization) {
   assertObject(req.query)
 
   const place = getPlace(req.method, configs)
@@ -49,7 +49,7 @@ export function sanitize (req: Req | AuthentifiedReq, res: Res, configs: Control
   if ('user' in req) {
     input.reqUserId = req.user._id
     input.reqUserAcct = getLocalUserAcct(req.user._id)
-  } else if (req.remoteUser) {
+  } else if ('remoteUser' in req) {
     input.reqUserAcct = req.remoteUser.acct
   }
 
@@ -85,8 +85,8 @@ function sanitizeParameter (input: unknown, name: ParameterName, config: Control
 
   enforceBoundaries(input, name, config, parameter, res)
 
-  renameParameter(input, name, camelCase)
-  renameParameter(input, name, parameter.rename)
+  renameParameter(input, name, camelCase, config)
+  renameParameter(input, name, parameter.rename, config)
 }
 
 function getParameterFunctions (name: string, generic?: GenericParameterName) {
@@ -182,8 +182,8 @@ function enforceBoundary (input: unknown, name: ParameterName, boundary: number,
   addWarning(res, `${name} can't be ${position} ${boundary}`)
 }
 
-function renameParameter (input: unknown, name: ParameterName, renameFn: RenameFunction) {
+function renameParameter (input: unknown, name: ParameterName, renameFn: RenameFunction, config: ControllerSanitizationParameterConfig) {
   if (renameFn == null) return
-  const aliasedName = renameFn(name)
+  const aliasedName = renameFn(name, config)
   input[aliasedName] = input[name]
 }

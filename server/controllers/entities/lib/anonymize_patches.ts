@@ -12,20 +12,22 @@ interface AnonymizePatchesParams {
 export async function anonymizePatches ({ patches, reqUserAcct }: AnonymizePatchesParams) {
   const usersAccts = uniq(map(patches, 'user'))
   const users = await getUsersByAccts(usersAccts)
-  const deanonymizedUsersIds = getDeanonymizedUsersIds(users)
+  const deanonymizedUsersAccts = getDeanonymizedUsersAccts(users)
   patches.forEach(patch => {
     if (patch.user === reqUserAcct) return
-    if (deanonymizedUsersIds.has(patch.user)) return
+    if (deanonymizedUsersAccts.has(patch.user)) return
     anonymizePatch(patch)
   })
 }
 
-function getDeanonymizedUsersIds (users: UserWithAcct[]) {
-  const deanonymizedUsersIds = []
+function getDeanonymizedUsersAccts (users: UserWithAcct[]) {
+  const deanonymizedUsersAccts = []
   for (const user of users) {
-    if (!userShouldBeAnonymized(user)) deanonymizedUsersIds.push(user._id)
+    if ('settings' in user) {
+      if (!userShouldBeAnonymized(user)) deanonymizedUsersAccts.push(user.acct)
+    }
   }
-  return new Set(deanonymizedUsersIds)
+  return new Set(deanonymizedUsersAccts)
 }
 
 function anonymizePatch (patch: Patch) {

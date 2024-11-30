@@ -30,14 +30,14 @@ describe('entities:contributions', () => {
 
   it('should return an empty list of patch when user does not exist', async () => {
     const id = someRandomCouchUuid()
-    const { patches } = await adminReq('get', `${endpoint}&user=${id}`)
+    const { patches } = await adminReq('get', `${endpoint}&user=${getLocalUserAcct(id)}`)
     patches.should.be.an.Array()
     patches.length.should.equal(0)
   })
 
   it('should return a list of patches', async () => {
     const { _id } = await getUser()
-    const { patches } = await adminReq('get', `${endpoint}&user=${_id}`)
+    const { patches } = await adminReq('get', `${endpoint}&user=${getLocalUserAcct(_id)}`)
     patches.should.be.an.Array()
   })
 
@@ -170,7 +170,8 @@ describe('entities:contributions', () => {
 
     it('should accept requests for public contributions', async () => {
       const deanonymizedUser = await getDeanonymizedUser()
-      const { patches } = await authReq('get', `${endpoint}&user=${deanonymizedUser._id}`)
+      const deanonymizedUserAcct = getLocalUserAcct(deanonymizedUser._id)
+      const { patches } = await authReq('get', `${endpoint}&user=${deanonymizedUserAcct}`)
       patches.should.be.an.Array()
     })
 
@@ -182,15 +183,17 @@ describe('entities:contributions', () => {
       should(patches.find(isEntityPatch(workA)).user).not.be.ok()
       should(patches.find(isEntityPatch(workB)).user).not.be.ok()
       const patch = patches.find(isEntityPatch(workC))
-      patch.user.should.equal(deanonymizedUser._id)
+      const deanonymizedUserAcct = getLocalUserAcct(deanonymizedUser._id)
+      patch.user.should.equal(deanonymizedUserAcct)
     })
 
     it('should not anonymize contributions when the patch author is the requesting user', async () => {
       const user = await createUser()
       const { _id: workId } = await createWork({ user })
       const { patches } = await customAuthReq(user, 'get', `${endpoint}&limit=1`)
+      const userAcct = getLocalUserAcct(user._id)
       patches[0]._id.should.startWith(workId)
-      patches[0].user.should.equal(user._id)
+      patches[0].user.should.equal(userAcct)
     })
   })
 })

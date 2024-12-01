@@ -1,8 +1,9 @@
 import { createTasksInBulk } from '#controllers/tasks/lib/tasks'
+import { getLocalUserAcct } from '#lib/federation/remote_user'
 import { getByIds } from '#tests/api/utils/tasks'
 import type { EntityUri, EntityType } from '#types/entity'
+import type { UserAccountUri } from '#types/server'
 import type { TaskType } from '#types/task'
-import type { UserId } from '#types/user'
 import { createHuman, createWork } from './entities.js'
 
 interface TaskDoc {
@@ -13,7 +14,7 @@ interface TaskDoc {
   lexicalScore?: number
   relationScore?: number
   entitiesType?: EntityType
-  reporter?: UserId
+  reporter?: UserAccountUri
   externalSourcesOccurrences?: any
   clue?: string
 }
@@ -34,7 +35,7 @@ const createWorkTaskDoc = async (params: TaskDoc) => {
   const taskDoc: TaskDoc = await createTaskBase(params)
   taskDoc.suggestionUri = params.suggestionUri || 'wd:Q104889737'
   const userId = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-  taskDoc.reporter = userId
+  taskDoc.reporter = getLocalUserAcct(userId)
   const isbn = '978-1-59184-233-0'
   taskDoc.clue = isbn
   return taskDoc

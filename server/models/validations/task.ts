@@ -2,7 +2,7 @@ import { isArray, isNumber } from 'lodash-es'
 import attributes from '../attributes/task.js'
 import commonValidations from './common.js'
 
-const { pass, entityUri, userId, BoundedString } = commonValidations
+const { pass, entityUri, userAcct, BoundedString } = commonValidations
 
 const taskValidations = {
   pass,
@@ -16,7 +16,7 @@ const taskValidations = {
   lexicalScore: isNumber,
   relationScore: isNumber,
   externalSourcesOccurrences: isArray,
-  reporter: userId,
+  reporter: userAcct,
   clue: BoundedString(0, 500),
 }
 

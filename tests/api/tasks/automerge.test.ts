@@ -4,6 +4,7 @@ import { cloneDeep } from 'lodash-es'
 import { putInvEntityUpdate } from '#controllers/entities/lib/entities'
 import { prefixifyIsbn } from '#controllers/entities/lib/prefix'
 import { generateIsbn13, createHuman, createWorkWithAuthor, randomLabel, createEdition } from '#fixtures/entities'
+import { getLocalUserAcct } from '#lib/federation/remote_user'
 import { getByUris, findOrIndexEntities, deleteByUris } from '#tests/api/utils/entities'
 import { checkEntities } from '#tests/api/utils/tasks'
 import type { EntityUri } from '#types/entity'
@@ -131,6 +132,6 @@ async function forceUpdateEntityClaims (entity, claims, userId = 'aaaaaaaaaaaaaa
   await putInvEntityUpdate({
     currentDoc: entity,
     updatedDoc,
-    userId,
+    userAcct: getLocalUserAcct(userId),
   })
 }

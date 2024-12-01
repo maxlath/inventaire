@@ -1,5 +1,6 @@
+import should from 'should'
 import { createTask } from '#fixtures/tasks'
-import 'should'
+import { getLocalUserAcct } from '#lib/federation/remote_user'
 import {
   createCollection,
   createEdition,
@@ -115,7 +116,7 @@ describe('entities:merge:as:user', () => {
       const user = await getUser()
       const task = tasks[0]
       task.type.should.equal('merge')
-      task.reporters.should.deepEqual([ user._id ])
+      task.reporters.should.deepEqual([ getLocalUserAcct(user._id) ])
       res.taskId.should.equal(task._id)
     })
 
@@ -138,7 +139,7 @@ describe('entities:merge:as:user', () => {
         entitiesType: 'human',
         suspectUri: human.uri,
         suggestionUri: human2.uri,
-        reporter: firstReporterId,
+        reporter: getLocalUserAcct(firstReporterId),
       })
 
       const res = await userMerge(human.uri, human2.uri)
@@ -147,7 +148,7 @@ describe('entities:merge:as:user', () => {
 
       const user = await getUser()
       tasks2[0].reporters.length.should.equal(2)
-      tasks2[0].reporters.should.deepEqual([ firstReporterId, user._id ])
+      tasks2[0].reporters.should.deepEqual([ firstReporterId, user._id ].map(getLocalUserAcct))
       res.taskId.should.equal(task._id)
 
       // should not add an existing userId

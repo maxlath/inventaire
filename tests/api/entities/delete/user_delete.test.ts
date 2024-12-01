@@ -1,6 +1,7 @@
-import 'should'
+import should from 'should'
 import { createHuman, createWork, createWorkWithAuthor, existsOrCreate } from '#fixtures/entities'
 import { createTask } from '#fixtures/tasks'
+import { getLocalUserAcct } from '#lib/federation/remote_user'
 import { getByUris, deleteByUris } from '#tests/api/utils/entities'
 import { getBySuspectUri } from '#tests/api/utils/tasks'
 import { publicReq, getUser } from '#tests/api/utils/utils'
@@ -69,7 +70,7 @@ describe('entities:delete:as:user', () => {
       type: 'delete',
       entitiesType: 'human',
       suspectUri: uri,
-      reporter: firstReporterId,
+      reporter: getLocalUserAcct(firstReporterId),
     })
 
     await userDelete(uri)

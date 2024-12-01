@@ -1,6 +1,7 @@
 import should from 'should'
 import { createHuman, getSomeRemoteEditionWithALocalLayer } from '#fixtures/entities'
 import { createUser } from '#fixtures/users'
+import { getLocalUserAcct } from '#lib/federation/remote_user'
 import { deleteByUris } from '#tests/api/utils/entities'
 import { customAuthReq } from '#tests/api/utils/request'
 import {
@@ -84,7 +85,7 @@ describe('entities:history', () => {
     })
     const { patches } = await publicReq('get', `${endpoint}&id=${human._id}`)
     should(patches[0].user).not.be.ok()
-    patches[1].user.should.equal(user._id)
+    patches[1].user.should.equal(getLocalUserAcct(user._id))
   })
 
   it('should not anonymize patches when the author is the requesting user', async () => {
@@ -99,7 +100,7 @@ describe('entities:history', () => {
     })
     const { patches } = await customAuthReq(user, 'get', `${endpoint}&id=${human._id}`)
     should(patches[0].user).not.be.ok()
-    patches[1].user.should.equal(user._id)
+    patches[1].user.should.equal(getLocalUserAcct(user._id))
   })
 
   it('should return local entity layer patches', async () => {

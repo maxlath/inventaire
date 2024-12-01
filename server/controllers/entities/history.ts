@@ -20,7 +20,7 @@ const sanitization = {
 }
 
 async function controller (params: SanitizedParameters, req: AuthentifiedReq) {
-  const { uri, reqUserId } = params
+  const { uri, reqUserAcct } = params
   let { id } = params
 
   if (!(id || uri)) throw newError('either a uri or an id is required', 400, params)
@@ -35,7 +35,7 @@ async function controller (params: SanitizedParameters, req: AuthentifiedReq) {
   let patches
   if (id) {
     patches = await getPatchesWithSnapshots(id)
-    if (!hasAdminAccess(req.user)) await anonymizePatches({ patches, reqUserId })
+    if (!hasAdminAccess(req.user)) await anonymizePatches({ patches, reqUserAcct })
   } else {
     // If no inv id is found for a given uri, there is no local layer for that entity
     // thus no patches

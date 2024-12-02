@@ -1,24 +1,24 @@
-import { pick } from 'lodash-es'
 import { makeActorKeyUrl } from '#controllers/activitypub/lib/get_actor'
 import { signRequest } from '#controllers/activitypub/lib/security'
 import { getSharedKeyPair } from '#controllers/activitypub/lib/shared_key_pair'
 import { localEntitiesControllersParams } from '#controllers/entities/entities'
 import { verbAndActionsControllersFactory } from '#lib/actions_controllers'
 import { isAuthentifiedReq } from '#lib/boolean_validations'
+import { newError } from '#lib/error/error'
+import type { ContextualizedError } from '#lib/error/format_error'
 import { newUnauthorizedApiAccessError } from '#lib/error/pre_filled'
 import { instanceActorName } from '#lib/federation/instance'
 import { remoteUserHeader } from '#lib/federation/remote_user'
 import { requests_ } from '#lib/requests'
 import type { AccessLevel } from '#lib/user_access_levels'
 import { objectEntries } from '#lib/utils/base'
-import { buildUrl } from '#lib/utils/url'
 import config from '#server/config'
 import type { AbsoluteUrl } from '#types/common'
 import type { ActionController, HttpVerb } from '#types/controllers'
+import type { SanitizedParameters } from '#types/controllers_input_sanitization_parameters'
 import type { AuthentifiedReq, Req } from '#types/server'
 
 const { remoteEntitiesOrigin } = config.federation
-const remoteEntitiesEndpoint: AbsoluteUrl = `${remoteEntitiesOrigin}/api/entities`
 
 // Use-cases for duplicating remote endpoints locally:
 // - proxy read controllers to keep a local cache and trigger hooks
@@ -41,29 +41,31 @@ for (const [ verb, verbParams ] of objectEntries(localEntitiesControllersParams)
 }
 
 function proxiedController (accessLevel: AccessLevel, verb: HttpVerb, action: string, actionController: ActionController) {
-  let sanitization, track, transferableParams
+  let sanitization, track
   if (typeof actionController !== 'function') {
     ;({ sanitization, track } = actionController)
-    transferableParams = sanitization ? Object.keys(sanitization) : []
   }
-  async function controller (params: Record<string, unknown>, req: Req | AuthentifiedReq) {
-    let remoteUrl, body
-    // Drop sanitization built parameters (ex: reqUserId)
-    if (params) params = pick(params, transferableParams)
-    if (verb === 'get' || verb === 'delete') {
-      remoteUrl = buildUrl(remoteEntitiesEndpoint, { action, ...params })
-    } else {
-      remoteUrl = buildUrl(remoteEntitiesEndpoint, { action })
-      body = params
-    }
+
+  async function controller (params: SanitizedParameters, req: Req | AuthentifiedReq) {
+    const remoteUrl = `${remoteEntitiesOrigin}${req.url}` as AbsoluteUrl
+    const body = (verb === 'get' || verb === 'delete') ? undefined : req.body
     if (accessLevel === 'public') {
-      return requests_[verb](remoteUrl, { body })
+      try {
+        return await requests_[verb](remoteUrl, { body })
+      } catch (err) {
+        throw forwardRemoteError(err)
+      }
     } else if (isAuthentifiedReq(req)) {
-      return signedProxyRequest(req, verb, remoteUrl, body)
+      try {
+        return await signedProxyRequest(req, verb, remoteUrl, body)
+      } catch (err) {
+        throw forwardRemoteError(err)
+      }
     } else {
       throw newUnauthorizedApiAccessError(401)
     }
   }
+
   if (typeof actionController === 'function') {
     return controller
   } else {
@@ -86,6 +88,14 @@ async function signedProxyRequest (req: AuthentifiedReq, verb: HttpVerb, remoteU
     },
   })
   return requests_[verb](remoteUrl, { headers, body })
+}
+
+function forwardRemoteError (err: ContextualizedError) {
+  const { statusCode } = err
+  // @ts-expect-error
+  const { status_verbose: message, context } = err.body
+  const repackedError = newError(message, statusCode, context)
+  return repackedError
 }
 
 export const federatedEntitiesControllers = verbAndActionsControllersFactory(federatedEntitiesControllersParams)

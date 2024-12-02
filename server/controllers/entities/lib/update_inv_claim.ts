@@ -4,21 +4,19 @@ import { getEntityByUri } from '#controllers/entities/lib/get_entity_by_uri'
 import { getInvEntityType } from '#controllers/entities/lib/get_entity_type'
 import { getFirstClaimValue } from '#controllers/entities/lib/inv_claims_utils'
 import { newError } from '#lib/error/error'
-import { getUserAcct } from '#lib/federation/remote_user'
-import type { RemoteUser } from '#lib/federation/remote_user'
+import type { UserWithAcct } from '#lib/federation/remote_user'
 import { emit } from '#lib/radio'
 import { retryOnConflict } from '#lib/retry_on_conflict'
 import { getUserAccessLevels, type AccessLevel } from '#lib/user_access_levels'
 import { isLocalEntityLayer, updateEntityDocClaim } from '#models/entity'
 import type { ExtendedEntityType, InvClaimValue, InvEntity, InvEntityDoc, InvEntityId, PropertyUri } from '#types/entity'
 import type { UserAccountUri } from '#types/server'
-import type { SpecialUser, User } from '#types/user'
 import { inferredClaimUpdates } from './inferred_claim_updates.js'
 import { validateAndFormatClaim } from './validate_and_format_claim.js'
 import { validateClaimProperty } from './validate_claim_property.js'
 
-async function _updateInvClaim (user: User | SpecialUser | RemoteUser, id: InvEntityId, property: PropertyUri, oldVal?: InvClaimValue, newVal?: InvClaimValue) {
-  const userAcct = getUserAcct(user)
+async function _updateInvClaim (user: UserWithAcct, id: InvEntityId, property: PropertyUri, oldVal?: InvClaimValue, newVal?: InvClaimValue) {
+  const { acct: userAcct } = user
   const userAccessLevels = getUserAccessLevels(user)
   let currentDoc: InvEntityDoc
   try {

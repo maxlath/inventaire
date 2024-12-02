@@ -79,7 +79,7 @@ describe('entities:delete:as:user', () => {
 
     const user = await getUser()
     tasksRes[0].reporters.length.should.equal(2)
-    tasksRes[0].reporters.should.deepEqual([ firstReporterId, user._id ])
+    tasksRes[0].reporters.should.deepEqual([ firstReporterId, user._id ].map(getLocalUserAcct))
 
     // should not create another task
     await userDelete(uri)

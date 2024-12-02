@@ -1,4 +1,5 @@
 import { expandInvClaims } from '#controllers/entities/lib/inv_claims_utils'
+import { parseReqLocalOrRemoteUser } from '#lib/federation/remote_user'
 import type { SanitizedParameters } from '#types/controllers_input_sanitization_parameters'
 import type { AuthentifiedReq, RemoteUserAuthentifiedReq } from '#types/server'
 import { createInvEntity } from './lib/create_inv_entity.js'
@@ -23,11 +24,10 @@ async function controller (params: SanitizedParameters, req: AuthentifiedReq | R
   const { prefix, labels, claims, reqUserAcct } = params
   let entity
   if (prefix === 'wd') {
-    let user = 'user' in req ? req.user : req.remoteUser
     entity = await createWdEntity({
       labels,
       claims: expandInvClaims(claims),
-      user,
+      user: parseReqLocalOrRemoteUser(req),
     })
   } else {
     entity = await createInvEntity({

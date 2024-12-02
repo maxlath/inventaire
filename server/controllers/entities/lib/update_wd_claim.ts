@@ -8,13 +8,13 @@ import { getWdEntity } from '#data/wikidata/get_entity'
 import { isEntityUri, isInvEntityUri, isInvPropertyUri, isWdEntityId } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
 import { newInvalidError } from '#lib/error/pre_filled'
+import type { UserWithAcct } from '#lib/federation/remote_user'
 import { arrayIncludes } from '#lib/utils/base'
 import { LogError, success, warn } from '#lib/utils/logs'
 import { qualifierProperties } from '#lib/wikidata/data_model_adapter'
 import wdEdit from '#lib/wikidata/edit'
 import { validateWdEntityUpdate } from '#lib/wikidata/validate_wd_update'
 import type { EntityValue, InvClaimValue, PropertyUri, WdEntityId, Claims, ExpandedClaims } from '#types/entity'
-import type { User, SpecialUser } from '#types/user'
 import entitiesRelationsTemporaryCache, { triggerSubjectEntityCacheRefresh } from './entities_relations_temporary_cache.js'
 import { unprefixify, prefixifyWd } from './prefix.js'
 import { getPropertyDatatype, propertiesValuesConstraints as properties } from './properties/properties_values_constraints.js'
@@ -23,7 +23,7 @@ import type { CustomSimplifiedSnak } from 'wikibase-sdk'
 
 // /!\ There are no automatic tests for this function as it modifies Wikidata
 
-export async function updateWdClaim (user: User, id: WdEntityId, property: PropertyUri, oldValue: InvClaimValue, newValue: InvClaimValue) {
+export async function updateWdClaim (user: UserWithAcct, id: WdEntityId, property: PropertyUri, oldValue: InvClaimValue, newValue: InvClaimValue) {
   if (isInvPropertyUri(property)) return updateWdEntityLocalClaims(user, id, property, oldValue, newValue)
 
   validateWikidataOAuth(user)
@@ -135,9 +135,9 @@ function getQualifierHash (claim, property, value) {
   return matchingQualifiers[0].hash
 }
 
-export async function addWdClaims (id: WdEntityId, claims: Claims, user: User | SpecialUser) {
+export async function addWdClaims (id: WdEntityId, claims: Claims, user: UserWithAcct) {
   if (isEmpty(claims)) return
-  const context = { id, claims, user: pick(user._id, '_id', 'username') }
+  const context = { id, claims, user: pick(user, 'acct', 'username') }
   // TODO: Let users without Wikidata OAuth use the botAccountWikidataOAuth crendentials(?)
   if (!hasWikidataOAuth(user)) {
     warn(context, 'Can not addWdClaims without Wikidata OAuth credentials')

@@ -2,11 +2,11 @@
 import { getPatchesByDate, getPatchesByUserAcct, getPatchesByUserAcctAndFilter } from '#controllers/entities/lib/patches/patches'
 import { isPropertyUri, isLang } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
-import { getUserByAcct } from '#lib/federation/remote_user'
+import { getUserByAcct, parseReqLocalOrRemoteUser } from '#lib/federation/remote_user'
 import { hasAdminAccess } from '#lib/user_access_levels'
 import { userShouldBeAnonymized } from '#models/user'
 import type { SanitizedParameters } from '#types/controllers_input_sanitization_parameters'
-import type { AuthentifiedReq, UserAccountUri } from '#types/server'
+import type { AuthentifiedReq, RemoteUserAuthentifiedReq, UserAccountUri } from '#types/server'
 import { anonymizePatches } from './lib/anonymize_patches.js'
 
 const sanitization = {
@@ -22,9 +22,10 @@ const sanitization = {
   },
 }
 
-async function controller (params: SanitizedParameters, req: AuthentifiedReq) {
+async function controller (params: SanitizedParameters, req: AuthentifiedReq | RemoteUserAuthentifiedReq) {
   const { userAcct, limit, offset, filter, reqUserAcct } = params
-  const reqUserHasAdminAccess = hasAdminAccess(req.user)
+  const user = parseReqLocalOrRemoteUser(req)
+  const reqUserHasAdminAccess = hasAdminAccess(user)
 
   if (filter != null && !(isPropertyUri(filter) || isLang(filter))) {
     throw newError('invalid filter', 400, params)

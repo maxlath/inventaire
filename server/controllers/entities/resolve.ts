@@ -1,6 +1,6 @@
 import { oneDay } from '#lib/time'
 import type { ResolverEntry } from '#types/resolver'
-import type { AuthentifiedReq, UserAccountUri } from '#types/server'
+import type { AuthentifiedReq, RemoteUserAuthentifiedReq, UserAccountUri } from '#types/server'
 import { resolveUpdateAndCreate } from './lib/resolver/resolve_update_and_create.js'
 
 // Entry example:
@@ -57,7 +57,7 @@ export interface ResolverParams {
   reqUserAcct?: UserAccountUri
 }
 
-async function controller (params: ResolverParams, req: AuthentifiedReq) {
+async function controller (params: ResolverParams, req: AuthentifiedReq | RemoteUserAuthentifiedReq) {
   req.setTimeout(oneDay)
   const { resolvedEntries, errors } = await resolveUpdateAndCreate(params)
   if (params.strict) {

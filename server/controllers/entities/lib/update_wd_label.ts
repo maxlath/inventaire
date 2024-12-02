@@ -5,13 +5,13 @@ import { isWdEntityId } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
 import { newInvalidError } from '#lib/error/pre_filled'
 import { isRemoteUser } from '#lib/federation/remote_user'
-import type { RemoteUser } from '#lib/federation/remote_user'
+import type { BareRemoteUser } from '#lib/federation/remote_user'
 import wdEdit from '#lib/wikidata/edit'
 import type { Label, WdEntityId } from '#types/entity'
 import type { User } from '#types/user'
 import type { WikimediaLanguageCode } from 'wikibase-sdk'
 
-export async function updateWdLabel (user: User | RemoteUser, id: WdEntityId, language: WikimediaLanguageCode, value: Label) {
+export async function updateWdLabel (user: User | BareRemoteUser, id: WdEntityId, language: WikimediaLanguageCode, value: Label) {
   if (!isWdEntityId(id)) throw newInvalidError('id', id)
   if (isRemoteUser(user)) throw newError('remote users can not update wd label yet', 400)
 

@@ -12,12 +12,12 @@ import type { AuthentifiedReq, MaybeSignedReq, RemoteUserAuthentifiedReq, UserAc
 import type { SpecialUser, User, UserId, UserOAuth, UserRole } from '#types/user'
 import type { SetOptional } from 'type-fest'
 
-export interface RemoteUser {
+export interface BareRemoteUser {
   remoteUserId: UserId
   host: Host
   acct: UserAccountUri
   roles: UserRole[]
-  // Not used currently, but required to avoid type errors when typing user as (User | RemoteUser)
+  // Not used currently, but required to avoid type errors when typing user as (User | BareRemoteUser)
   oauth?: UserOAuth
 }
 
@@ -31,11 +31,11 @@ export interface LocalUserWithAcct extends User {
   acct: UserAccountUri
 }
 
-export type UserWithAcct = LocalUserWithAcct | RemoteUserWithAcct
+export type UserWithAcct = LocalUserWithAcct | RemoteUserWithAcct | BareRemoteUser
 
 export const remoteUserHeader = 'x-remote-user'
 
-export async function getReqRemoteUser (req: MaybeSignedReq) {
+export async function geRemoteUserFromSignedReqHeader (req: MaybeSignedReq) {
   await verifySignature(req)
   const { host } = req.signed
   const remoteUserId = req.headers[remoteUserHeader]
@@ -50,10 +50,10 @@ export async function getReqRemoteUser (req: MaybeSignedReq) {
     host,
     acct: `${remoteUserId}@${host}`,
     roles: [],
-  } as RemoteUser
+  } as BareRemoteUser
 }
 
-export function isRemoteUser (user: User | SpecialUser | RemoteUser): user is RemoteUser {
+export function isRemoteUser (user: User | SpecialUser | BareRemoteUser): user is BareRemoteUser {
   return 'acct' in user
 }
 
@@ -66,7 +66,7 @@ export function getLocalUserIdFromAcct (userAcct: UserAccountUri): UserId | unde
   if (host === publicHost) return userId
 }
 
-export function getUserAcct (user: User | SpecialUser | RemoteUser) {
+export function getUserAcct (user: User | SpecialUser | BareRemoteUser) {
   if ('acct' in user) {
     return user.acct
   } else {
@@ -116,12 +116,18 @@ async function getRemoteUsersByIds (host: Host, usersIds: UserId[]) {
   return users
 }
 
-function setUserAcct (user: SetOptional<UserWithAcct, 'acct'>, host: Host) {
+function setUserAcct (user: SetOptional<LocalUserWithAcct | RemoteUserWithAcct, 'acct'>, host: Host) {
   user.acct = `${user._id}@${host}`
-  return user as UserWithAcct
+  if (host === publicHost) return user as LocalUserWithAcct
+  else return user as RemoteUserWithAcct
 }
 
 export async function getUserByAcct (userAcct: UserAccountUri) {
   const users = await getUsersByAccts([ userAcct ])
   return users[0]
+}
+
+export function parseReqLocalOrRemoteUser (req: AuthentifiedReq | RemoteUserAuthentifiedReq) {
+  if ('user' in req) return setUserAcct(req.user, publicHost) as LocalUserWithAcct
+  else return req.remoteUser
 }

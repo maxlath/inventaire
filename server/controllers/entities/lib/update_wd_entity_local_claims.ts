@@ -3,12 +3,11 @@ import { getWdEntityLocalLayer } from '#controllers/entities/lib/entities'
 import { prefixifyWd } from '#controllers/entities/lib/prefix'
 import { updateInvClaim } from '#controllers/entities/lib/update_inv_claim'
 import { newError } from '#lib/error/error'
-import { getLocalUserAcct } from '#lib/federation/remote_user'
+import type { UserWithAcct } from '#lib/federation/remote_user'
 import { getUserAccessLevels } from '#lib/user_access_levels'
 import type { InvClaimValue, PropertyUri, WdEntityId } from '#types/entity'
-import type { SpecialUser, User } from '#types/user'
 
-export async function updateWdEntityLocalClaims (user: User | SpecialUser, wdId: WdEntityId, property: PropertyUri, oldValue: InvClaimValue, newValue: InvClaimValue) {
+export async function updateWdEntityLocalClaims (user: UserWithAcct, wdId: WdEntityId, property: PropertyUri, oldValue: InvClaimValue, newValue: InvClaimValue) {
   if (property === 'invp:P1') {
     throw newError('entity local layer linking property (invp:P1) can not be updated', 400, { wdId, property, oldValue, newValue })
   }
@@ -27,7 +26,7 @@ export async function updateWdEntityLocalClaims (user: User | SpecialUser, wdId:
     const userAccessLevels = getUserAccessLevels(user)
     await createInvEntity({
       claims: localEntityLayerClaims,
-      userAcct: getLocalUserAcct(user._id),
+      userAcct: user.acct,
       userAccessLevels,
     })
   }

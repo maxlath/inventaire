@@ -1,5 +1,5 @@
 import type { ParsedForm } from '#controllers/images/lib/parse_form'
-import type { RemoteUser } from '#lib/federation/remote_user'
+import type { BareRemoteUser } from '#lib/federation/remote_user'
 import type { RelativeUrl, Host } from '#types/common'
 import type { User, UserId } from '#types/user'
 import type Express from 'express'
@@ -21,7 +21,7 @@ export interface SignedReq extends Express.Request {
 export type MaybeSignedReq = SetOptional<SignedReq, 'signed'>
 
 export interface RemoteUserAuthentifiedReq extends SignedReq {
-  remoteUser: RemoteUser
+  remoteUser: BareRemoteUser
 }
 
 export type Req = Express.Request | AuthentifiedReq | SignedReq

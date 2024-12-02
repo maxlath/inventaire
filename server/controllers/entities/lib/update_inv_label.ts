@@ -2,7 +2,7 @@ import { getEntityById } from '#controllers/entities/lib/entities'
 import { isInvEntityId } from '#lib/boolean_validations'
 import { newInvalidError } from '#lib/error/pre_filled'
 import { getUserAcct } from '#lib/federation/remote_user'
-import type { RemoteUser } from '#lib/federation/remote_user'
+import type { BareRemoteUser } from '#lib/federation/remote_user'
 import { retryOnConflict } from '#lib/retry_on_conflict'
 import { assertEditableEntity } from '#models/entity'
 import type { InvEntityId, Label } from '#types/entity'
@@ -10,7 +10,7 @@ import type { User } from '#types/user'
 import { updateLabel } from './update_label.js'
 import type { WikimediaLanguageCode } from 'wikibase-sdk'
 
-async function updateInvLabel (user: User | RemoteUser, id: InvEntityId, lang: WikimediaLanguageCode, value: Label) {
+async function updateInvLabel (user: User | BareRemoteUser, id: InvEntityId, lang: WikimediaLanguageCode, value: Label) {
   const userAcct = getUserAcct(user)
 
   if (!isInvEntityId(id)) throw newInvalidError('id', id)

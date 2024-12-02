@@ -4,10 +4,11 @@ import { getPatchesWithSnapshots } from '#controllers/entities/lib/patches/patch
 import { unprefixify } from '#controllers/entities/lib/prefix'
 import { isInvEntityUri } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
+import { parseReqLocalOrRemoteUser } from '#lib/federation/remote_user'
 import { hasAdminAccess } from '#lib/user_access_levels'
 import type { SanitizedParameters } from '#types/controllers_input_sanitization_parameters'
 import type { EntityUri } from '#types/entity'
-import type { AuthentifiedReq } from '#types/server'
+import type { AuthentifiedReq, RemoteUserAuthentifiedReq } from '#types/server'
 import { anonymizePatches } from './lib/anonymize_patches.js'
 
 const sanitization = {
@@ -19,7 +20,7 @@ const sanitization = {
   },
 }
 
-async function controller (params: SanitizedParameters, req: AuthentifiedReq) {
+async function controller (params: SanitizedParameters, req: AuthentifiedReq | RemoteUserAuthentifiedReq) {
   const { uri, reqUserAcct } = params
   let { id } = params
 
@@ -34,8 +35,9 @@ async function controller (params: SanitizedParameters, req: AuthentifiedReq) {
   }
   let patches
   if (id) {
+    const user = parseReqLocalOrRemoteUser(req)
     patches = await getPatchesWithSnapshots(id)
-    if (!hasAdminAccess(req.user)) await anonymizePatches({ patches, reqUserAcct })
+    if (!hasAdminAccess(user)) await anonymizePatches({ patches, reqUserAcct })
   } else {
     // If no inv id is found for a given uri, there is no local layer for that entity
     // thus no patches

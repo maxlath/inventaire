@@ -1,12 +1,19 @@
 import 'should'
-import { getOrCreateUser, getRefreshedUser } from '#fixtures/users'
+import { getOrCreateUser, getRefreshedUser, type CustomUserData } from '#fixtures/users'
+import { newError } from '#lib/error/error'
+import config from '#server/config'
 import type { UserRole } from '#types/user'
 import { request, customAuthReq, rawCustomAuthReq } from './request.js'
 import type { ArrayTail } from 'type-fest'
 
+const federatedMode = config.federation.remoteEntitiesOrigin != null
+
 const userPromises = {}
 
 export const getUserGetter = (key: string, role?: UserRole, customData?: CustomUserData) => () => {
+  if (federatedMode && role) {
+    throw newError('Tests relying on special roles are not available in federated mode yet', 500, { role })
+  }
   if (userPromises[key] == null) {
     userPromises[key] = getOrCreateUser(customData, role)
   }

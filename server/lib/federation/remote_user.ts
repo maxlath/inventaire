@@ -23,7 +23,8 @@ export interface BareRemoteUser {
 
 type PublicUserAttributes = typeof userAttributes.public[number]
 
-export interface RemoteUserWithAcct extends Pick<User, PublicUserAttributes> {
+export type RemoteUser = Pick<User, PublicUserAttributes>
+export interface RemoteUserWithAcct extends RemoteUser {
   acct: UserAccountUri
 }
 
@@ -103,17 +104,17 @@ async function getHostUsersByIds ([ host, usersIds ]: [ Host, UserId[] ]) {
   let users: User[]
   if (host === publicHost) {
     users = await getUsersByIds(usersIds)
+    return users.map(user => setUserAcct(user, host))
   } else {
-    users = await getRemoteUsersByIds(host, usersIds)
+    return getRemoteUsersByIds(host, usersIds)
   }
-  return users.map(user => setUserAcct(user, host))
 }
 
 async function getRemoteUsersByIds (host: Host, usersIds: UserId[]) {
   const protocol = host.startsWith('localhost') ? 'http' : 'https'
   const path = buildUrl(`${protocol}://${host}/api/users`, { action: 'by-ids', ids: usersIds.join('|') })
   const { users } = await requests_.get(path, { timeout: 10000 })
-  return users
+  return Object.values(users).map((user: RemoteUser) => setUserAcct(user, host))
 }
 
 function setUserAcct (user: SetOptional<LocalUserWithAcct | RemoteUserWithAcct, 'acct'>, host: Host) {

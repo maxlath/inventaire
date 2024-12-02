@@ -7,13 +7,15 @@
 
 const federatedTestServerConfig = require('./tests-api-federated-server.cjs')
 
-const { port } = federatedTestServerConfig
+const { port, db, federation } = federatedTestServerConfig
 
 /** @type {PartialDeep<Config>} */
 const config = {
   waitForServer: true,
 
   port,
+  db,
+  federation,
 
   mocha: {
     // Fit to match the needs of the slowest API,

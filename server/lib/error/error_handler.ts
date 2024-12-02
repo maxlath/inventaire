@@ -41,9 +41,13 @@ export function errorHandler (req: Req, res: Res, err: ErrorResponse) {
 
   if (err.mute !== true) {
     if (statusCode.toString().startsWith('4')) {
-      warn(err, statusCode.toString())
+      let label = statusCode.toString()
+      if (err.forwardedFrom) label = `[forwarded error] ${label}`
+      warn(err, label)
     } else {
-      logError(err, err.message)
+      let label = err.message
+      if (err.forwardedFrom) label = `[forwarded error] ${label}`
+      logError(err, label)
     }
   }
 

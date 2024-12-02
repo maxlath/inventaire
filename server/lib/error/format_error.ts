@@ -1,6 +1,8 @@
 // Using minimal dependencies to avoid circular dependencies
 // as this is depended on by lib/error which is called very early
 
+import type { AbsoluteUrl } from '#types/common'
+
 // Global conventions:
 // - all error objects should have a statusCode (mimicking HTTP status codes)
 //   this is already the case for errors rejected by the lib blue-cot and server/lib/requests
@@ -22,6 +24,7 @@ export interface ContextualizedError extends Error {
   mute?: boolean
   body?: unknown
   referer?: string
+  forwardedFrom?: AbsoluteUrl
 }
 
 export function formatContextualizedError (err: ContextualizedError, filter: number | string, context?: ErrorContext) {

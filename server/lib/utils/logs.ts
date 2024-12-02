@@ -50,6 +50,7 @@ export function warn (err: unknown, label?: string) {
   if (err instanceof Error) {
     // shorten the stack trace
     err.stack = err.stack.split('\n').slice(0, 5).join('\n')
+    reduceForwardedErrorsVerbosity(err)
   }
 
   log(err, label, 'yellow')
@@ -72,6 +73,7 @@ export function logError (err: ContextualizedError, label?: string) {
     return
   }
 
+  reduceForwardedErrorsVerbosity(err)
   log(err, label, 'red')
 
   const url = err?.context?.url
@@ -81,6 +83,12 @@ export function logError (err: ContextualizedError, label?: string) {
   countsByHostAndErrorStatusCode[host][errorStatusCode] ??= 0
   countsByHostAndErrorStatusCode[host][errorStatusCode]++
   errorCount++
+}
+
+function reduceForwardedErrorsVerbosity (err: ContextualizedError) {
+  if ('forwardedFrom' in err) {
+    if ('emitter' in err) delete err.emitter
+  }
 }
 
 export function logErrorMessage (label?: string) {

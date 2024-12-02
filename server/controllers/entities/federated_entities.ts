@@ -53,13 +53,13 @@ function proxiedController (accessLevel: AccessLevel, verb: HttpVerb, action: st
       try {
         return await requests_[verb](remoteUrl, { body })
       } catch (err) {
-        throw forwardRemoteError(err)
+        throw forwardRemoteError(err, remoteUrl)
       }
     } else if (isAuthentifiedReq(req)) {
       try {
         return await signedProxyRequest(req, verb, remoteUrl, body)
       } catch (err) {
-        throw forwardRemoteError(err)
+        throw forwardRemoteError(err, remoteUrl)
       }
     } else {
       throw newUnauthorizedApiAccessError(401)
@@ -90,11 +90,12 @@ async function signedProxyRequest (req: AuthentifiedReq, verb: HttpVerb, remoteU
   return requests_[verb](remoteUrl, { headers, body })
 }
 
-function forwardRemoteError (err: ContextualizedError) {
+function forwardRemoteError (err: ContextualizedError, remoteUrl: AbsoluteUrl) {
   const { statusCode } = err
   // @ts-expect-error
   const { status_verbose: message, context } = err.body
   const repackedError = newError(message, statusCode, context)
+  repackedError.forwardedFrom = remoteUrl
   return repackedError
 }
 

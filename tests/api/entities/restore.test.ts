@@ -1,11 +1,13 @@
 import should from 'should'
 import { createWork } from '#fixtures/entities'
 import { getRandomString } from '#lib/utils/random_string'
+import { federatedMode } from '#server/config'
 import { getByUri, updateLabel, restoreVersion, getHistory, addClaim } from '#tests/api/utils/entities'
 import { getUserA, getUserB } from '#tests/api/utils/utils'
 
 describe('entities:restore', () => {
-  it('should restore after label updates', async () => {
+  it('should restore after label updates', async function () {
+    if (federatedMode) this.skip()
     const originalLabel = getRandomString(6)
     const [ userA, userB ] = await Promise.all([ getUserA(), getUserB() ])
     const { uri } = await createWork({ user: userA, labels: { en: originalLabel } })
@@ -20,7 +22,8 @@ describe('entities:restore', () => {
     restoredHistory.length.should.equal(4)
   })
 
-  it('should restore after claim update', async () => {
+  it('should restore after claim update', async function () {
+    if (federatedMode) this.skip()
     const [ userA, userB ] = await Promise.all([ getUserA(), getUserB() ])
     const { uri } = await createWork({ user: userA, claims: { 'wdt:P50': [ 'wd:Q1174579' ] } })
     await addClaim({ user: userB, uri, property: 'wdt:P921', value: 'wd:Q3196867' })

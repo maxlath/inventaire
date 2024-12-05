@@ -32,9 +32,7 @@ import tests from '#controllers/tests'
 import transactions from '#controllers/transactions/transactions'
 import user from '#controllers/user/user'
 import users from '#controllers/users/users'
-import config from '#server/config'
-
-const federatedMode = config.federation.remoteEntitiesOrigin != null
+import config, { federatedMode } from '#server/config'
 
 // Routes structure:
 // 1 - api is the default prefix for server-side routes

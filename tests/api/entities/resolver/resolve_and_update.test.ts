@@ -12,7 +12,7 @@ import {
 } from '#fixtures/entities'
 import { wait } from '#lib/promises'
 import { forceArray } from '#lib/utils/base'
-import config from '#server/config'
+import config, { federatedMode } from '#server/config'
 import { getByUris, getByUri, addClaim, getHistory } from '#tests/api/utils/entities'
 import { authReq } from '#tests/api/utils/utils'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
@@ -204,7 +204,8 @@ describe('entities:resolver:update-resolved', () => {
     claims['invp:P2'][0].should.equal(originalImageHash)
   })
 
-  it('should add a batch timestamp to patches', async () => {
+  it('should add a batch timestamp to patches', async function () {
+    if (federatedMode) this.skip()
     const startTime = Date.now()
     const entryA = someEntryWithAGoodReadsWorkId()
     const entryB = someEntryWithAGoodReadsWorkId()

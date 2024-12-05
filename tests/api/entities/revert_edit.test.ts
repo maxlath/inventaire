@@ -1,11 +1,13 @@
 import should from 'should'
 import { createWork, createEditionWithIsbn } from '#fixtures/entities'
 import { getRandomString } from '#lib/utils/random_string'
+import { federatedMode } from '#server/config'
 import { getByUri, updateLabel, revertEdit, getHistory, addClaim } from '#tests/api/utils/entities'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
 
 describe('entities:revert-edit', () => {
-  it('should revert a label update', async () => {
+  it('should revert a label update', async function () {
+    if (federatedMode) this.skip()
     const { uri } = await createWork()
     const label = getRandomString(6)
     await updateLabel({ uri, lang: 'es', value: label })
@@ -16,7 +18,8 @@ describe('entities:revert-edit', () => {
     should(work.labels.es).not.be.ok()
   })
 
-  it('should revert a claim update', async () => {
+  it('should revert a claim update', async function () {
+    if (federatedMode) this.skip()
     const { uri } = await createWork()
     await addClaim({ uri, property: 'wdt:P50', value: 'wd:Q1174579' })
     const lastPatchId = await getLastPatchId(uri)
@@ -26,7 +29,8 @@ describe('entities:revert-edit', () => {
     should(work.claims['wdt:P50']).not.be.ok()
   })
 
-  it('should reject reverts that would make P31 empty', async () => {
+  it('should reject reverts that would make P31 empty', async function () {
+    if (federatedMode) this.skip()
     const { uri } = await createWork()
     const lastPatchId = await getLastPatchId(uri)
     await revertEdit({ patchId: lastPatchId })
@@ -37,7 +41,8 @@ describe('entities:revert-edit', () => {
     })
   })
 
-  it('should be able to revert when having a unique value claim', async () => {
+  it('should be able to revert when having a unique value claim', async function () {
+    if (federatedMode) this.skip()
     // Sets wdt:P212, which should be a unique value
     const { uri, _id } = await createEditionWithIsbn()
     const invUri = `inv:${_id}`

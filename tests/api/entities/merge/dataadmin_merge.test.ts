@@ -15,6 +15,7 @@ import {
   existsOrCreate,
 } from '#fixtures/entities'
 import { getRandomString } from '#lib/utils/random_string'
+import { federatedMode } from '#server/config'
 import { getByUris, merge, getHistory, addClaim, getByUri } from '#tests/api/utils/entities'
 import { getItemsByIds } from '#tests/api/utils/items'
 import { dataadminReq } from '#tests/api/utils/utils'
@@ -22,7 +23,8 @@ import { shouldNotBeCalled } from '#tests/unit/utils/utils'
 import type { InvEntityUri } from '#types/entity'
 
 describe('entities:merge:as:dataadmin', () => {
-  it('should reject without from uri', async () => {
+  it('should reject without from uri', async function () {
+    if (federatedMode) this.skip()
     await dataadminReq('put', '/api/entities?action=merge')
     .then(shouldNotBeCalled)
     .catch(err => {
@@ -31,7 +33,8 @@ describe('entities:merge:as:dataadmin', () => {
     })
   })
 
-  it('should reject without to uri', async () => {
+  it('should reject without to uri', async function () {
+    if (federatedMode) this.skip()
     await dataadminReq('put', '/api/entities?action=merge', { from: someFakeUri })
     .then(shouldNotBeCalled)
     .catch(err => {
@@ -40,7 +43,8 @@ describe('entities:merge:as:dataadmin', () => {
     })
   })
 
-  it('should reject invalid uris', async () => {
+  it('should reject invalid uris', async function () {
+    if (federatedMode) this.skip()
     await dataadminReq('put', '/api/entities?action=merge', { from: 'fromUri', to: 'toUri' })
   .then(shouldNotBeCalled)
   .catch(err => {
@@ -49,7 +53,8 @@ describe('entities:merge:as:dataadmin', () => {
   })
   })
 
-  it('should reject invalid from prefix', async () => {
+  it('should reject invalid from prefix', async function () {
+    if (federatedMode) this.skip()
     await dataadminReq('put', '/api/entities?action=merge', { from: 'wd:Q42', to: someFakeUri })
     .then(shouldNotBeCalled)
     .catch(err => {
@@ -58,7 +63,8 @@ describe('entities:merge:as:dataadmin', () => {
     })
   })
 
-  it('should return uris not found', async () => {
+  it('should return uris not found', async function () {
+    if (federatedMode) this.skip()
     await dataadminReq('put', '/api/entities?action=merge', { from: someFakeUri, to: 'wd:Q42' })
     .then(shouldNotBeCalled)
     .catch(err => {
@@ -67,7 +73,8 @@ describe('entities:merge:as:dataadmin', () => {
     })
   })
 
-  it('should merge two entities with an inv URI', async () => {
+  it('should merge two entities with an inv URI', async function () {
+    if (federatedMode) this.skip()
     const [ workA, workB ] = await Promise.all([
       createWork(),
       createWork(),
@@ -78,7 +85,8 @@ describe('entities:merge:as:dataadmin', () => {
     entities[workB.uri].should.be.ok()
   })
 
-  it('should merge entities with inv and isbn URIs', async () => {
+  it('should merge entities with inv and isbn URIs', async function () {
+    if (federatedMode) this.skip()
     const [ editionA, editionB ] = await Promise.all([
       createEdition(),
       createEditionWithIsbn(),
@@ -95,7 +103,8 @@ describe('entities:merge:as:dataadmin', () => {
     items[0].entity.should.equal(editionB.uri)
   })
 
-  it('should merge an entity with an ISBN', async () => {
+  it('should merge an entity with an ISBN', async function () {
+    if (federatedMode) this.skip()
     const [ editionA, editionB ] = await Promise.all([
       createEditionWithIsbn(),
       createEdition(),
@@ -112,7 +121,8 @@ describe('entities:merge:as:dataadmin', () => {
     items[0].entity.should.equal(isbnUri)
   })
 
-  it('should reject merge with different ISBNs', async () => {
+  it('should reject merge with different ISBNs', async function () {
+    if (federatedMode) this.skip()
     const [ editionA, editionB ] = await Promise.all([
       createEditionWithIsbn(),
       createEditionWithIsbn(),
@@ -125,7 +135,8 @@ describe('entities:merge:as:dataadmin', () => {
     })
   })
 
-  it('should transfer claims', async () => {
+  it('should transfer claims', async function () {
+    if (federatedMode) this.skip()
     const [ workA, workB ] = await Promise.all([
       createWork(),
       createWork(),
@@ -137,7 +148,8 @@ describe('entities:merge:as:dataadmin', () => {
     authorsUris.should.deepEqual([ 'wd:Q535' ])
   })
 
-  it('should transfer labels', async () => {
+  it('should transfer labels', async function () {
+    if (federatedMode) this.skip()
     const label = getRandomString(6)
     const [ workA, workB ] = await Promise.all([
       createWork({ labels: { zh: label } }),
@@ -148,7 +160,8 @@ describe('entities:merge:as:dataadmin', () => {
     entities[workB.uri].labels.zh.should.equal(label)
   })
 
-  it('should keep track of the patch context', async () => {
+  it('should keep track of the patch context', async function () {
+    if (federatedMode) this.skip()
     const [ workA, workB ] = await Promise.all([
       createWork(),
       createWork(),
@@ -159,7 +172,8 @@ describe('entities:merge:as:dataadmin', () => {
     patches[1].context.mergeFrom.should.equal(workA.uri)
   })
 
-  it('should redirect claims', async () => {
+  it('should redirect claims', async function () {
+    if (federatedMode) this.skip()
     const [ humanA, humanB, work ] = await Promise.all([
       createHuman(),
       createHuman(),
@@ -177,7 +191,8 @@ describe('entities:merge:as:dataadmin', () => {
     patches[2].context.redirectClaims.should.deepEqual({ fromUri: humanA.uri })
   })
 
-  it('should recover from parallel edit conflicts while redirecting claims', async () => {
+  it('should recover from parallel edit conflicts while redirecting claims', async function () {
+    if (federatedMode) this.skip()
     const [ humanA, humanB, humanC, workX, workY, workZ ] = await Promise.all([
       createHuman(),
       createHuman(),
@@ -212,7 +227,8 @@ describe('entities:merge:as:dataadmin', () => {
     should(fromUri1 === humanA.uri || fromUri1 === humanB.uri).be.true()
   })
 
-  it('should reject a merge from a redirection', async () => {
+  it('should reject a merge from a redirection', async function () {
+    if (federatedMode) this.skip()
     const [ workA, workB, workC ] = await Promise.all([
       createWork(),
       createWork(),
@@ -227,7 +243,8 @@ describe('entities:merge:as:dataadmin', () => {
     })
   })
 
-  it('should reject a merge to a redirection', async () => {
+  it('should reject a merge to a redirection', async function () {
+    if (federatedMode) this.skip()
     const [ workA, workB, workC ] = await Promise.all([
       createWork(),
       createWork(),
@@ -242,7 +259,8 @@ describe('entities:merge:as:dataadmin', () => {
     })
   })
 
-  it('should reject a circular merge', async () => {
+  it('should reject a circular merge', async function () {
+    if (federatedMode) this.skip()
     const work = await createWork()
     await merge(work.uri, work.uri)
     .then(shouldNotBeCalled)
@@ -252,7 +270,8 @@ describe('entities:merge:as:dataadmin', () => {
     })
   })
 
-  it('should remove isolated human "placeholders" entities on works merge', async () => {
+  it('should remove isolated human "placeholders" entities on works merge', async function () {
+    if (federatedMode) this.skip()
     const [ workA, workB ] = await Promise.all([
       createWorkWithAuthor(),
       createWorkWithAuthor(),
@@ -264,7 +283,8 @@ describe('entities:merge:as:dataadmin', () => {
     entity._meta_type.should.equal('removed:placeholder')
   })
 
-  it('should merge an entity with a non-canonical uri', async () => {
+  it('should merge an entity with a non-canonical uri', async function () {
+    if (federatedMode) this.skip()
     const [ editionA, editionB ] = await Promise.all([
       createEditionWithIsbn(),
       createEdition(),
@@ -274,7 +294,8 @@ describe('entities:merge:as:dataadmin', () => {
   })
 
   describe('local entity layer', () => {
-    it('should turn a merged local entity into a local entity layer if there is none', async () => {
+    it('should turn a merged local entity into a local entity layer if there is none', async function () {
+      if (federatedMode) this.skip()
       const imageHash = someRandomImageHash()
       const edition = await createEdition({ image: imageHash })
       const uri = await getSomeWdEditionUri()
@@ -287,7 +308,8 @@ describe('entities:merge:as:dataadmin', () => {
       invId.should.equal(edition._id)
     })
 
-    it('should turn a merged local entity into a redirection if there is already a local layer', async () => {
+    it('should turn a merged local entity into a redirection if there is already a local layer', async function () {
+      if (federatedMode) this.skip()
       const imageHashA = someRandomImageHash()
       const imageHashB = someRandomImageHash()
       const [ uri, editionA, editionB ] = await Promise.all([
@@ -303,7 +325,8 @@ describe('entities:merge:as:dataadmin', () => {
       entities[uri].claims['invp:P2'].should.deepEqual([ imageHashA ])
     })
 
-    it('should reject merging a local entity layer', async () => {
+    it('should reject merging a local entity layer', async function () {
+      if (federatedMode) this.skip()
       const entity = await getSomeRemoteEditionWithALocalLayer()
       const { invId } = entity
       const invUri: InvEntityUri = `inv:${invId}`
@@ -316,7 +339,8 @@ describe('entities:merge:as:dataadmin', () => {
       })
     })
 
-    it('should reject merging into a local entity layer', async () => {
+    it('should reject merging into a local entity layer', async function () {
+      if (federatedMode) this.skip()
       const entity = await getSomeRemoteEditionWithALocalLayer()
       const { invId } = entity
       const invUri: InvEntityUri = `inv:${invId}`
@@ -329,7 +353,8 @@ describe('entities:merge:as:dataadmin', () => {
       })
     })
 
-    it('should reject merging into a missing remote entity', async () => {
+    it('should reject merging into a missing remote entity', async function () {
+      if (federatedMode) this.skip()
       const human = await createHuman()
       const wdHumanUri = 'wd:Q104211857'
       await merge(human.uri, wdHumanUri)

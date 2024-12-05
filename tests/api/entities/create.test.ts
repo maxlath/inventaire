@@ -1,6 +1,7 @@
 import should from 'should'
 import { createEditionWithIsbn, generateSomeRecoverableIsni, randomLabel, someOpenLibraryId, someReference } from '#fixtures/entities'
 import { getSomeUsername } from '#fixtures/text'
+import { federatedMode } from '#server/config'
 import { getEntityAttributesByUri } from '#tests/api/utils/entities'
 import { authReq } from '#tests/api/utils/utils'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
@@ -281,7 +282,8 @@ describe('entities:create', () => {
     res.claims['wdt:P213'].should.deepEqual([ someValidIsni ])
   })
 
-  it('should reject invalid prefixes', async () => {
+  it('should reject invalid prefixes', async function () {
+    if (federatedMode) this.skip()
     await authReq('post', endpoint, {
       prefix: 'foo',
       labels: {},

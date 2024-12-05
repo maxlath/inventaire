@@ -1,12 +1,10 @@
 import 'should'
 import { getOrCreateUser, getRefreshedUser, type CustomUserData } from '#fixtures/users'
 import { newError } from '#lib/error/error'
-import config from '#server/config'
+import { federatedMode } from '#server/config'
 import type { UserRole } from '#types/user'
 import { request, customAuthReq, rawCustomAuthReq } from './request.js'
 import type { ArrayTail } from 'type-fest'
-
-const federatedMode = config.federation.remoteEntitiesOrigin != null
 
 const userPromises = {}
 

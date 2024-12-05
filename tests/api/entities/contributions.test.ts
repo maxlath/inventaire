@@ -4,6 +4,7 @@ import { someRandomCouchUuid } from '#fixtures/general'
 import { createUser } from '#fixtures/users'
 import { getLocalUserAcct } from '#lib/federation/remote_user'
 import { wait } from '#lib/promises'
+import { federatedMode } from '#server/config'
 import { updateClaim, updateLabel } from '#tests/api/utils/entities'
 import { customAuthReq } from '#tests/api/utils/request'
 import {
@@ -17,7 +18,8 @@ import { shouldNotBeCalled } from '#tests/unit/utils/utils'
 const endpoint = '/api/entities?action=contributions'
 
 describe('entities:contributions', () => {
-  it('should return contributions from all users by default', async () => {
+  it('should return contributions from all users by default', async function () {
+    if (federatedMode) this.skip()
     const user = await getUser()
     const { _id } = await createWork({ user })
     const { patches } = await adminReq('get', `${endpoint}&limit=5`)
@@ -28,20 +30,23 @@ describe('entities:contributions', () => {
     lastPatch.user.should.equal(userAcct)
   })
 
-  it('should return an empty list of patch when user does not exist', async () => {
+  it('should return an empty list of patch when user does not exist', async function () {
+    if (federatedMode) this.skip()
     const id = someRandomCouchUuid()
     const { patches } = await adminReq('get', `${endpoint}&user=${getLocalUserAcct(id)}`)
     patches.should.be.an.Array()
     patches.length.should.equal(0)
   })
 
-  it('should return a list of patches', async () => {
+  it('should return a list of patches', async function () {
+    if (federatedMode) this.skip()
     const { _id } = await getUser()
     const { patches } = await adminReq('get', `${endpoint}&user=${getLocalUserAcct(_id)}`)
     patches.should.be.an.Array()
   })
 
-  it('should return a list of patches ordered by timestamp', async () => {
+  it('should return a list of patches ordered by timestamp', async function () {
+    if (federatedMode) this.skip()
     const { workA, workB, user } = await get2WorksAndUser()
     const userAcct = getLocalUserAcct(user._id)
     const { patches } = await adminReq('get', `${endpoint}&user=${userAcct}`)
@@ -51,7 +56,8 @@ describe('entities:contributions', () => {
     should(patches[0].timestamp > patches[1].timestamp).be.true()
   })
 
-  it('should take a limit parameter', async () => {
+  it('should take a limit parameter', async function () {
+    if (federatedMode) this.skip()
     const { workB, user } = await get2WorksAndUser()
     const userAcct = getLocalUserAcct(user._id)
     const { patches } = await adminReq('get', `${endpoint}&user=${userAcct}&limit=1`)
@@ -59,7 +65,8 @@ describe('entities:contributions', () => {
     workB._id.should.equal(patches[0]._id.split(':')[0])
   })
 
-  it('should take an offset parameter', async () => {
+  it('should take an offset parameter', async function () {
+    if (federatedMode) this.skip()
     const { user } = await get2WorksAndUser()
     const userAcct = getLocalUserAcct(user._id)
     const { patches } = await adminReq('get', `${endpoint}&user=${userAcct}`)
@@ -68,7 +75,8 @@ describe('entities:contributions', () => {
     should(patches.length - offset).equal(patches2.length)
   })
 
-  it('should return total data', async () => {
+  it('should return total data', async function () {
+    if (federatedMode) this.skip()
     const { user } = await get2WorksAndUser()
     const userAcct = getLocalUserAcct(user._id)
     const { total } = await adminReq('get', `${endpoint}&user=${userAcct}&limit=1`)
@@ -76,7 +84,8 @@ describe('entities:contributions', () => {
     should(total >= 2).be.true()
   })
 
-  it('should return continue data', async () => {
+  it('should return continue data', async function () {
+    if (federatedMode) this.skip()
     const { user } = await get2WorksAndUser()
     const userAcct = getLocalUserAcct(user._id)
     const { continue: continu } = await adminReq('get', `${endpoint}&user=${userAcct}&limit=1`)
@@ -84,7 +93,8 @@ describe('entities:contributions', () => {
     continu.should.equal(1)
   })
 
-  it('should return increment contributions', async () => {
+  it('should return increment contributions', async function () {
+    if (federatedMode) this.skip()
     const [ work, user ] = await Promise.all([ createWork(), getUser() ])
     const userAcct = getLocalUserAcct(user._id)
     const { total } = await adminReq('get', `${endpoint}&user=${userAcct}`)
@@ -97,7 +107,8 @@ describe('entities:contributions', () => {
   })
 
   describe('filter', () => {
-    it('should filter by claim property', async () => {
+    it('should filter by claim property', async function () {
+      if (federatedMode) this.skip()
       const user = await createUser()
       const { uri } = await createWork({ user })
       const property = 'wdt:P921'
@@ -114,7 +125,8 @@ describe('entities:contributions', () => {
       })
     })
 
-    it('should filter by claim property in a multi-claim patch', async () => {
+    it('should filter by claim property in a multi-claim patch', async function () {
+      if (federatedMode) this.skip()
       const user = await createUser()
       const property = 'wdt:P941'
       await createWork({
@@ -133,7 +145,8 @@ describe('entities:contributions', () => {
       })
     })
 
-    it('should filter by label lang', async () => {
+    it('should filter by label lang', async function () {
+      if (federatedMode) this.skip()
       const user = await createUser()
       const { uri } = await createWork({ user })
       const lang = 'ca'

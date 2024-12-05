@@ -1,14 +1,12 @@
 import { keyBy, map, mapValues, pick, property } from 'lodash-es'
 import { extendedTypesAliases } from '#lib/wikidata/extended_aliases'
-import config from '#server/config'
+import config, { federatedMode } from '#server/config'
 import type { InvEntityDoc } from '#types/entity'
 import type { Group } from '#types/group'
 import type { Item } from '#types/item'
 import type { Listing } from '#types/listing'
 import type { Shelf } from '#types/shelf'
 import type { User } from '#types/user'
-
-const federatedMode = config.federation.remoteEntitiesOrigin != null
 
 // Using CouchDB database names + environment suffix as indexes names
 const indexesData = [

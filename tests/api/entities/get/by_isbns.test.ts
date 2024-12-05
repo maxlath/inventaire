@@ -1,5 +1,6 @@
 import should from 'should'
 import { toIsbn13 } from '#lib/isbn/isbn'
+import { federatedMode } from '#server/config'
 import {
   createEditionWithIsbn,
   existsOrCreate,
@@ -85,7 +86,8 @@ describe('entities:get:by-isbns', () => {
       res.notFound[0].should.equal(uri)
     })
 
-    it('should return editions isbn in notFound array when autocreation is true', async () => {
+    it('should return editions isbn in notFound array when autocreation is true', async function () {
+      if (federatedMode) this.skip()
       const isbnUnknownBySeedsSources = '9783981898743'
       const uri = `isbn:${isbnUnknownBySeedsSources}`
       await deleteByUris([ uri ])
@@ -94,7 +96,8 @@ describe('entities:get:by-isbns', () => {
       res.notFound[0].should.equal(uri)
     })
 
-    it('should autocreate from authorities seed when autocreation is true', async () => {
+    it('should autocreate from authorities seed when autocreation is true', async function () {
+      if (federatedMode) this.skip()
       const isbnKnownBySeedsSources = '9782207116746'
       const uri = `isbn:${isbnKnownBySeedsSources}`
       await deleteByUris([ uri ])
@@ -121,7 +124,8 @@ describe('entities:get:by-isbns', () => {
       should(res.notFound).not.be.ok()
     })
 
-    it('should not create duplicates when called in parallel', async () => {
+    it('should not create duplicates when called in parallel', async function () {
+      if (federatedMode) this.skip()
       const isbnKnownBySeedsSources = '9782207116746'
       const uri = `isbn:${isbnKnownBySeedsSources}`
       await deleteByUris([ uri ])

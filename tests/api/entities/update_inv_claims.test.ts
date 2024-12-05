@@ -1,5 +1,6 @@
 import should from 'should'
 import { createWork, createEdition, createHuman, someOpenLibraryId, someFakeUri, someBnfId, createEditionWithIsbn, someImageHash, generateSomeRecoverableIsni } from '#fixtures/entities'
+import { federatedMode } from '#server/config'
 import { getByUri, addClaim, updateClaim, removeClaim, merge } from '#tests/api/utils/entities'
 import { getAdminUser } from '#tests/api/utils/utils'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
@@ -156,7 +157,8 @@ describe('entities:update-claims:inv', () => {
     })
   })
 
-  it('should reject an update on an obsolete entity', async () => {
+  it('should reject an update on an obsolete entity', async function () {
+    if (federatedMode) this.skip()
     const [ workA, workB ] = await Promise.all([
       createWork(),
       createWork(),
@@ -246,7 +248,8 @@ describe('entities:update-claims:inv', () => {
     })
   })
 
-  it('should accept a dataadmin editing an adminUpdateOnly property', async () => {
+  it('should accept a dataadmin editing an adminUpdateOnly property', async function () {
+    if (federatedMode) this.skip()
     const edition = await createEditionWithIsbn()
     const oldValue = edition.claims['wdt:P957'][0]
     const uri: EntityUri = `inv:${edition._id}`
@@ -318,7 +321,8 @@ describe('entities:update-claims:inv', () => {
     })
   })
 
-  it('should reject remote-entities-only properties updates', async () => {
+  it('should reject remote-entities-only properties updates', async function () {
+    if (federatedMode) this.skip()
     const { uri } = await createEdition()
     await addClaim({ user: getAdminUser(), uri, property: 'invp:P3', value: 'work' })
     .then(shouldNotBeCalled)

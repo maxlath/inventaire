@@ -6,6 +6,7 @@ import {
   createSerie,
   createHuman,
 } from '#fixtures/entities'
+import { federatedMode } from '#server/config'
 import { addClaim, getRefreshedPopularityByUri } from '#tests/api/utils/entities'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
 
@@ -25,14 +26,16 @@ describe('entities:popularity', () => {
       await scoreShouldEqual(edition.uri, 0)
     })
 
-    it('should equal the amount of instances in inventories', async () => {
+    it('should equal the amount of instances in inventories', async function () {
+      if (federatedMode) this.skip()
       const { uri } = await createEdition()
       await scoreShouldEqual(uri, 0)
       await createItemFromEntityUri({ uri })
       await scoreShouldEqual(uri, 1)
     })
 
-    it('should count only one instance per owner', async () => {
+    it('should count only one instance per owner', async function () {
+      if (federatedMode) this.skip()
       const { uri } = await createEdition()
       await createItemFromEntityUri({ uri, item: { details: '1' } })
       await createItemFromEntityUri({ uri, item: { details: '2' } })
@@ -41,12 +44,14 @@ describe('entities:popularity', () => {
   })
 
   describe('work', () => {
-    it('should default to 0', async () => {
+    it('should default to 0', async function () {
+      if (federatedMode) this.skip()
       const work = await createWork()
       await scoreShouldEqual(work.uri, 0)
     })
 
-    it('should be incremented by every instances of editions', async () => {
+    it('should be incremented by every instances of editions', async function () {
+      if (federatedMode) this.skip()
       const { uri, claims } = await createEdition()
       const workUri = claims['wdt:P629'][0]
       await scoreShouldEqual(workUri, 1)
@@ -56,7 +61,8 @@ describe('entities:popularity', () => {
   })
 
   describe('serie', () => {
-    it('should be made of the sum of its parts scores + number of parts', async () => {
+    it('should be made of the sum of its parts scores + number of parts', async function () {
+      if (federatedMode) this.skip()
       const [ serie ] = await createSerieWithAWorkWithAnEditionWithAnItem()
       // 1: item
       // 1: edition
@@ -66,7 +72,8 @@ describe('entities:popularity', () => {
   })
 
   describe('human', () => {
-    it('should be made of the sum of its works scores + number of works and series', async () => {
+    it('should be made of the sum of its works scores + number of works and series', async function () {
+      if (federatedMode) this.skip()
       const [ human ] = await createHumanWithAWorkWithAnEditionWithAnItem()
       // 1: item
       // 1: edition

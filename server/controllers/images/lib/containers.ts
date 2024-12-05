@@ -4,11 +4,10 @@ import { getHashFilename, removeExif, shrinkAndFormat } from '#lib/images'
 import { emit } from '#lib/radio'
 import { assertString } from '#lib/utils/assert_types'
 import { log, info } from '#lib/utils/logs'
-import config from '#server/config'
+import config, { federatedMode } from '#server/config'
 
 // 'swift' or 'local'
 const { mode } = config.mediaStorage
-const federatedMode = config.federation.remoteEntitiesOrigin != null
 
 info(`media storage: ${mode}`)
 

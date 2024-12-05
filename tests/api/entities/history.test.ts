@@ -2,6 +2,7 @@ import should from 'should'
 import { createHuman, getSomeRemoteEditionWithALocalLayer } from '#fixtures/entities'
 import { createUser } from '#fixtures/users'
 import { getLocalUserAcct } from '#lib/federation/remote_user'
+import { federatedMode } from '#server/config'
 import { deleteByUris } from '#tests/api/utils/entities'
 import { customAuthReq } from '#tests/api/utils/request'
 import {
@@ -38,21 +39,24 @@ describe('entities:history', () => {
     patches[0].snapshot.labels.should.deepEqual(human.labels)
   })
 
-  it('should return removed placeholder patches', async () => {
+  it('should return removed placeholder patches', async function () {
+    if (federatedMode) this.skip()
     const human = await createHuman()
     await deleteByUris([ human.uri ])
     const { patches } = await publicReq('get', `${endpoint}&id=${human._id}`)
     patches[0].snapshot.labels.should.deepEqual(human.labels)
   })
 
-  it('should not anonymize patches for admins', async () => {
+  it('should not anonymize patches for admins', async function () {
+    if (federatedMode) this.skip()
     const human = await createHuman()
     const { patches } = await adminReq('get', `${endpoint}&id=${human._id}`)
     const patch = patches[0]
     patch.user.should.be.a.String()
   })
 
-  it('should anonymize patches for dataadmins', async () => {
+  it('should anonymize patches for dataadmins', async function () {
+    if (federatedMode) this.skip()
     const human = await createHuman()
     const { patches } = await dataadminReq('get', `${endpoint}&id=${human._id}`)
     const patch = patches[0]

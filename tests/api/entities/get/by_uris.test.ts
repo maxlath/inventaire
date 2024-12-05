@@ -1,5 +1,6 @@
 import should from 'should'
 import { isCouchUuid } from '#lib/boolean_validations'
+import { federatedMode } from '#server/config'
 import {
   createEdition,
   createEditionWithIsbn,
@@ -88,7 +89,8 @@ describe('entities:get:by-uris', () => {
     redirects[wdUri].should.equal(isbnUri)
   })
 
-  it('should return redirected uris', async () => {
+  it('should return redirected uris', async function () {
+    if (federatedMode) this.skip()
     const [ humanA, humanB, humanC ] = await Promise.all([ createHuman(), createHuman(), createHuman() ])
     const wdHumanUri = 'wd:Q1345582'
     await Promise.all([

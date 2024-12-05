@@ -23,7 +23,11 @@ const { version } = requireJson(absolutePath('root', 'package.json'))
 const { logStart, logEnd, logOngoingAtInterval, ongoingRequestLogInterval, bodyLogLimit } = config.outgoingRequests
 const publicOrigin = config.getPublicOrigin()
 
-export const userAgent = `${config.name}/${version}; +${publicOrigin}`
+const { NODE_APP_INSTANCE: nodeAppInstance } = process.env
+const { env } = config
+export const userAgent = env.includes('tests')
+  ? `${env}-${nodeAppInstance}`
+  : `${config.name}/${version}; +${publicOrigin}`
 
 const defaultTimeout = 30 * 1000
 

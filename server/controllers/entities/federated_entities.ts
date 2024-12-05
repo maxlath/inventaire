@@ -49,15 +49,15 @@ function proxiedController (accessLevel: AccessLevel, verb: HttpVerb, action: st
   async function controller (params: SanitizedParameters, req: Req | AuthentifiedReq) {
     const remoteUrl = `${remoteEntitiesOrigin}${req.url}` as AbsoluteUrl
     const body = (verb === 'get' || verb === 'delete') ? undefined : req.body
-    if (accessLevel === 'public') {
+    if (isAuthentifiedReq(req)) {
       try {
-        return await requests_[verb](remoteUrl, { body })
+        return await signedProxyRequest(req, verb, remoteUrl, body)
       } catch (err) {
         throw forwardRemoteError(err, remoteUrl)
       }
-    } else if (isAuthentifiedReq(req)) {
+    } else if (accessLevel === 'public') {
       try {
-        return await signedProxyRequest(req, verb, remoteUrl, body)
+        return await requests_[verb](remoteUrl, { body })
       } catch (err) {
         throw forwardRemoteError(err, remoteUrl)
       }

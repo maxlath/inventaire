@@ -11,7 +11,7 @@ import { instanceActorName } from '#lib/federation/instance'
 import { remoteUserHeader } from '#lib/federation/remote_user'
 import { requests_ } from '#lib/requests'
 import type { AccessLevel } from '#lib/user_access_levels'
-import { objectEntries } from '#lib/utils/base'
+import { arrayIncludes, objectEntries } from '#lib/utils/base'
 import config from '#server/config'
 import type { AbsoluteUrl } from '#types/common'
 import type { ActionController, HttpVerb } from '#types/controllers'
@@ -26,21 +26,26 @@ const { remoteEntitiesOrigin } = config.federation
 // Note that requests requiring Wikidata OAuth could possibly be replaced by request
 // authentified with a server Wikidata account
 const federatedEntitiesControllersParams = {}
+const closedAccessLevels = [ 'admin', 'dataadmin' ] as const
 
 for (const [ verb, verbParams ] of objectEntries(localEntitiesControllersParams)) {
   federatedEntitiesControllersParams[verb] = {}
   for (const [ accessLevel, actionControllers ] of objectEntries(verbParams)) {
-    if (accessLevel === 'public' || accessLevel === 'authentified') {
-      federatedEntitiesControllersParams[verb][accessLevel] = {}
-      for (const [ actionName, actionController ] of objectEntries(actionControllers)) {
-        const controller = proxiedController(accessLevel, verb, actionName as string, actionController)
-        federatedEntitiesControllersParams[verb][accessLevel][actionName] = controller
-      }
+    // Register closed endpoints as public to directly send the "Closed endpoint" error
+    // rather than falsly hinting that it's an authentification problem
+    const localAccessLevel = arrayIncludes(closedAccessLevels, accessLevel) ? 'public' : accessLevel
+    federatedEntitiesControllersParams[verb][localAccessLevel] ??= {}
+    for (const [ actionName, actionController ] of objectEntries(actionControllers)) {
+      const controller = proxiedController(accessLevel, verb, actionName as string, actionController)
+      federatedEntitiesControllersParams[verb][localAccessLevel][actionName] = controller
     }
   }
 }
 
 function proxiedController (accessLevel: AccessLevel, verb: HttpVerb, action: string, actionController: ActionController) {
+  if (!(accessLevel === 'public' || accessLevel === 'authentified')) {
+    return () => { throw newError('This endpoint is closed in federated mode', 400, { endpoint: `${verb.toUpperCase()} /api/entities?action=${action}` }) }
+  }
   let sanitization, track
   if (typeof actionController !== 'function') {
     ;({ sanitization, track } = actionController)

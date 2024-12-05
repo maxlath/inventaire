@@ -26,6 +26,7 @@ export type ShelfActorName = `shelf-${CouchUuid}`
 export type EntityActorName = `${EntityUriPrefix}-${CouchUuid}`
 
 export type ActorName = ShelfActorName | EntityActorName | Username
+export type ActorKeyId = AbsoluteUrl
 
 export interface ActorActivity {
   '@context': Context[]
@@ -38,7 +39,7 @@ export interface ActorActivity {
   sharedInbox: Url
   outbox: Url
   publicKey: {
-    id: string
+    id: ActorKeyId
     owner: ActorUrl
     publicKeyPem?: {
       publicKeyHash: string

@@ -83,7 +83,7 @@ export function makeActorUrl (actorName: string) {
 }
 
 export function makeActorKeyUrl (actorName: string, publicKeyHash: string) {
-  return `${makeActorUrl(actorName)}#${publicKeyHash}`
+  return `${makeActorUrl(actorName)}#${publicKeyHash}` as AbsoluteUrl
 }
 
 async function buildActorObject ({ actorName, displayName, summary, imagePath, links, attachment = [] }: ActorParams) {

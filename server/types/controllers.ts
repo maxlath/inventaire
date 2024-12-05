@@ -25,5 +25,6 @@ export type ActionsControllers = {
 }
 
 export type HttpVerb = 'get' | 'post' | 'put' | 'delete'
+export type LowerCasedHttpVerb = HttpVerb
 
 export type VerbsAndActionsControllers = Partial<Record<HttpVerb, ActionsControllers>>

@@ -91,6 +91,7 @@ async function signedProxyRequest (req: AuthentifiedReq, verb: HttpVerb, remoteU
 }
 
 function forwardRemoteError (err: ContextualizedError, remoteUrl: AbsoluteUrl) {
+  if (!('body' in err)) throw err
   const { statusCode } = err
   // @ts-expect-error
   const { status_verbose: message, context } = err.body

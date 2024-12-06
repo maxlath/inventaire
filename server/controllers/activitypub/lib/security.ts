@@ -10,7 +10,7 @@ import { logError, warn } from '#lib/utils/logs'
 import config from '#server/config'
 import type { ActorKeyId } from '#types/activity'
 import type { AbsoluteUrl, HttpHeaders, RelativeUrl } from '#types/common'
-import type { LowerCasedHttpVerb } from '#types/controllers'
+import type { LowerCasedHttpMethod } from '#types/controllers'
 import type { MaybeSignedReq, SignedReq } from '#types/server'
 
 interface Signature {
@@ -24,7 +24,7 @@ const { sanitizeUrls } = config.activitypub
 interface SignParams {
   keyId: ActorKeyId
   privateKey: string
-  method: LowerCasedHttpVerb
+  method: LowerCasedHttpMethod
   pathname: RelativeUrl
   reqHeaders: HttpHeaders
 }
@@ -84,7 +84,7 @@ async function attemptToVerifySignature (req: MaybeSignedReq, signature: Signatu
   const signedString = buildSignatureString({
     reqHeaders: reqHeaders as HttpHeaders,
     signedHeadersNames,
-    method: method.toLowerCase() as LowerCasedHttpVerb,
+    method: method.toLowerCase() as LowerCasedHttpMethod,
     pathname: pathname as RelativeUrl,
   })
   verifier.update(signedString)
@@ -95,7 +95,7 @@ async function attemptToVerifySignature (req: MaybeSignedReq, signature: Signatu
 
 interface SignRequestParams {
   url: AbsoluteUrl
-  method: LowerCasedHttpVerb
+  method: LowerCasedHttpMethod
   keyId: ActorKeyId
   privateKey: string
   body: unknown
@@ -128,13 +128,13 @@ interface BuildSignatureStringParams {
   reqHeaders: HttpHeaders
   signedHeadersNames: string
   pathname: RelativeUrl
-  method: LowerCasedHttpVerb
+  method: LowerCasedHttpMethod
 }
 function buildSignatureString (params: BuildSignatureStringParams) {
   const { reqHeaders, signedHeadersNames, pathname } = params
   let { method } = params
   // 'method' must be lowercased
-  method = method.toLowerCase() as LowerCasedHttpVerb
+  method = method.toLowerCase() as LowerCasedHttpMethod
   let signatureString = `(request-target): ${method} ${pathname}`
   const orderedSignedHeadersKeys = signedHeadersNames
     .replace('(request-target)', '')

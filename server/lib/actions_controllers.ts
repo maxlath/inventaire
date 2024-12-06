@@ -1,7 +1,7 @@
 import { objectEntries } from '#lib/utils/base'
 import validateObject from '#lib/validate_object'
 import type { HttpMethod } from '#types/common'
-import type { ActionController, ActionsControllers, VerbsAndActionsControllers, MethodsAndActionsControllers } from '#types/controllers'
+import type { ActionController, ActionsControllers, MethodsAndActionsControllers } from '#types/controllers'
 import type { Req, Res } from '#types/server'
 import { controllerWrapper, validateControllerWrapperParams } from './controller_wrapper.js'
 import { bundleMissingQueryError, bundleUnknownAction } from './error/pre_filled.js'
@@ -50,12 +50,12 @@ function getActionControllerParams (access: AccessLevel, actionData: ActionContr
   return controllerParams
 }
 
-type ControllersByVerbsAndActions = Partial<Record<HttpMethod, ReturnType<typeof actionsControllersFactory>>>
+type ControllersByMethodsAndActions = Partial<Record<HttpMethod, ReturnType<typeof actionsControllersFactory>>>
 
-export function verbAndActionsControllersFactory (verbsAndActionsControllers: VerbsAndActionsControllers) {
-  const controllersByVerbsAndActions: ControllersByVerbsAndActions = {}
-  for (const [ verb, actionsControllersParams ] of objectEntries(verbsAndActionsControllers)) {
-    controllersByVerbsAndActions[verb] = actionsControllersFactory(actionsControllersParams)
+export function methodAndActionsControllersFactory (methodsAndActionsControllers: MethodsAndActionsControllers) {
+  const controllersByMethodsAndActions: ControllersByMethodsAndActions = {}
+  for (const [ method, actionsControllersParams ] of objectEntries(methodsAndActionsControllers)) {
+    controllersByMethodsAndActions[method] = actionsControllersFactory(actionsControllersParams)
   }
-  return controllersByVerbsAndActions
+  return controllersByMethodsAndActions
 }

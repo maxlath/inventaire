@@ -33,8 +33,8 @@ export default {
   redirectToApiDoc: (req, res) => res.redirect('https://api.inventaire.io'),
 
   api: (req, res) => {
-    bundleError(req, res, 'wrong API route or http verb', 404, {
-      verb: req.method,
+    bundleError(req, res, 'wrong API route or http method', 404, {
+      method: req.method,
       url: parseUrl(req).href,
     })
   },

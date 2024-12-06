@@ -1,6 +1,6 @@
 import removeLabel from '#controllers/entities/remove_label'
-import { verbAndActionsControllersFactory } from '#lib/actions_controllers'
-import type { VerbsAndActionsControllers } from '#types/controllers'
+import { methodAndActionsControllersFactory } from '#lib/actions_controllers'
+import type { MethodsAndActionsControllers } from '#types/controllers'
 import byUrisGet from './by_uris_get.js'
 import contributions from './contributions.js'
 import contributionsCount from './contributions_count.js'
@@ -67,6 +67,6 @@ export const localEntitiesControllersParams = {
       'revert-merge': revertMerge,
     },
   },
-} as VerbsAndActionsControllers
+} as MethodsAndActionsControllers
 
-export const localEntitiesControllers = verbAndActionsControllersFactory(localEntitiesControllersParams)
+export const localEntitiesControllers = methodAndActionsControllersFactory(localEntitiesControllersParams)

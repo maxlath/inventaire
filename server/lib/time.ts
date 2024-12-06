@@ -27,6 +27,9 @@ export function coloredElapsedTime (startTime) {
   else return grey(`${elapsedMs}ms`)
 }
 
-export const expired = (timestamp, ttl) => (Date.now() - timestamp) > ttl
+export function expired (timestamp: EpochTimeStamp | string, ttl: number) {
+  const epochTimestamp = typeof timestamp === 'number' ? timestamp : new Date(timestamp).getTime()
+  return (Date.now() - epochTimestamp) > ttl
+}
 
 export const msToHumanAge = ms => msToHumanTime(Date.now() - ms)

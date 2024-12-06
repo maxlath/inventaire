@@ -365,7 +365,8 @@ describe('entities:merge:as:dataadmin', () => {
       })
     })
 
-    it('should merge a local entity with the same isbn as a remote entity into that remote entity', async () => {
+    it('should merge a local entity with the same isbn as a remote entity into that remote entity', async function () {
+      if (federatedMode) this.skip()
       const isbn = '978-2-7186-0660-6'
       const property = 'wdt:P212'
       const edition = await existsOrCreate({

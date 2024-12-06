@@ -1,6 +1,7 @@
 import 'should'
 import { map, uniq } from 'lodash-es'
 import { createWorkWithAuthor, createHuman, createWork } from '#fixtures/entities'
+import { federatedMode } from '#server/config'
 import { findOrIndexEntities, deleteByUris } from '#tests/api/utils/entities'
 import { checkEntities, getBySuspectUri } from '#tests/api/utils/tasks'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
@@ -24,7 +25,8 @@ describe('tasks:check-entities', () => {
     })
   })
 
-  it('should create tasks for the requested URIs', async () => {
+  it('should create tasks for the requested URIs', async function () {
+    if (federatedMode) this.skip()
     const human = await createHuman({ labels: { en: 'Fred Vargas' } })
     // should not automerge if author name is in work title
     await createWorkWithAuthor(human, 'Fred Vargas')
@@ -40,7 +42,8 @@ describe('tasks:check-entities', () => {
     task.externalSourcesOccurrences.should.be.an.Array()
   })
 
-  it('should not re-create existing tasks', async () => {
+  it('should not re-create existing tasks', async function () {
+    if (federatedMode) this.skip()
     const human = await createHuman({ labels: { en: 'Fred Vargas' } })
     await checkEntities(human.uri)
     await checkEntities(human.uri)
@@ -49,7 +52,8 @@ describe('tasks:check-entities', () => {
     tasks.length.should.equal(uniqSuggestiontUris.length)
   })
 
-  it('should not create a task for a removed placeholders', async () => {
+  it('should not create a task for a removed placeholders', async function () {
+    if (federatedMode) this.skip()
     const human = await createHuman({ labels: { en: 'Fred Vargas' } })
     await deleteByUris([ human.uri ])
     await checkEntities(human.uri)

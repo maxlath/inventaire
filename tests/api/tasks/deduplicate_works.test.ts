@@ -4,6 +4,7 @@ import { createWork, generateIsbn13h, createEditionWithIsbn, createHuman } from 
 import { getLocalUserAcct } from '#lib/federation/remote_user'
 import { wait } from '#lib/promises'
 import { objectValues } from '#lib/utils/base'
+import { federatedMode } from '#server/config'
 import { getByUris, getByUri, merge } from '#tests/api/utils/entities'
 import { getBySuspectUri } from '#tests/api/utils/tasks'
 import { authReq, getUser } from '#tests/api/utils/utils'
@@ -104,7 +105,8 @@ describe('tasks:deduplicate:works', () => {
     res.entities[workUri].should.be.ok()
   })
 
-  it('should not re-create existing tasks', async () => {
+  it('should not re-create existing tasks', async function () {
+    if (federatedMode) this.skip()
     const work = await createWork()
     const uri = work.uri
     const edition = await createEditionWithIsbn()
@@ -127,7 +129,8 @@ describe('tasks:deduplicate:works', () => {
     tasks.length.should.equal(0)
   })
 
-  it('should ignore when the edition is already associated to the work via a redirection', async () => {
+  it('should ignore when the edition is already associated to the work via a redirection', async function () {
+    if (federatedMode) this.skip()
     const edition = await createEditionWithIsbn()
     const workUri = edition.claims['wdt:P629'][0]
     const { uri: otherWorkUri } = await createWork()

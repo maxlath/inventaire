@@ -27,7 +27,8 @@ import relations from '#controllers/relations/relations'
 import reports from '#controllers/reports/reports'
 import search from '#controllers/search/search'
 import shelves from '#controllers/shelves/shelves'
-import tasks from '#controllers/tasks/tasks'
+import { federatedTasksControllers } from '#controllers/tasks/federated_tasks'
+import { localTasksControllers } from '#controllers/tasks/tasks'
 import tests from '#controllers/tests'
 import transactions from '#controllers/transactions/transactions'
 import user from '#controllers/user/user'
@@ -72,9 +73,10 @@ addRoute('.well-known/webfinger', webfinger)
 
 if (federatedMode) {
   addRoute('api/entities', federatedEntitiesControllers)
+  addRoute('api/tasks', federatedTasksControllers)
 } else {
   addRoute('api/entities', localEntitiesControllers)
-  addRoute('api/tasks', tasks)
+  addRoute('api/tasks', localTasksControllers)
 }
 
 if (config.i18n.autofix) {

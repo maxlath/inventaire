@@ -67,6 +67,6 @@ export const localEntitiesControllersParams = {
       'revert-merge': revertMerge,
     },
   },
-} as MethodsAndActionsControllers
+} satisfies MethodsAndActionsControllers
 
 export const localEntitiesControllers = methodAndActionsControllersFactory(localEntitiesControllersParams)

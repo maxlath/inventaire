@@ -1,5 +1,7 @@
 import { initTasksHooks } from '#controllers/tasks/hooks'
-import { actionsControllersFactory } from '#lib/actions_controllers'
+import { methodAndActionsControllersFactory } from '#lib/actions_controllers'
+import { federatedMode } from '#server/config'
+import type { MethodsAndActionsControllers } from '#types/controllers'
 import byEntitiesType from './by_entities_type.js'
 import { bySuspectUris, bySuggestionUris } from './by_entity_uris.js'
 import byIds from './by_ids.js'
@@ -10,8 +12,8 @@ import deduplicateWorks from './deduplicate_works.js'
 import getTasksCount from './get_tasks_count.js'
 import update from './update.js'
 
-export default {
-  get: actionsControllersFactory({
+export const localTasksControllersParams = {
+  get: {
     public: {
       'by-ids': byIds,
       'by-score': byScore,
@@ -20,9 +22,9 @@ export default {
       'by-suggestion-uris': bySuggestionUris,
       'tasks-count': getTasksCount,
     },
-  }),
+  },
 
-  post: actionsControllersFactory({
+  post: {
     authentified: {
       'deduplicate-works': deduplicateWorks,
     },
@@ -32,13 +34,15 @@ export default {
       'collect-human-duplicates': collectHumanDuplicates,
       'check-human-duplicates': checkHumanDuplicates,
     },
-  }),
+  },
 
-  put: actionsControllersFactory({
+  put: {
     admin: {
       update,
     },
-  }),
-}
+  },
+} satisfies MethodsAndActionsControllers
 
-initTasksHooks()
+export const localTasksControllers = methodAndActionsControllersFactory(localTasksControllersParams)
+
+if (!federatedMode) initTasksHooks()

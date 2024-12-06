@@ -20,9 +20,7 @@ import type { AuthentifiedReq, Req } from '#types/server'
 const { remoteEntitiesOrigin } = config.federation
 
 function proxiedController (accessLevel: AccessLevel, method: HttpMethod, pathname: RelativeUrl, action: string, actionController: ActionController) {
-  if (!(accessLevel === 'public' || accessLevel === 'authentified')) {
-    return () => { throw newError('This endpoint is closed in federated mode', 400, { endpoint: `${method.toUpperCase()} ${pathname}?action=${action}` }) }
-  }
+  if (accessLevel === 'admin' || accessLevel === 'dataadmin') return closedEndpointFactory(method, pathname, action)
   let sanitization, track
   if (typeof actionController !== 'function') {
     ;({ sanitization, track } = actionController)
@@ -53,6 +51,12 @@ function proxiedController (accessLevel: AccessLevel, method: HttpMethod, pathna
   } else {
     // Sanitize locally before proxying
     return { controller, sanitization, track }
+  }
+}
+
+function closedEndpointFactory (method: HttpMethod, pathname: RelativeUrl, action: string) {
+  return function closedEndpointController () {
+    throw newError('This endpoint is closed in federated mode', 400, { endpoint: `${method.toUpperCase()} ${pathname}?action=${action}` })
   }
 }
 

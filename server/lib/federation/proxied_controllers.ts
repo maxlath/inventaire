@@ -26,7 +26,18 @@ function proxiedController (accessLevel: AccessLevel, method: HttpMethod, pathna
     ;({ sanitization, track } = actionController)
   }
 
-  async function controller (params: SanitizedParameters, req: Req | AuthentifiedReq) {
+  const controller = proxiedControllerFunctionFactory(accessLevel, method)
+
+  if (typeof actionController === 'function') {
+    return controller
+  } else {
+    // Sanitize locally before proxying
+    return { controller, sanitization, track }
+  }
+}
+
+function proxiedControllerFunctionFactory (accessLevel: AccessLevel, method: HttpMethod) {
+  return async function controller (params: SanitizedParameters, req: Req | AuthentifiedReq) {
     const remoteUrl = `${remoteEntitiesOrigin}${req.url}` as AbsoluteUrl
     const body = (method === 'get' || method === 'delete') ? undefined : req.body
     if (isAuthentifiedReq(req)) {
@@ -44,13 +55,6 @@ function proxiedController (accessLevel: AccessLevel, method: HttpMethod, pathna
     } else {
       throw newUnauthorizedApiAccessError(401)
     }
-  }
-
-  if (typeof actionController === 'function') {
-    return controller
-  } else {
-    // Sanitize locally before proxying
-    return { controller, sanitization, track }
   }
 }
 

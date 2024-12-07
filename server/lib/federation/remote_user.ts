@@ -1,10 +1,11 @@
 import { verifySignature } from '#controllers/activitypub/lib/security'
-import type { AnonymizedUser, DeanonymizedUser } from '#controllers/user/lib/anonymizable_user'
+import { buildAnonymizedUser, type AnonymizedUser, type DeanonymizedUser } from '#controllers/user/lib/anonymizable_user'
 import { getUsersByIds } from '#controllers/user/lib/user'
 import { isUserId } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
 import { requests_ } from '#lib/requests'
 import { objectEntries } from '#lib/utils/base'
+import { logError } from '#lib/utils/logs'
 import { buildUrl } from '#lib/utils/url'
 import { publicHost } from '#server/config'
 import type { Host } from '#types/common'
@@ -111,10 +112,20 @@ async function getHostUsersByIds ([ host, usersIds ]: [ Host, UserId[] ]) {
 }
 
 async function getRemoteUsersByIds (host: Host, usersIds: UserId[]) {
-  const protocol = host.startsWith('localhost') ? 'http' : 'https'
-  const path = buildUrl(`${protocol}://${host}/api/users`, { action: 'by-anonymizable-ids', ids: usersIds.join('|') })
-  const { users } = await requests_.get(path, { timeout: 10000 })
-  return Object.values(users).map((user: RemoteUser) => setUserAcctAndRoles(user, host))
+  try {
+    const protocol = host.startsWith('localhost') ? 'http' : 'https'
+    const path = buildUrl(`${protocol}://${host}/api/users`, { action: 'by-anonymizable-ids', ids: usersIds.join('|') })
+    const { users } = await requests_.get(path, { timeout: 10000 })
+    return Object.values(users).map((user: RemoteUser) => setUserAcctAndRoles(user, host))
+  } catch (err) {
+    err.context ??= {}
+    Object.assign(err.context, { host, usersIds })
+    logError(err, 'failed to get remote users')
+    return usersIds.map(userId => {
+      const userPlaceholder = buildAnonymizedUser(userId)
+      return setUserAcctAndRoles(userPlaceholder, host)
+    })
+  }
 }
 
 function setUserAcctAndRoles (user: SetOptional<LocalUserWithAcct | RemoteUserWithAcct, 'acct' | 'roles'>, host: Host) {

@@ -1,6 +1,6 @@
 import should from 'should'
 import { createTask } from '#fixtures/tasks'
-import { getLocalUserAcct } from '#lib/federation/remote_user'
+import { createUser } from '#fixtures/users'
 import {
   createCollection,
   createEdition,
@@ -17,6 +17,7 @@ import {
 } from '#tests/api/fixtures/entities'
 import { getByUris, merge } from '#tests/api/utils/entities'
 import { getBySuspectUri } from '#tests/api/utils/tasks'
+import { getTestUserAcct } from '#tests/api/utils/users'
 import { publicReq, getUser } from '#tests/api/utils/utils'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
 
@@ -114,9 +115,10 @@ describe('entities:merge:as:user', () => {
       const tasks = await getMergeTaskBySuspectUri(human.uri)
       tasks.length.should.aboveOrEqual(1)
       const user = await getUser()
+      const userAcct = await getTestUserAcct(user)
       const task = tasks[0]
       task.type.should.equal('merge')
-      task.reporters.should.deepEqual([ getLocalUserAcct(user._id) ])
+      task.reporters.should.deepEqual([ userAcct ])
       res.taskId.should.equal(task._id)
     })
 
@@ -133,13 +135,14 @@ describe('entities:merge:as:user', () => {
         createWorkWithAuthor(human2, workLabel2),
         createWorkWithAuthor(human3, workLabel3),
       ])
-      const firstReporterId = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+      const reporter = await createUser()
+      const reporterAcct = await getTestUserAcct(reporter)
       const task = await createTask({
         type: 'merge',
         entitiesType: 'human',
         suspectUri: human.uri,
         suggestionUri: human2.uri,
-        reporter: getLocalUserAcct(firstReporterId),
+        reporter: reporterAcct,
       })
 
       const res = await userMerge(human.uri, human2.uri)
@@ -147,8 +150,9 @@ describe('entities:merge:as:user', () => {
       tasks2.length.should.equal(1)
 
       const user = await getUser()
+      const userAcct = await getTestUserAcct(user)
       tasks2[0].reporters.length.should.equal(2)
-      tasks2[0].reporters.should.deepEqual([ firstReporterId, user._id ].map(getLocalUserAcct))
+      tasks2[0].reporters.should.deepEqual([ reporterAcct, userAcct ])
       res.taskId.should.equal(task._id)
 
       // should not add an existing userId

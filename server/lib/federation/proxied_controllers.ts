@@ -1,6 +1,7 @@
 import { makeActorKeyUrl } from '#controllers/activitypub/lib/get_actor'
 import { signRequest } from '#controllers/activitypub/lib/security'
 import { getSharedKeyPair } from '#controllers/activitypub/lib/shared_key_pair'
+import { getUserAnonymizableId } from '#controllers/user/lib/anonymizable_user'
 import { methodAndActionsControllersFactory } from '#lib/actions_controllers'
 import { isAuthentifiedReq } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
@@ -65,7 +66,7 @@ function closedEndpointFactory (method: HttpMethod, pathname: RelativeUrl, actio
 }
 
 async function signedProxyRequest (req: AuthentifiedReq, method: HttpMethod, remoteUrl: AbsoluteUrl, body: unknown) {
-  const { _id: userId } = req.user
+  const userAnonymizableId = await getUserAnonymizableId(req.user)
   const { privateKey, publicKeyHash } = await getSharedKeyPair()
   const headers = signRequest({
     url: remoteUrl,
@@ -74,7 +75,7 @@ async function signedProxyRequest (req: AuthentifiedReq, method: HttpMethod, rem
     privateKey,
     body,
     headers: {
-      [remoteUserHeader]: userId,
+      [remoteUserHeader]: userAnonymizableId,
     },
   })
   return requests_[method](remoteUrl, { headers, body })

@@ -58,4 +58,11 @@ export const views: Views<DocInUserDb> = {
       emit(nextSummary, null)
     },
   },
+  byAnonymizableId: {
+    map: doc => {
+      if (doc.type === 'user') {
+        if ('anonymizableId' in doc) emit(doc.anonymizableId, null)
+      }
+    },
+  },
 }

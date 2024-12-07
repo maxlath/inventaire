@@ -18,6 +18,7 @@ const ownerSafe = [
   'fediversable',
   'customProperties',
   'snapshot',
+  'anonymizableId',
 ] as const
 
 const userAttributes = {

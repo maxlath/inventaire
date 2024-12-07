@@ -7,6 +7,7 @@ import { wait } from '#lib/promises'
 import { federatedMode } from '#server/config'
 import { updateClaim, updateLabel } from '#tests/api/utils/entities'
 import { customAuthReq } from '#tests/api/utils/request'
+import { getTestUserAcct } from '#tests/api/utils/users'
 import {
   adminReq,
   getUser,
@@ -26,7 +27,7 @@ describe('entities:contributions', () => {
     patches.should.be.an.Array()
     const lastPatch = patches[0]
     lastPatch._id.split(':')[0].should.equal(_id)
-    const userAcct = getLocalUserAcct(user._id)
+    const userAcct = await getTestUserAcct(user)
     lastPatch.user.should.equal(userAcct)
   })
 
@@ -40,15 +41,16 @@ describe('entities:contributions', () => {
 
   it('should return a list of patches', async function () {
     if (federatedMode) this.skip()
-    const { _id } = await getUser()
-    const { patches } = await adminReq('get', `${endpoint}&user=${getLocalUserAcct(_id)}`)
+    const user = await getUser()
+    const userAcct = await getTestUserAcct(user)
+    const { patches } = await adminReq('get', `${endpoint}&user=${userAcct}`)
     patches.should.be.an.Array()
   })
 
   it('should return a list of patches ordered by timestamp', async function () {
     if (federatedMode) this.skip()
     const { workA, workB, user } = await get2WorksAndUser()
-    const userAcct = getLocalUserAcct(user._id)
+    const userAcct = await getTestUserAcct(user)
     const { patches } = await adminReq('get', `${endpoint}&user=${userAcct}`)
     const patchesIds = patches.map(getPatchEntityId)
     should(patchesIds.includes(workB._id)).be.true()
@@ -59,7 +61,7 @@ describe('entities:contributions', () => {
   it('should take a limit parameter', async function () {
     if (federatedMode) this.skip()
     const { workB, user } = await get2WorksAndUser()
-    const userAcct = getLocalUserAcct(user._id)
+    const userAcct = await getTestUserAcct(user)
     const { patches } = await adminReq('get', `${endpoint}&user=${userAcct}&limit=1`)
     patches.length.should.equal(1)
     workB._id.should.equal(patches[0]._id.split(':')[0])
@@ -68,7 +70,7 @@ describe('entities:contributions', () => {
   it('should take an offset parameter', async function () {
     if (federatedMode) this.skip()
     const { user } = await get2WorksAndUser()
-    const userAcct = getLocalUserAcct(user._id)
+    const userAcct = await getTestUserAcct(user)
     const { patches } = await adminReq('get', `${endpoint}&user=${userAcct}`)
     const offset = 1
     const { patches: patches2 } = await adminReq('get', `${endpoint}&user=${userAcct}&offset=${offset}`)
@@ -78,7 +80,7 @@ describe('entities:contributions', () => {
   it('should return total data', async function () {
     if (federatedMode) this.skip()
     const { user } = await get2WorksAndUser()
-    const userAcct = getLocalUserAcct(user._id)
+    const userAcct = await getTestUserAcct(user)
     const { total } = await adminReq('get', `${endpoint}&user=${userAcct}&limit=1`)
     total.should.be.a.Number()
     should(total >= 2).be.true()
@@ -87,7 +89,7 @@ describe('entities:contributions', () => {
   it('should return continue data', async function () {
     if (federatedMode) this.skip()
     const { user } = await get2WorksAndUser()
-    const userAcct = getLocalUserAcct(user._id)
+    const userAcct = await getTestUserAcct(user)
     const { continue: continu } = await adminReq('get', `${endpoint}&user=${userAcct}&limit=1`)
     continu.should.be.a.Number()
     continu.should.equal(1)
@@ -96,7 +98,7 @@ describe('entities:contributions', () => {
   it('should return increment contributions', async function () {
     if (federatedMode) this.skip()
     const [ work, user ] = await Promise.all([ createWork(), getUser() ])
-    const userAcct = getLocalUserAcct(user._id)
+    const userAcct = await getTestUserAcct(user)
     const { total } = await adminReq('get', `${endpoint}&user=${userAcct}`)
     should(total >= 1).be.true()
     const workB = await createWork()
@@ -116,7 +118,7 @@ describe('entities:contributions', () => {
       await updateClaim({ uri, property: 'wdt:P136', newValue: 'wd:Q208505', user })
       await updateClaim({ uri, property, newValue: 'wd:Q3', user })
       await updateClaim({ uri, property, oldValue: 'wd:Q1', user })
-      const userAcct = getLocalUserAcct(user._id)
+      const userAcct = await getTestUserAcct(user)
       const { patches, total } = await adminReq('get', `${endpoint}&user=${userAcct}&filter=${property}`)
       patches.length.should.equal(3)
       total.should.equal(3)
@@ -137,7 +139,7 @@ describe('entities:contributions', () => {
           'wdt:P144': [ 'wd:Q180736' ],
         },
       })
-      const userAcct = getLocalUserAcct(user._id)
+      const userAcct = await getTestUserAcct(user)
       const { patches } = await adminReq('get', `${endpoint}&user=${userAcct}&filter=${property}`)
       patches.length.should.be.aboveOrEqual(1)
       patches.forEach(({ operations }) => {
@@ -153,7 +155,7 @@ describe('entities:contributions', () => {
       await updateLabel({ uri, lang, value: 'foo', user })
       await updateLabel({ uri, lang: 'it', value: 'bar', user })
       await updateLabel({ uri, lang, value: 'buzz', user })
-      const userAcct = getLocalUserAcct(user._id)
+      const userAcct = await getTestUserAcct(user)
       const { patches, total } = await adminReq('get', `${endpoint}&user=${userAcct}&filter=${lang}`)
       patches.length.should.equal(2)
       total.should.equal(2)
@@ -166,7 +168,7 @@ describe('entities:contributions', () => {
   describe('non-admin access level', () => {
     it('should reject requests for private contributions from another user', async () => {
       const { user } = await get2WorksAndUser()
-      const userAcct = getLocalUserAcct(user._id)
+      const userAcct = await getTestUserAcct(user)
       await authReq('get', `${endpoint}&user=${userAcct}`)
       .then(shouldNotBeCalled)
       .catch(err => {
@@ -176,14 +178,14 @@ describe('entities:contributions', () => {
 
     it('should accept requests for private contributions from the user themselves', async () => {
       const { user } = await get2WorksAndUser()
-      const userAcct = getLocalUserAcct(user._id)
+      const userAcct = await getTestUserAcct(user)
       const { patches } = await customAuthReq(user, 'get', `${endpoint}&user=${userAcct}`)
       patches.should.be.an.Array()
     })
 
     it('should accept requests for public contributions', async () => {
       const deanonymizedUser = await getDeanonymizedUser()
-      const deanonymizedUserAcct = getLocalUserAcct(deanonymizedUser._id)
+      const deanonymizedUserAcct = await getTestUserAcct(deanonymizedUser)
       const { patches } = await authReq('get', `${endpoint}&user=${deanonymizedUserAcct}`)
       patches.should.be.an.Array()
     })
@@ -196,7 +198,7 @@ describe('entities:contributions', () => {
       should(patches.find(isEntityPatch(workA)).user).not.be.ok()
       should(patches.find(isEntityPatch(workB)).user).not.be.ok()
       const patch = patches.find(isEntityPatch(workC))
-      const deanonymizedUserAcct = getLocalUserAcct(deanonymizedUser._id)
+      const deanonymizedUserAcct = await getTestUserAcct(deanonymizedUser)
       patch.user.should.equal(deanonymizedUserAcct)
     })
 
@@ -204,7 +206,7 @@ describe('entities:contributions', () => {
       const user = await createUser()
       const { _id: workId } = await createWork({ user })
       const { patches } = await customAuthReq(user, 'get', `${endpoint}&limit=1`)
-      const userAcct = getLocalUserAcct(user._id)
+      const userAcct = await getTestUserAcct(user)
       patches[0]._id.should.startWith(workId)
       patches[0].user.should.equal(userAcct)
     })

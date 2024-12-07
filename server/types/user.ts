@@ -8,6 +8,7 @@ import type { ImageHash, UserImagePath } from '#types/image'
 import type { ReadonlyDeep } from 'type-fest'
 
 export type UserId = CouchUuid
+export type AnonymizableUserId = CouchUuid
 export type Email = `${string}@${string}`
 
 export interface UserSettings {
@@ -71,6 +72,7 @@ export interface User extends CouchDoc {
   stableUsername?: Username
   created: EpochTimeStamp
   email?: Email
+  anonymizableId?: AnonymizableUserId
   password?: string | StringifiedHashedSecretData
   picture?: UserImagePath
   language?: string

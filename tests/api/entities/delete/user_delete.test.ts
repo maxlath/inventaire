@@ -2,6 +2,7 @@ import should from 'should'
 import { createHuman, createWork, createWorkWithAuthor, existsOrCreate } from '#fixtures/entities'
 import { createTask } from '#fixtures/tasks'
 import { getLocalUserAcct } from '#lib/federation/remote_user'
+import { federatedMode } from '#server/config'
 import { getByUris, deleteByUris } from '#tests/api/utils/entities'
 import { getBySuspectUri } from '#tests/api/utils/tasks'
 import { publicReq, getUser } from '#tests/api/utils/utils'
@@ -63,14 +64,18 @@ describe('entities:delete:as:user', () => {
     tasks.length.should.aboveOrEqual(1)
   })
 
-  it('should update existing task and accept several reporters', async () => {
+  it('should update existing task and accept several reporters', async function () {
+    // Disabled in federated mode as the test relies on directly calling createTask
+    // which operates on the local tasks database, and not on the remote one
+    if (federatedMode) this.skip()
+
     const { uri } = await createWorkWithAuthor()
-    const firstReporterId = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+    const firstReporterAcct = getLocalUserAcct('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
     await createTask({
       type: 'delete',
       entitiesType: 'human',
       suspectUri: uri,
-      reporter: getLocalUserAcct(firstReporterId),
+      reporter: firstReporterAcct,
     })
 
     await userDelete(uri)
@@ -79,7 +84,7 @@ describe('entities:delete:as:user', () => {
 
     const user = await getUser()
     tasksRes[0].reporters.length.should.equal(2)
-    tasksRes[0].reporters.should.deepEqual([ firstReporterId, user._id ].map(getLocalUserAcct))
+    tasksRes[0].reporters.should.deepEqual([ firstReporterAcct, getLocalUserAcct(user._id) ])
 
     // should not create another task
     await userDelete(uri)

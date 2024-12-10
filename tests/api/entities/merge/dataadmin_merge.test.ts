@@ -1,5 +1,4 @@
 import should from 'should'
-import { getEntityByUri } from '#controllers/entities/lib/get_entity_by_uri'
 import { prefixifyInv } from '#controllers/entities/lib/prefix'
 import {
   createWork,
@@ -9,7 +8,7 @@ import {
   createItemFromEntityUri,
   createWorkWithAuthor,
   someFakeUri,
-  getSomeRemoteEditionWithALocalLayer,
+  getSomeRemoteEditionWithALocalImage,
   someRandomImageHash,
   getSomeWdEditionUri,
   existsOrCreate,
@@ -327,7 +326,7 @@ describe('entities:merge:as:dataadmin', () => {
 
     it('should reject merging a local entity layer', async function () {
       if (federatedMode) this.skip()
-      const entity = await getSomeRemoteEditionWithALocalLayer()
+      const entity = await getSomeRemoteEditionWithALocalImage()
       const { invId } = entity
       const invUri: InvEntityUri = `inv:${invId}`
       const edition = await createEdition()
@@ -341,7 +340,7 @@ describe('entities:merge:as:dataadmin', () => {
 
     it('should reject merging into a local entity layer', async function () {
       if (federatedMode) this.skip()
-      const entity = await getSomeRemoteEditionWithALocalLayer()
+      const entity = await getSomeRemoteEditionWithALocalImage()
       const { invId } = entity
       const invUri: InvEntityUri = `inv:${invId}`
       const edition = await createEdition()
@@ -377,7 +376,7 @@ describe('entities:merge:as:dataadmin', () => {
       })
       const invUri = prefixifyInv(edition.invId)
       await merge(invUri, 'wd:Q130646886')
-      const entity = await getEntityByUri({ uri: invUri })
+      const entity = await getByUri(invUri)
       // @ts-expect-error
       entity.wdId.should.equal('Q130646886')
     })

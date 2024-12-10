@@ -1,4 +1,5 @@
 import should from 'should'
+import { getFirstClaimValue } from '#controllers/entities/lib/inv_claims_utils'
 import { isCouchUuid } from '#lib/boolean_validations'
 import { federatedMode } from '#server/config'
 import {
@@ -6,14 +7,12 @@ import {
   createEditionWithIsbn,
   createHuman,
   createWorkWithAuthor,
-  getSomeRemoteEditionWithALocalLayer,
-  getSomeWdEditionUri,
+  getSomeRemoteEditionWithALocalImage,
   someFakeUri,
-  someRandomImageHash,
 } from '#tests/api/fixtures/entities'
-import { addClaim, getByUri, getByUris, merge } from '#tests/api/utils/entities'
+import { getByUris, merge } from '#tests/api/utils/entities'
 import { rethrowShouldNotBeCalledErrors, shouldNotBeCalled } from '#tests/unit/utils/utils'
-import type { ExpandedSerializedWdEntity, InvEntityUri } from '#types/entity'
+import type { InvEntityUri } from '#types/entity'
 
 let workWithAuthorPromise
 
@@ -130,19 +129,18 @@ describe('entities:get:by-uris', () => {
   })
 
   it('should get a remote entity with its local layer', async () => {
-    const uri = await getSomeWdEditionUri()
-    const imageHash = someRandomImageHash()
-    await addClaim({ uri, property: 'invp:P2', value: imageHash })
-    const entity = (await getByUri(uri) as ExpandedSerializedWdEntity)
-    entity.uri.should.equal(uri)
-    entity.claims['invp:P1'].should.deepEqual([ uri ])
-    entity.claims['invp:P2'].should.deepEqual([ imageHash ])
-    entity.wdId.should.equal(uri.split(':')[1])
-    should(isCouchUuid(entity.invId)).be.true()
+    const edition = await getSomeRemoteEditionWithALocalImage()
+    const { uri, claims } = edition
+    const imageHash = getFirstClaimValue(claims, 'invp:P2')
+    edition.uri.should.equal(uri)
+    edition.claims['invp:P1'].should.deepEqual([ uri ])
+    edition.claims['invp:P2'].should.deepEqual([ imageHash ])
+    edition.wdId.should.equal(uri.split(':')[1])
+    should(isCouchUuid(edition.invId)).be.true()
   })
 
   it('should redirect a local layer uri to the remote entity', async () => {
-    const { uri, invId } = await getSomeRemoteEditionWithALocalLayer()
+    const { uri, invId } = await getSomeRemoteEditionWithALocalImage()
     const invUri: InvEntityUri = `inv:${invId}`
     const res = await getByUris([ invUri ])
     res.entities[uri].claims.should.be.an.Object()

@@ -1,5 +1,5 @@
 import 'should'
-import { getSomeWdEditionUri, someImageHash } from '#fixtures/entities'
+import { getSomeRemoteEditionWithALocalImage, getSomeWdEditionUri } from '#fixtures/entities'
 import { federatedMode } from '#server/config'
 import { addClaim, getByUri, removeClaim } from '#tests/api/utils/entities'
 import { getAdminUser } from '#tests/api/utils/utils'
@@ -18,8 +18,7 @@ describe('entities type lock', () => {
 
   // Creating and updating local layers goes through different functions
   it('should reject non-dataadmin edits on an entity that already has a local layer', async () => {
-    const uri = await getSomeWdEditionUri()
-    await addClaim({ uri, property: 'invp:P2', value: someImageHash })
+    const { uri } = await getSomeRemoteEditionWithALocalImage()
     await addClaim({ uri, property: 'invp:P3', value: 'work' })
     .then(shouldNotBeCalled)
     .catch(err => {
@@ -53,10 +52,9 @@ describe('entities type lock', () => {
 
   it('should type-lock an entity that already has a local layer', async function () {
     if (federatedMode) this.skip()
-    const uri = await getSomeWdEditionUri()
-    const entity = await getByUri(uri)
+    const entity = await getSomeRemoteEditionWithALocalImage()
+    const { uri } = entity
     entity.type.should.equal('edition')
-    await addClaim({ uri, property: 'invp:P2', value: someImageHash })
     await addClaim({ user: getAdminUser(), uri, property: 'invp:P3', value: 'work' })
     const updatedEntity = await getByUri(uri)
     updatedEntity.type.should.equal('work')

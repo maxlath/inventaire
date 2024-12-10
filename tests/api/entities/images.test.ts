@@ -8,16 +8,13 @@ import {
   createSerie,
   createWork,
   someImageHash,
-  getSomeWdEditionUri,
-  someRandomImageHash,
+  getSomeRemoteEditionWithALocalImage,
 } from '#fixtures/entities'
 import { fixedEncodeURIComponent } from '#lib/utils/url'
 import config, { federatedMode } from '#server/config'
-import { addClaim, getByUri } from '#tests/api/utils/entities'
 import { rawRequest } from '#tests/api/utils/request'
 import { publicReq } from '#tests/api/utils/utils'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
-import type { EntityUri } from '#types/entity'
 
 const origin = config.getPublicOrigin()
 const { remoteEntitiesOrigin } = config.federation
@@ -130,9 +127,8 @@ describe('entities:images', () => {
 
     it('should return images from wikidata editions local layers for editions', async function () {
       if (federatedMode) this.skip()
-      const uri = await getSomeWdEditionUri()
-      const imageHash = someRandomImageHash()
-      await addClaim({ uri, property: 'invp:P2', value: imageHash })
+      const { uri, claims } = await getSomeRemoteEditionWithALocalImage()
+      const imageHash = getFirstClaimValue(claims, 'invp:P2')
       const res = await publicReq('get', `/api/entities?action=images&uris=${uri}`)
       // There might also be wd image file names, typically from wdt:P18 claims
       res.images[uri].claims.should.containEql(getUrlFromEntityImageHash(imageHash))
@@ -140,17 +136,10 @@ describe('entities:images', () => {
 
     it('should return images from wikidata editions local layers for works', async function () {
       if (federatedMode) this.skip()
-      const uri = await getSomeWdEditionUri()
-      const edition = await getByUri(uri)
-      const { originalLang } = edition
-      let imageHash = someRandomImageHash()
-      if (edition.claims['invp:P2']) {
-        imageHash = getFirstClaimValue(edition.claims, 'invp:P2')
-      } else {
-        imageHash = someRandomImageHash()
-        await addClaim({ uri, property: 'invp:P2', value: imageHash })
-      }
-      const workUri = edition.claims['wdt:P629'][0] as EntityUri
+      const edition = await getSomeRemoteEditionWithALocalImage()
+      const { originalLang, claims } = edition
+      const imageHash = getFirstClaimValue(claims, 'invp:P2')
+      const workUri = getFirstClaimValue(claims, 'wdt:P629')
       const res = await publicReq('get', `/api/entities?action=images&uris=${workUri}`)
       // Flaky: seen to fail when called within the whole test suite
       res.images[workUri][originalLang].should.containEql(getUrlFromEntityImageHash(imageHash))

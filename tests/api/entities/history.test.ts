@@ -1,5 +1,5 @@
 import should from 'should'
-import { createHuman, getSomeRemoteEditionWithALocalLayer } from '#fixtures/entities'
+import { createHuman, getSomeRemoteEditionWithALocalImage } from '#fixtures/entities'
 import { createUser } from '#fixtures/users'
 import { federatedMode } from '#server/config'
 import { deleteByUris } from '#tests/api/utils/entities'
@@ -110,7 +110,7 @@ describe('entities:history', () => {
   })
 
   it('should return local entity layer patches', async () => {
-    const entity = await getSomeRemoteEditionWithALocalLayer()
+    const entity = await getSomeRemoteEditionWithALocalImage()
     const { invId } = entity
     const { patches } = await publicReq('get', `${endpoint}&id=${invId}`)
     patches.length.should.equal(1)
@@ -119,7 +119,7 @@ describe('entities:history', () => {
   })
 
   it('should return local entity layer patches from wd uri', async () => {
-    const entity = await getSomeRemoteEditionWithALocalLayer()
+    const entity = await getSomeRemoteEditionWithALocalImage()
     const { patches } = await publicReq('get', `${endpoint}&uri=${entity.uri}`)
     patches.length.should.equal(1)
     patches[0].snapshot.claims['invp:P1'].should.deepEqual(entity.claims['invp:P1'])

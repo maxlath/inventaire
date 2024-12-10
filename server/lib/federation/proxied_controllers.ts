@@ -3,7 +3,7 @@ import { signRequest } from '#controllers/activitypub/lib/security'
 import { getSharedKeyPair } from '#controllers/activitypub/lib/shared_key_pair'
 import { getUserAnonymizableId } from '#controllers/user/lib/anonymizable_user'
 import { methodAndActionsControllersFactory } from '#lib/actions_controllers'
-import { isAuthentifiedReq } from '#lib/boolean_validations'
+import { isAuthentifiedReq, isRelativeUrl } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
 import type { ContextualizedError } from '#lib/error/format_error'
 import { newUnauthorizedApiAccessError } from '#lib/error/pre_filled'
@@ -14,9 +14,9 @@ import type { AccessLevel } from '#lib/user_access_levels'
 import { arrayIncludes, objectEntries } from '#lib/utils/base'
 import config from '#server/config'
 import type { AbsoluteUrl, RelativeUrl } from '#types/common'
-import type { ActionController, HttpMethod, MethodsAndActionsControllers } from '#types/controllers'
+import type { ActionController, ActionControllerFunction, ActionControllerStandaloneFunction, HttpMethod, MethodsAndActionsControllers } from '#types/controllers'
 import type { SanitizedParameters } from '#types/controllers_input_sanitization_parameters'
-import type { AuthentifiedReq, Req } from '#types/server'
+import type { AuthentifiedReq, Req, Res } from '#types/server'
 
 const { remoteEntitiesOrigin } = config.federation
 
@@ -27,7 +27,7 @@ function proxiedController (accessLevel: AccessLevel, method: HttpMethod, pathna
     ;({ sanitization, track } = actionController)
   }
 
-  const controller = proxiedControllerFunctionFactory(accessLevel, method)
+  const controller = proxiedControllerFunctionFactory(accessLevel, method, action, actionController)
 
   if (typeof actionController === 'function') {
     return controller
@@ -37,25 +37,45 @@ function proxiedController (accessLevel: AccessLevel, method: HttpMethod, pathna
   }
 }
 
-function proxiedControllerFunctionFactory (accessLevel: AccessLevel, method: HttpMethod) {
-  return async function controller (params: SanitizedParameters, req: Req | AuthentifiedReq) {
-    const remoteUrl = `${remoteEntitiesOrigin}${req.url}` as AbsoluteUrl
-    const body = (method === 'get' || method === 'delete') ? undefined : req.body
-    if (isAuthentifiedReq(req)) {
-      try {
-        return await signedProxyRequest(req, method, remoteUrl, body)
-      } catch (err) {
-        throw forwardRemoteError(err, remoteUrl)
+function proxiedControllerFunctionFactory (accessLevel: AccessLevel, method: HttpMethod, action: string, actionController: ActionController) {
+  if (typeof actionController === 'function') {
+    return async function controller (req: Req, res: Res) {
+      if (accessLevel === 'public') {
+        const remoteUrl = `${remoteEntitiesOrigin}${req.url}` as AbsoluteUrl
+        // Redirecting is a simple way to support the different types or responses that an endpoint such as /api/entities?action=images might return
+        // Alternatively, a `fetch` request could be piped to `res`
+        // See https://stackoverflow.com/a/77589444
+        res.redirect(remoteUrl)
+      } else {
+        throw newError('non-public controllers can not be redirected', 500, { url: req.url, accessLevel, method, action })
       }
-    } else if (accessLevel === 'public') {
-      try {
-        return await requests_[method](remoteUrl, { body })
-      } catch (err) {
-        throw forwardRemoteError(err, remoteUrl)
-      }
-    } else {
-      throw newUnauthorizedApiAccessError(401)
+    } as ActionControllerStandaloneFunction
+  } else {
+    return async function controller (params: SanitizedParameters, req: Req | AuthentifiedReq) {
+      return _proxiedController(req, accessLevel, method, action, params)
+    } as ActionControllerFunction
+  }
+}
+
+async function _proxiedController (req: Req | AuthentifiedReq, accessLevel: AccessLevel, method: HttpMethod, action: string, params?: SanitizedParameters) {
+  const { url } = req
+  if (!isRelativeUrl(url)) throw newError('invalid relative url', 500, { method, action, params })
+  const remoteUrl = `${remoteEntitiesOrigin}${req.url}` as AbsoluteUrl
+  const body = (method === 'get' || method === 'delete') ? undefined : req.body
+  if (isAuthentifiedReq(req)) {
+    try {
+      return await signedProxyRequest(req, method, remoteUrl, body)
+    } catch (err) {
+      throw forwardRemoteError(err, remoteUrl)
     }
+  } else if (accessLevel === 'public') {
+    try {
+      return await requests_[method](remoteUrl, { body })
+    } catch (err) {
+      throw forwardRemoteError(err, remoteUrl)
+    }
+  } else {
+    throw newUnauthorizedApiAccessError(401)
   }
 }
 

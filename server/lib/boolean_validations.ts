@@ -3,7 +3,7 @@ import { isItemId as isWikidataItemId } from 'wikibase-sdk'
 import * as regex_ from '#lib/regex'
 import config from '#server/config'
 import type { LocalActorUrl } from '#types/activity'
-import type { AbsoluteUrl, ColorHexCode } from '#types/common'
+import type { AbsoluteUrl, ColorHexCode, RelativeUrl } from '#types/common'
 import type { CouchUuid } from '#types/couchdb'
 import type { InvEntityUri, IsbnEntityUri, WdEntityUri, EntityUri, PropertyUri, InvPropertyUri, WdPropertyUri, WdEntityId } from '#types/entity'
 import type { AssetImagePath, EntityImagePath, GroupImagePath, ImageHash, ImagePath, UserImagePath } from '#types/image'
@@ -35,6 +35,10 @@ export function isUrl (url: unknown): url is AbsoluteUrl {
     else throw err
   }
   return true
+}
+
+export function isRelativeUrl (url: unknown): url is RelativeUrl {
+  return isUrl(`${publicOrigin}${url}`)
 }
 
 export const isCouchUuid = bindedTest<CouchUuid>('CouchUuid')

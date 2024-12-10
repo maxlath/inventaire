@@ -12,7 +12,7 @@ import {
   someRandomImageHash,
 } from '#fixtures/entities'
 import { fixedEncodeURIComponent } from '#lib/utils/url'
-import config from '#server/config'
+import config, { federatedMode } from '#server/config'
 import { addClaim, getByUri } from '#tests/api/utils/entities'
 import { rawRequest } from '#tests/api/utils/request'
 import { publicReq } from '#tests/api/utils/utils'
@@ -20,10 +20,12 @@ import { shouldNotBeCalled } from '#tests/unit/utils/utils'
 import type { EntityUri } from '#types/entity'
 
 const origin = config.getPublicOrigin()
+const { remoteEntitiesOrigin } = config.federation
 const encodedCommonsUrlChunk = fixedEncodeURIComponent('https://commons.wikimedia.org/wiki/Special:FilePath/')
 
 describe('entities:images', () => {
-  it('should return an array of images associated with the passed uri', async () => {
+  it('should return an array of images associated with the passed uri', async function () {
+    if (federatedMode) this.skip()
     const uri = 'wd:Q535'
     const res = await publicReq('get', `/api/entities?action=images&uris=${uri}`)
     res.images.should.be.an.Object()
@@ -33,7 +35,17 @@ describe('entities:images', () => {
     imagesRes.claims.length.should.equal(1)
   })
 
-  it('should reject redirect requests with multiple URIs', async () => {
+  it('should return an array of images associated with the passed uri [federated mode]', async function () {
+    if (!federatedMode) this.skip()
+    const uri = 'wd:Q535'
+    const url = `/api/entities?action=images&uris=${uri}`
+    const { statusCode, headers } = await rawRequest('get', url)
+    statusCode.should.equal(302)
+    headers.location.should.equal(`${remoteEntitiesOrigin}${url}`)
+  })
+
+  it('should reject redirect requests with multiple URIs', async function () {
+    if (federatedMode) this.skip()
     await publicReq('get', '/api/entities?action=images&uris=wd:Q535|wd:Q42&redirect=true')
     .then(shouldNotBeCalled)
     .catch(err => {
@@ -41,7 +53,8 @@ describe('entities:images', () => {
     })
   })
 
-  it('should redirect to the image if requested in options', async () => {
+  it('should redirect to the image if requested in options', async function () {
+    if (federatedMode) this.skip()
     const url = '/api/entities?action=images&uris=wd:Q535&redirect=true&width=32'
     const { statusCode, headers } = await rawRequest('get', url)
     statusCode.should.equal(302)
@@ -49,8 +62,17 @@ describe('entities:images', () => {
     headers.location.should.containEql(`href=${encodedCommonsUrlChunk}`)
   })
 
+  it('should redirect to the image if requested in options [federated mode]', async function () {
+    if (!federatedMode) this.skip()
+    const url = '/api/entities?action=images&uris=wd:Q535&redirect=true&width=32'
+    const { statusCode, headers } = await rawRequest('get', url)
+    statusCode.should.equal(302)
+    headers.location.should.equal(`${remoteEntitiesOrigin}${url}`)
+  })
+
   describe('inventaire:entities', () => {
-    it('should return images from isbn based uris', async () => {
+    it('should return images from isbn based uris', async function () {
+      if (federatedMode) this.skip()
       const { uri } = await createEditionWithIsbn({ claims: { 'invp:P2': [ someImageHash ] } })
       const res = await publicReq('get', `/api/entities?action=images&uris=${uri}`)
       const imagesRes = res.images[uri]
@@ -59,7 +81,8 @@ describe('entities:images', () => {
       imagesRes.claims.length.should.equal(1)
     })
 
-    it('should return images from inventaire work', async () => {
+    it('should return images from inventaire work', async function () {
+      if (federatedMode) this.skip()
       const edition = await createEdition()
       const workUri = edition.claims['wdt:P629'][0]
       const res = await publicReq('get', `/api/entities?action=images&uris=${workUri}`)
@@ -68,7 +91,8 @@ describe('entities:images', () => {
       imagesRes.en.length.should.equal(1)
     })
 
-    it('should prefer images from mono-work editions to illustrate works', async () => {
+    it('should prefer images from mono-work editions to illustrate works', async function () {
+      if (federatedMode) this.skip()
       const [ workA, workB ] = await Promise.all([ createWork(), createWork() ])
       const imageHashX = '1aaaaaaaaabbbbbbbbbbccccccccccdddddddddd'
       const imageHashY = '2aaaaaaaaabbbbbbbbbbccccccccccdddddddddd'
@@ -85,7 +109,8 @@ describe('entities:images', () => {
       workBImage.should.equal(getUrlFromEntityImageHash(imageHashX))
     })
 
-    it('should return images from inventaire collection', async () => {
+    it('should return images from inventaire collection', async function () {
+      if (federatedMode) this.skip()
       const { uri } = await createCollection()
       await createEdition({ claims: { 'wdt:P195': [ uri ] } })
       const res = await publicReq('get', `/api/entities?action=images&uris=${uri}`)
@@ -93,7 +118,8 @@ describe('entities:images', () => {
       imagesRes.en.length.should.equal(1)
     })
 
-    it('should return images from inventaire serie', async () => {
+    it('should return images from inventaire serie', async function () {
+      if (federatedMode) this.skip()
       const { uri } = await createSerie()
       const work = await createWork({ claims: { 'wdt:P179': [ uri ] } })
       await createEdition({ work })
@@ -102,7 +128,8 @@ describe('entities:images', () => {
       imagesRes.en.length.should.equal(1)
     })
 
-    it('should return images from wikidata editions local layers for editions', async () => {
+    it('should return images from wikidata editions local layers for editions', async function () {
+      if (federatedMode) this.skip()
       const uri = await getSomeWdEditionUri()
       const imageHash = someRandomImageHash()
       await addClaim({ uri, property: 'invp:P2', value: imageHash })
@@ -111,7 +138,8 @@ describe('entities:images', () => {
       res.images[uri].claims.should.containEql(getUrlFromEntityImageHash(imageHash))
     })
 
-    it('should return images from wikidata editions local layers for works', async () => {
+    it('should return images from wikidata editions local layers for works', async function () {
+      if (federatedMode) this.skip()
       const uri = await getSomeWdEditionUri()
       const edition = await getByUri(uri)
       const { originalLang } = edition

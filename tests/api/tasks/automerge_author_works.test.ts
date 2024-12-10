@@ -14,7 +14,9 @@ describe('automerge_author_works: only from inv works to wd works', () => {
     await findOrIndexEntities(wikidataUris)
   })
 
-  it('should automerge inv works to a wd work', async () => {
+  it('should automerge inv works to a wd work', async function () {
+    // Test not available in federated mode due to dependency to automergeAuthorWorks
+    if (federatedMode) this.skip()
     const authorUri = 'wd:Q205739' // Alan Moore uri
     const workLabel = 'Voice of the Fire'
     const workWdUri = 'wd:Q3825051' // 'Voice of the Fire' uri

@@ -1,5 +1,7 @@
 import { createTasksInBulk } from '#controllers/tasks/lib/tasks'
+import { newError } from '#lib/error/error'
 import { getLocalUserAcct } from '#lib/federation/remote_user'
+import { federatedMode } from '#server/config'
 import { getByIds } from '#tests/api/utils/tasks'
 import type { EntityUri, EntityType } from '#types/entity'
 import type { UserAccountUri } from '#types/server'
@@ -19,7 +21,7 @@ interface TaskDoc {
   clue?: string
 }
 
-export async function createTask (params?: TaskDoc = {}) {
+export async function createTask (params: TaskDoc = {}) {
   let taskDoc = await createTaskBase(params)
   if (taskDoc.entitiesType && taskDoc.entitiesType === 'work') {
     taskDoc = await createWorkTaskDoc(params)
@@ -75,5 +77,6 @@ async function createTaskBase (params: TaskDoc) {
 }
 
 const createTasks = taskDocs => {
+  if (federatedMode) throw newError('Tests relying on creating tasks directly in the database are not available in federated mode', 500)
   return createTasksInBulk(taskDocs)
 }

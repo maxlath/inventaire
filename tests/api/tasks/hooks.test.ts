@@ -53,7 +53,9 @@ describe('tasks:hooks', () => {
   })
 
   describe('task update', () => {
-    it('should update relationScore of tasks with same suspect', async () => {
+    it('should update relationScore of tasks with same suspect', async function () {
+      // Disabled in federated mode as this test directly mutates the local tasks database
+      if (federatedMode) this.skip()
       const { uri: suspectUri } = await createHuman({ labels: { en: 'Victor Hugo' } })
       const taskToUpdate = await createTask({
         suspectUri,
@@ -73,7 +75,9 @@ describe('tasks:hooks', () => {
   })
 
   describe('entity merge revert', () => {
-    it('should revert task state', async () => {
+    it('should revert task state', async function () {
+      // Disabled in federated mode as this test directly mutates the local tasks database
+      if (federatedMode) this.skip()
       const { uri } = await createHuman({ labels: { en: 'Fred Vargas' } })
       const { _id: otherTaskId } = await createTask({
         suspectUri: uri,

@@ -172,3 +172,10 @@ export async function restoreVersion ({ patchId, user }: { patchId: PatchId, use
 }
 
 const normalizeUri = uri => isInvEntityId(uri) ? `inv:${uri}` : uri
+
+export async function getAuthorWorks (uri: EntityUri) {
+  const { works } = await publicReq('get', buildUrl('/api/entities', { action: 'author-works', uri }))
+  const worksUris = map(works, 'uri')
+  const { entities } = await getByUris(worksUris)
+  return Object.values(entities)
+}

@@ -4,6 +4,7 @@ import { cloneDeep } from 'lodash-es'
 import { putInvEntityUpdate } from '#controllers/entities/lib/entities'
 import { prefixifyIsbn } from '#controllers/entities/lib/prefix'
 import { generateIsbn13, createHuman, createWorkWithAuthor, randomLabel, createEdition } from '#fixtures/entities'
+import { newError } from '#lib/error/error'
 import { getLocalUserAcct } from '#lib/federation/remote_user'
 import { federatedMode } from '#server/config'
 import { getByUris, findOrIndexEntities, deleteByUris } from '#tests/api/utils/entities'
@@ -70,7 +71,8 @@ describe('tasks:automerge', () => {
     entities[human.uri].should.be.ok()
   })
 
-  it('should automerge if authors have same external id', async () => {
+  it('should automerge if authors have same external id', async function () {
+    if (federatedMode) this.skip()
     const wikidataUri = 'wd:Q259507'
     const humanLabel = 'bell hooks' // label from wd:Q259507
     const claims = {
@@ -131,6 +133,7 @@ describe('tasks:automerge', () => {
 const normalize = (str: string) => ASCIIFolder.foldMaintaining(str.toLowerCase().normalize())
 
 async function forceUpdateEntityClaims (entity, claims, userId = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab') {
+  if (federatedMode) throw newError('Tests relying on updating entities directly in the database are not available in federated mode', 500)
   // By pass API entity validations,
   // to create another entity with same claims
   const updatedDoc = cloneDeep(entity)

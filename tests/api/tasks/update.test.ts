@@ -6,7 +6,9 @@ import { update } from '#tests/api/utils/tasks'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
 
 describe('tasks:update', () => {
-  it('should update a task', async () => {
+  it('should update a task', async function () {
+    // Disabled in federated mode as this test directly mutates the local tasks database
+    if (federatedMode) this.skip()
     const suspect = await createHuman()
     const task = await createTask({ suspectUri: suspect.uri })
     const { ok } = await update(task._id, 'state', 'dismissed')
@@ -14,6 +16,7 @@ describe('tasks:update', () => {
   })
 
   it('should throw if invalid task id', async function () {
+    // Disable in federated mode yet as this test relies on a special role
     if (federatedMode) this.skip()
     await update('')
     .then(shouldNotBeCalled)

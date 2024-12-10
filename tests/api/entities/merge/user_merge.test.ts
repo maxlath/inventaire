@@ -1,6 +1,7 @@
 import should from 'should'
 import { createTask } from '#fixtures/tasks'
 import { createUser } from '#fixtures/users'
+import { federatedMode } from '#server/config'
 import {
   createCollection,
   createEdition,
@@ -122,7 +123,10 @@ describe('entities:merge:as:user', () => {
       res.taskId.should.equal(task._id)
     })
 
-    it('should update existing task and accept several reporters', async () => {
+    it('should update existing task and accept several reporters', async function () {
+      // Disabled in federated mode as the test relies on directly calling createTask
+      // which operates on the local tasks database, and not on the remote one
+      if (federatedMode) this.skip()
       const humanLabel = randomLabel()
       const workLabel = randomLabel()
       const workLabel2 = randomLabel()

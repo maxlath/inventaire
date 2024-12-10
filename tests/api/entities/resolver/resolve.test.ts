@@ -1,5 +1,4 @@
 import should from 'should'
-import { getWorksFromAuthorsUris } from '#controllers/entities/lib/resolver/get_works_from_authors_uris'
 import {
   createWork,
   createHuman,
@@ -15,7 +14,7 @@ import {
 import { wait } from '#lib/promises'
 import { forceArray } from '#lib/utils/base'
 import { federatedMode } from '#server/config'
-import { addClaim, getByUri } from '#tests/api/utils/entities'
+import { addClaim, getAuthorWorks, getByUri } from '#tests/api/utils/entities'
 import { waitForIndexation } from '#tests/api/utils/search'
 import { authReq } from '#tests/api/utils/utils'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
@@ -473,7 +472,7 @@ describe('entities:resolve:on-external-terms', () => {
     const workLabel = "Mémoires d'outre-espace"
     const authorLabel = 'Enki Bilal'
 
-    const works = await getWorksFromAuthorsUris([ 'wd:Q333668' ])
+    const works = await getAuthorWorks('wd:Q333668')
     const matchingWdWork = works
       .filter(work => work.uri.startsWith('wd'))
       .find(work => Object.values(work.labels).join(' ').includes('outre-espace'))

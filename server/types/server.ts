@@ -24,7 +24,9 @@ export interface RemoteUserAuthentifiedReq extends SignedReq {
   remoteUser: BareRemoteUser
 }
 
-export type Req = Express.Request | AuthentifiedReq | SignedReq
+export type Req = (Express.Request | AuthentifiedReq | SignedReq) & {
+  _startAt?: ReturnType<typeof process.hrtime>
+}
 
 export type Res = Express.Response & { warnings?: string[] }
 

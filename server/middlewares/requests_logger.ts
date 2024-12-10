@@ -1,12 +1,14 @@
 import parseUrl from 'parseurl'
+import type { BareRemoteUser } from '#lib/federation/remote_user'
 import { coloredElapsedTime } from '#lib/time'
 import config from '#server/config'
+import type { Next, Req, Res } from '#types/server'
 
 const publicOrigin = config.getPublicOrigin()
 const { mutedDomains, mutedPath } = config.requestsLogger
 
 // Adapted from https://github.com/expressjs/morgan 1.1.1
-export default (req, res, next) => {
+export default (req: Req, res: Res, next: Next) => {
   req._startAt = process.hrtime()
 
   res.on('close', () => {
@@ -17,7 +19,7 @@ export default (req, res, next) => {
   next()
 }
 
-function skip (req) {
+function skip (req: Req) {
   // /!\ resources behind the /public endpoint will have their pathname
   // with /public removed: /public/css/app.css will have a pathname=/css/app.css
   // In that case, req._parsedOriginalUrl would be defined to the original /public/css/app.css,
@@ -27,8 +29,10 @@ function skip (req) {
   return mutedDomains.includes(domain) || mutedPath.includes(path)
 }
 
-function logRequest (req, res) {
-  const { method, originalUrl: url, user } = req
+function logRequest (req: Req, res: Res) {
+  const { method, originalUrl: url } = req
+  const user = 'user' in req ? req.user : null
+  const remoteUser = 'remoteUser' in req ? req.remoteUser as BareRemoteUser : null
   const { statusCode: status, finished } = res
 
   const color = statusCategoryColor[status.toString()[0]]
@@ -42,6 +46,7 @@ function logRequest (req, res) {
   let line = `${grey}${method} ${url} ${color}${status}${interrupted} ${grey}${coloredElapsedTime(req._startAt)}${grey}`
 
   if (user) line += ` - u:${user._id}`
+  else if (remoteUser) line += ` - acct:${remoteUser.acct}`
 
   const { origin, 'user-agent': reqUserAgent } = req.headers
   if (origin != null && origin !== publicOrigin) {

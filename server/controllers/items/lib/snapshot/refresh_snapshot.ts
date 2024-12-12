@@ -1,5 +1,5 @@
-import { getInvEntitiesUrisByClaims, getInvUrisByClaim } from '#controllers/entities/lib/entities'
-import { getEntitiesByUris, getEntityByUri } from '#controllers/entities/lib/federation/instance_agnostic_entities'
+import { uniq } from 'lodash-es'
+import { getEntitiesByUris, getEntityByUri, getReverseClaims } from '#controllers/entities/lib/federation/instance_agnostic_entities'
 import { workAuthorRelationsProperties } from '#controllers/entities/lib/properties/properties'
 import { saveSnapshotsInBatch } from '#controllers/items/lib/snapshot/snapshot'
 import { debounceByKey } from '#lib/debounce_by_key'
@@ -39,17 +39,20 @@ export function lazyRefreshSnapshotFromEntity (changedEntityDoc: InvEntityDoc | 
 }
 
 const multiWorkRefresh = (relationProperties: PropertyUri[]) => async (uri: EntityUri) => {
-  const uris = await getInvEntitiesUrisByClaims(relationProperties, uri)
+  const urisArrays = await Promise.all(relationProperties.map(property => {
+    return getReverseClaims({ property, value: uri })
+  }))
+  const uris = uniq(urisArrays.flat())
   const snapshots = await Promise.all(uris.map(getSnapshotsByType.work))
   return snapshots.flat()
 }
 
 const getSnapshotsByType = {
-  edition: (uri: EntityUri) => {
+  edition: async (uri: EntityUri) => {
     // Get all the entities docs required to build the snapshot
-    return getEditionGraphEntities(uri)
+    const [ edition, works, authors, series ] = await getEditionGraphEntities(uri)
     // Build common updated snapshot
-    .then(getEditionSnapshot)
+    return buildSnapshot.edition(edition, works, authors, series)
   },
 
   work: async (uri: EntityUri) => {
@@ -72,15 +75,11 @@ function getWorkSnapshot (work: SerializedEntity, authors: SerializedEntity[], s
   return buildSnapshot.work(work, authors, series)
 }
 
-async function getEditionsSnapshots (uri: EntityUri, works: SerializedEntity[], authors: SerializedEntity[], series: SerializedEntity[]) {
-  const uris = await getInvUrisByClaim('wdt:P629', uri)
-  const res = await getEntitiesByUris({ uris })
-  const editions = Object.values(res.entities)
+async function getEditionsSnapshots (workUri: EntityUri, works: SerializedEntity[], authors: SerializedEntity[], series: SerializedEntity[]) {
+  const editionsUris = await getReverseClaims({ property: 'wdt:P629', value: workUri })
+  const { entities } = await getEntitiesByUris({ uris: editionsUris })
+  const editions = Object.values(entities)
   return Promise.all(editions.map(edition => {
-    return getEditionSnapshot([ edition, works, authors, series ])
+    return buildSnapshot.edition(edition, works, authors, series)
   }))
-}
-
-function getEditionSnapshot ([ edition, works, authors, series ]: [ SerializedEntity, SerializedEntity[], SerializedEntity[], SerializedEntity[] ]) {
-  return buildSnapshot.edition(edition, works, authors, series)
 }

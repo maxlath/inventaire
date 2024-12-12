@@ -9,9 +9,8 @@ import {
   createWork,
   createWorkWithAuthor,
   someImageHash,
-  createEditionWithWorkAndAuthor,
 } from '#fixtures/entities'
-import { humanName, humanName } from '#fixtures/text'
+import { humanName } from '#fixtures/text'
 import { wait } from '#lib/promises'
 import { getRandomString } from '#lib/utils/random_string'
 import config from '#server/config'
@@ -25,7 +24,6 @@ import {
   revertMerge,
   updateClaim,
   updateLabel,
-  getByUri,
 } from '#tests/api/utils/entities'
 import { getItem } from '#tests/api/utils/items'
 import { authReq, getUserB } from '#tests/api/utils/utils'

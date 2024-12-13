@@ -1,7 +1,7 @@
 import type { AwaitableUserWithCookie } from '#fixtures/users'
 import { newError } from '#lib/error/error'
 import { wait } from '#lib/promises'
-import { requests_, type ReqOptions } from '#lib/requests'
+import { requests_, type RequestOptions } from '#lib/requests'
 import { assertObject, assertType, assertString } from '#lib/utils/assert_types'
 import { log, success } from '#lib/utils/logs'
 import { stringifyQuery } from '#lib/utils/url'
@@ -12,7 +12,7 @@ import type { OverrideProperties } from 'type-fest'
 
 const origin: AbsoluteUrl = config.getPublicOrigin()
 
-type RequestOptions = OverrideProperties<ReqOptions, { headers?: HttpHeaders }>
+type RawRequestOptions = OverrideProperties<RequestOptions, { headers?: HttpHeaders }>
 
 async function testServerAvailability () {
   if (!config.waitForServer) return
@@ -30,7 +30,7 @@ async function testServerAvailability () {
 
 export const waitForTestServer = testServerAvailability()
 
-export async function rawRequest (method: HttpMethod, url: Url, reqParams: RequestOptions = {}) {
+export async function rawRequest (method: HttpMethod, url: Url, reqParams: RawRequestOptions = {}) {
   assertString(method)
   assertString(url)
   await waitForTestServer
@@ -45,7 +45,7 @@ export async function request (method: HttpMethod, endpoint: Url, body?: unknown
   assertString(method)
   assertString(endpoint)
   const url = (endpoint.startsWith('/') ? origin + endpoint : endpoint) as AbsoluteUrl
-  const options: ReqOptions = {
+  const options: RequestOptions = {
     headers: { cookie },
     redirect: 'error',
     body,

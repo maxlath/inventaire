@@ -6,7 +6,7 @@ import { methodAndActionsControllersFactory } from '#lib/actions_controllers'
 import { isAuthentifiedReq, isRelativeUrl } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
 import { newUnauthorizedApiAccessError } from '#lib/error/pre_filled'
-import { forwardRemoteError } from '#lib/federation/forward_remote_error'
+import { federatedRequest } from '#lib/federation/federated_requests'
 import { instanceActorName } from '#lib/federation/instance'
 import { runPostProxiedRequestHooks } from '#lib/federation/proxied_requests_hooks'
 import { remoteUserHeader } from '#lib/federation/remote_user'
@@ -76,21 +76,13 @@ async function _proxiedController (req: Req | AuthentifiedReq, accessLevel: Acce
   const remoteUrl = `${remoteEntitiesOrigin}${req.url}` as AbsoluteUrl
   const body = httpMethodHasBody(method) ? req.body : undefined
   if (isAuthentifiedReq(req)) {
-    try {
-      const res = await signedProxyRequest(req, method, remoteUrl, body)
-      runPostProxiedRequestHooks(method, url, action, params)
-      return res
-    } catch (err) {
-      throw forwardRemoteError(err, remoteUrl)
-    }
+    const res = await signedProxyRequest(req, method, remoteUrl, body)
+    runPostProxiedRequestHooks(method, url, action, params)
+    return res
   } else if (accessLevel === 'public') {
-    try {
-      const res = await requests_[method](remoteUrl, { body })
-      runPostProxiedRequestHooks(method, url, action, params)
-      return res
-    } catch (err) {
-      throw forwardRemoteError(err, remoteUrl)
-    }
+    const res = await federatedRequest(method, remoteUrl, { body })
+    runPostProxiedRequestHooks(method, url, action, params)
+    return res
   } else {
     throw newUnauthorizedApiAccessError(401)
   }
@@ -115,7 +107,7 @@ async function signedProxyRequest (req: AuthentifiedReq, method: HttpMethod, rem
       [remoteUserHeader]: userAnonymizableId,
     },
   })
-  return requests_[method](remoteUrl, { headers, body })
+  return federatedRequest(method, remoteUrl, { headers, body })
 }
 
 const closedAccessLevels = [ 'admin', 'dataadmin' ] as const

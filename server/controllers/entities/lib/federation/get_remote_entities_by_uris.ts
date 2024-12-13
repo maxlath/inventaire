@@ -2,8 +2,8 @@ import { compact } from 'lodash-es'
 import type { GetEntitiesByUrisResponse } from '#controllers/entities/by_uris_get'
 import type { GetEntitiesByUrisParams } from '#controllers/entities/lib/get_entities_by_uris'
 import type { ReverseClaimsParams } from '#controllers/entities/lib/reverse_claims'
-import { forwardRemoteError } from '#lib/federation/forward_remote_error'
-import { requests_ } from '#lib/requests'
+import type { GetReverseClaimsResponse } from '#controllers/entities/reverse_claims'
+import { federatedRequest } from '#lib/federation/federated_requests'
 import { assertString } from '#lib/utils/assert_types'
 import { buildUrl } from '#lib/utils/url'
 import config from '#server/config'
@@ -15,12 +15,7 @@ export async function getRemoteEntitiesByUris ({ uris }: Pick<GetEntitiesByUrisP
   uris = compact(uris)
   if (uris.length === 0) return { entities: {}, redirects: {} } satisfies GetEntitiesByUrisResponse
   const remoteUrl = buildUrl(`${remoteEntitiesOrigin}/api/entities`, { action: 'by-uris', uris: uris.join('|') })
-  try {
-    const res = await requests_.get(remoteUrl)
-    return res as GetEntitiesByUrisResponse
-  } catch (err) {
-    throw forwardRemoteError(err, remoteUrl)
-  }
+  return federatedRequest<GetEntitiesByUrisResponse>('get', remoteUrl)
 }
 
 export async function getRemoteEntitiesList (uris: EntityUri[]) {
@@ -38,10 +33,6 @@ export async function getRemoteEntityByUri ({ uri }: { uri: EntityUri }) {
 
 export async function getRemoteReverseClaims (params: ReverseClaimsParams) {
   const remoteUrl = buildUrl(`${remoteEntitiesOrigin}/api/entities`, { action: 'reverse-claims', ...params })
-  try {
-    const { uris } = await requests_.get(remoteUrl)
-    return uris as EntityUri[]
-  } catch (err) {
-    throw forwardRemoteError(err, remoteUrl)
-  }
+  const { uris } = await federatedRequest<GetReverseClaimsResponse>('get', remoteUrl)
+  return uris
 }

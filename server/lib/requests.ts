@@ -34,7 +34,7 @@ const defaultTimeout = 30 * 1000
 
 let requestCount = 0
 
-export interface ReqOptions {
+export interface RequestOptions {
   returnBodyOnly?: boolean
   parseJson?: boolean
   body?: unknown
@@ -48,7 +48,7 @@ export interface ReqOptions {
   redirect?: 'follow' | 'error' | 'manual'
 }
 
-async function req (method: HttpMethod, url: AbsoluteUrl, options: ReqOptions = {}) {
+export async function request (method: HttpMethod, url: AbsoluteUrl, options: RequestOptions = {}) {
   assertString(url)
   assertObject(options)
 
@@ -260,16 +260,16 @@ function getStatusColor (statusCode) {
 }
 
 export const requests_ = {
-  get: req.bind(null, 'get'),
-  post: req.bind(null, 'post'),
-  put: req.bind(null, 'put'),
-  delete: req.bind(null, 'delete'),
-  head: (url: AbsoluteUrl, options: ReqOptions = {}) => {
+  get: request.bind(null, 'get'),
+  post: request.bind(null, 'post'),
+  put: request.bind(null, 'put'),
+  delete: request.bind(null, 'delete'),
+  head: (url: AbsoluteUrl, options: RequestOptions = {}) => {
     options.parseJson = false
     options.returnBodyOnly = false
-    return req('head', url, options)
+    return request('head', url, options)
   },
-  options: req.bind(null, 'options'),
+  options: request.bind(null, 'options'),
   userAgent,
 }
 

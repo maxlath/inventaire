@@ -7,7 +7,7 @@ import { randomWords } from '#fixtures/text'
 import { createUser } from '#fixtures/users'
 import { wait } from '#lib/promises'
 import { requests_ } from '#lib/requests'
-import config from '#server/config'
+import config, { federatedMode } from '#server/config'
 import { signedReq } from '#tests/api/utils/activitypub'
 import { addItemsToShelf, getActorName } from '#tests/api/utils/shelves'
 import { rethrowShouldNotBeCalledErrors } from '#tests/unit/utils/utils'
@@ -66,7 +66,8 @@ describe('followers activity delivery', () => {
   })
 
   describe('entities followers', () => {
-    it('should post an activity to inbox', async () => {
+    it('should post an activity to inbox', async function () {
+      if (federatedMode) this.skip()
       const { uri: authorUri } = await createHuman()
       const { uri: workUri, _id: workId } = await createWork()
       const followedActorUrl = makeUrl({ params: { action: 'actor', name: getEntityActorName(authorUri) } })

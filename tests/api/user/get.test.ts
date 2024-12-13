@@ -1,5 +1,6 @@
 import 'should'
 import { createUser } from '#fixtures/users'
+import { federatedMode } from '#server/config'
 import { getToken } from '#tests/api/utils/oauth'
 import { customAuthReq, bearerTokenReq } from '#tests/api/utils/request'
 import { deleteUser, updateUser } from '#tests/api/utils/users'
@@ -41,13 +42,17 @@ describe('user:get', () => {
     userData.accessLevels.should.deepEqual([])
   })
 
-  it('should get admin access levels', async () => {
+  it('should get admin access levels', async function () {
+    // Disabled in federated mode yet as this test relies on a special role
+    if (federatedMode) this.skip()
     const userData = await adminReq('get', endpoint)
     const adminAccessLevels = [ 'public', 'authentified', 'dataadmin', 'admin' ]
     userData.accessLevels.should.deepEqual(adminAccessLevels)
   })
 
-  it('should get dataadmin access levels', async () => {
+  it('should get dataadmin access levels', async function () {
+    // Disabled in federated mode yet as this test relies on a special role
+    if (federatedMode) this.skip()
     const userData = await dataadminReq('get', endpoint)
     const dataadminAccessLevels = [ 'public', 'authentified', 'dataadmin' ]
     userData.accessLevels.should.deepEqual(dataadminAccessLevels)

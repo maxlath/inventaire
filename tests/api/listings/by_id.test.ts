@@ -1,5 +1,6 @@
 import { createWork } from '#fixtures/entities'
 import { createListing, createElement } from '#fixtures/listings'
+import { federatedMode } from '#server/config'
 import { merge } from '#tests/api/utils/entities'
 import { getListingById } from '#tests/api/utils/listings'
 import { publicReq, getUserB } from '#tests/api/utils/utils'
@@ -37,7 +38,9 @@ describe('listings:by-id', () => {
   })
 
   describe('redirects hook', () => {
-    it('should update element uri after merging entities', async () => {
+    it('should update element uri after merging entities', async function () {
+      // Disabled in federated mode yet as this test relies on a special role
+      if (federatedMode) this.skip()
       const work = await createWork()
       const { uri, listing } = await createElement({})
       await merge(uri, work.uri)

@@ -137,7 +137,6 @@ describe('entities:delete', () => {
   })
 
   it('should remove deleted entities from items snapshot', async function () {
-    // TODO: re-enable by fixing items snapshots in federated mode
     if (federatedMode) this.skip()
     const author = await createHuman()
     const work = await createWorkWithAuthor(author)

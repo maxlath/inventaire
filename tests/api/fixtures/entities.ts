@@ -17,11 +17,11 @@ import type {
   Claims,
   EntityType,
   EntityUri,
-  ExpandedSerializedWdEntity,
   InvEntityUri,
   Labels,
   PropertyUri,
   SerializedEntity,
+  SerializedWdEntity,
   WdEntityUri,
 } from '#types/entity'
 import type { ImageHash } from '#types/image'
@@ -325,7 +325,7 @@ export async function getSomeRemoteEditionWithALocalImage () {
     await addClaim({ uri, property: 'invp:P2', value: imageHash })
     edition = await getByUri(uri)
   }
-  return edition as ExpandedSerializedWdEntity
+  return edition as SerializedWdEntity
 }
 
 interface ExistsOrCreateParams {

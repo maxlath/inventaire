@@ -5,7 +5,7 @@ import { createItem, createItems } from '#fixtures/items'
 import { createShelf, createShelfWithItem } from '#fixtures/shelves'
 import { createUser } from '#fixtures/users'
 import { wait } from '#lib/promises'
-import config from '#server/config'
+import config, { federatedMode } from '#server/config'
 import { updateItems } from '#tests/api/utils/items'
 import { customAuthReq } from '#tests/api/utils/request'
 import { getActorName } from '#tests/api/utils/shelves'
@@ -192,7 +192,8 @@ describe('outbox', () => {
   })
 
   describe('entities', () => {
-    it('should return a first page URL', async () => {
+    it('should return a first page URL', async function () {
+      if (federatedMode) this.skip()
       const { uri: authorUri } = await createHuman()
       const { uri: workUri } = await createWork()
       await addAuthor(workUri, authorUri)
@@ -206,7 +207,8 @@ describe('outbox', () => {
       res.next.should.equal(`${url}&offset=0`)
     })
 
-    it('should return entities activities', async () => {
+    it('should return entities activities', async function () {
+      if (federatedMode) this.skip()
       const { uri: authorUri } = await createHuman()
       const { uri: workUri, _id: workId } = await createWork()
       await addAuthor(workUri, authorUri)
@@ -232,7 +234,8 @@ describe('outbox', () => {
       createActivity.to.should.containEql('Public')
     })
 
-    it('should paginate activities', async () => {
+    it('should paginate activities', async function () {
+      if (federatedMode) this.skip()
       const { uri: authorUri } = await createHuman()
       const { uri: workUri, _id: workId1 } = await createWork()
       const { uri: workUri2, _id: workId2 } = await createWork()

@@ -8,7 +8,7 @@ import { forceArray, objectValues } from '#lib/utils/base'
 import { buildUrl } from '#lib/utils/url'
 import { customAuthReq } from '#tests/api/utils/request'
 import { waitForIndexation } from '#tests/api/utils/search'
-import type { EntityUri, ExpandedSerializedEntitiesByUris, InvClaimValue, InvEntityId, PropertyUri, SerializedEntitiesByUris } from '#types/entity'
+import type { EntityUri, ExpandedSerializedEntitiesByUris, InvClaimValue, InvEntityId, PropertyUri, SerializedEntitiesByUris, SerializedEntity } from '#types/entity'
 import type { PatchId } from '#types/patch'
 import { getIndexedDoc } from './search.js'
 import { publicReq, dataadminReq, adminReq, getDataadminUser, getUser } from './utils.js'
@@ -28,7 +28,7 @@ export function getByUris (uris: EntityUri[], relatives?: PropertyUri[], refresh
 
 export async function getByUri (uri: EntityUri, refresh?: boolean) {
   const res = await getByUris([ uri ], null, refresh)
-  return objectValues(res.entities)[0]
+  return objectValues(res.entities)[0] as SerializedEntity
 }
 
 export async function getEntitiesAttributesByUris ({ uris, attributes, relatives, refresh }: Pick<GetEntitiesParams, 'uris' | 'attributes' | 'relatives' | 'refresh'>) {

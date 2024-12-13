@@ -16,7 +16,7 @@ describe('tasks:update', () => {
   })
 
   it('should throw if invalid task id', async function () {
-    // Disable in federated mode yet as this test relies on a special role
+    // Disabled in federated mode yet as this test relies on a special role
     if (federatedMode) this.skip()
     await update('')
     .then(shouldNotBeCalled)

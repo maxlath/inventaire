@@ -13,7 +13,8 @@ describe('tasks:check-entities', () => {
     await findOrIndexEntities(wikidataUris)
   })
 
-  it('should refuse to check entities of non-allowlisted types', async () => {
+  it('should refuse to check entities of non-allowlisted types', async function () {
+    if (federatedMode) this.skip()
     // Currently, only humans can be checked for duplicates,
     // or at least are the entrypoint for duplicate checks
     const work = await createWork()

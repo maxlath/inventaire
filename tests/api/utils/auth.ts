@@ -8,8 +8,8 @@ const sessionSignatureCookiePattern = new RegExp(`${sessionCookieName}\\.sig=([^
 export function parseSessionCookies (cookieStr: string) {
   const sessionCookieMatch = cookieStr.match(sessionCookiePattern)
   const sessionSignatureCookieMatch = cookieStr.match(sessionSignatureCookiePattern)
-  const sessionCookie = sessionCookieMatch && sessionCookieMatch[1]
-  const signatureCookie = sessionSignatureCookieMatch && sessionSignatureCookieMatch[1]
+  const sessionCookie = sessionCookieMatch?.[1]
+  const signatureCookie = sessionSignatureCookieMatch?.[1]
   return [ sessionCookie, signatureCookie ]
 }
 

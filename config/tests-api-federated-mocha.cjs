@@ -7,10 +7,12 @@
 
 const federatedTestServerConfig = require('./tests-api-federated-server.cjs')
 
-const { port, db, federation } = federatedTestServerConfig
+const { env, port, db, federation } = federatedTestServerConfig
 
 /** @type {PartialDeep<Config>} */
 const config = {
+  env,
+
   waitForServer: true,
 
   port,

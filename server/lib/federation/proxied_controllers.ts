@@ -1,15 +1,10 @@
-import { makeActorKeyUrl } from '#controllers/activitypub/lib/get_actor'
-import { signRequest } from '#controllers/activitypub/lib/security'
-import { getSharedKeyPair } from '#controllers/activitypub/lib/shared_key_pair'
-import { getUserAnonymizableId } from '#controllers/user/lib/anonymizable_user'
 import { methodAndActionsControllersFactory } from '#lib/actions_controllers'
 import { isAuthentifiedReq, isRelativeUrl } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
 import { newUnauthorizedApiAccessError } from '#lib/error/pre_filled'
 import { federatedRequest } from '#lib/federation/federated_requests'
-import { instanceActorName } from '#lib/federation/instance'
 import { runPostProxiedRequestHooks } from '#lib/federation/proxied_requests_hooks'
-import { remoteUserHeader } from '#lib/federation/remote_user'
+import { signedFederatedRequest } from '#lib/federation/signed_federated_request'
 import { httpMethodHasBody, requests_ } from '#lib/requests'
 import type { AccessLevel } from '#lib/user_access_levels'
 import { arrayIncludes, objectEntries } from '#lib/utils/base'
@@ -75,7 +70,7 @@ async function _proxiedController (req: Req | AuthentifiedReq, accessLevel: Acce
   if (!isRelativeUrl(url)) throw newError('invalid relative url', 500, { method, action, params })
   const body = httpMethodHasBody(method) ? req.body : undefined
   if (isAuthentifiedReq(req)) {
-    const res = await signedProxyRequest(req, method, url, body)
+    const res = await signedFederatedRequest(req, method, url, body)
     runPostProxiedRequestHooks(method, url, action, params)
     return res
   } else if (accessLevel === 'public') {
@@ -91,23 +86,6 @@ function closedEndpointFactory (method: HttpMethod, pathname: RelativeUrl, actio
   return function closedEndpointController () {
     throw newError('This endpoint is closed in federated mode', 400, { endpoint: `${method.toUpperCase()} ${pathname}?action=${action}` })
   }
-}
-
-async function signedProxyRequest (req: AuthentifiedReq, method: HttpMethod, url: RelativeUrl, body: unknown) {
-  const remoteUrl = `${remoteEntitiesOrigin}${url}` as AbsoluteUrl
-  const userAnonymizableId = await getUserAnonymizableId(req.user)
-  const { privateKey, publicKeyHash } = await getSharedKeyPair()
-  const headers = signRequest({
-    url: remoteUrl,
-    method,
-    keyId: makeActorKeyUrl(instanceActorName, publicKeyHash),
-    privateKey,
-    body,
-    headers: {
-      [remoteUserHeader]: userAnonymizableId,
-    },
-  })
-  return federatedRequest(method, url, { headers, body })
 }
 
 const closedAccessLevels = [ 'admin', 'dataadmin' ] as const

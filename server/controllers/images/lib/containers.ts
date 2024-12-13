@@ -60,6 +60,4 @@ export const containers = {
   assets: {},
 }
 
-export const uploadContainersNames = federatedMode
-  ? [ 'groups', 'users' ] as const
-  : [ 'entities', 'groups', 'users' ] as const
+export const uploadContainersNames = [ 'entities', 'groups', 'users' ] as const

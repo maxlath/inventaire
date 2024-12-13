@@ -3,11 +3,18 @@ import { dbFactory } from '#db/couchdb/base'
 import { isImageHash } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
 import { log } from '#lib/utils/logs'
+import type { RelativeUrl } from '#types/common'
+import type { ImageHash } from '#types/image'
 import importImage from './import_image.js'
 
 const db = await dbFactory('images')
 
 export default ({ url: sourceImageUrl, container }) => importAndAddImage(container, sourceImageUrl)
+
+export interface ImportedImage {
+  url: RelativeUrl
+  hash: ImageHash
+}
 
 async function importAndAddImage (container, sourceImageUrl) {
   const { url } = await importImage(container, sourceImageUrl)
@@ -19,7 +26,7 @@ async function importAndAddImage (container, sourceImageUrl) {
 
   if (container === 'entities') await saveImageSource(sourceImageUrl, hash)
 
-  return { url, hash }
+  return { url, hash } as ImportedImage
 }
 
 async function saveImageSource (sourceImageUrl, imageHash) {

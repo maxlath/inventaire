@@ -73,14 +73,13 @@ function shouldBeRedirected (method: HttpMethod, pathname: RelativeUrl, action: 
 async function _proxiedController (req: Req | AuthentifiedReq, accessLevel: AccessLevel, method: HttpMethod, action: string, params?: SanitizedParameters) {
   const { url } = req
   if (!isRelativeUrl(url)) throw newError('invalid relative url', 500, { method, action, params })
-  const remoteUrl = `${remoteEntitiesOrigin}${req.url}` as AbsoluteUrl
   const body = httpMethodHasBody(method) ? req.body : undefined
   if (isAuthentifiedReq(req)) {
-    const res = await signedProxyRequest(req, method, remoteUrl, body)
+    const res = await signedProxyRequest(req, method, url, body)
     runPostProxiedRequestHooks(method, url, action, params)
     return res
   } else if (accessLevel === 'public') {
-    const res = await federatedRequest(method, remoteUrl, { body })
+    const res = await federatedRequest(method, url, { body })
     runPostProxiedRequestHooks(method, url, action, params)
     return res
   } else {
@@ -94,7 +93,8 @@ function closedEndpointFactory (method: HttpMethod, pathname: RelativeUrl, actio
   }
 }
 
-async function signedProxyRequest (req: AuthentifiedReq, method: HttpMethod, remoteUrl: AbsoluteUrl, body: unknown) {
+async function signedProxyRequest (req: AuthentifiedReq, method: HttpMethod, url: RelativeUrl, body: unknown) {
+  const remoteUrl = `${remoteEntitiesOrigin}${url}` as AbsoluteUrl
   const userAnonymizableId = await getUserAnonymizableId(req.user)
   const { privateKey, publicKeyHash } = await getSharedKeyPair()
   const headers = signRequest({
@@ -107,7 +107,7 @@ async function signedProxyRequest (req: AuthentifiedReq, method: HttpMethod, rem
       [remoteUserHeader]: userAnonymizableId,
     },
   })
-  return federatedRequest(method, remoteUrl, { headers, body })
+  return federatedRequest(method, url, { headers, body })
 }
 
 const closedAccessLevels = [ 'admin', 'dataadmin' ] as const

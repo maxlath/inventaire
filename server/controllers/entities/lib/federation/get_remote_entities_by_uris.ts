@@ -6,15 +6,12 @@ import type { GetReverseClaimsResponse } from '#controllers/entities/reverse_cla
 import { federatedRequest } from '#lib/federation/federated_requests'
 import { assertString } from '#lib/utils/assert_types'
 import { buildUrl } from '#lib/utils/url'
-import config from '#server/config'
 import type { EntityUri, SerializedEntity } from '#types/entity'
-
-const { remoteEntitiesOrigin } = config.federation
 
 export async function getRemoteEntitiesByUris ({ uris }: Pick<GetEntitiesByUrisParams, 'uris'>) {
   uris = compact(uris)
   if (uris.length === 0) return { entities: {}, redirects: {} } satisfies GetEntitiesByUrisResponse
-  const remoteUrl = buildUrl(`${remoteEntitiesOrigin}/api/entities`, { action: 'by-uris', uris: uris.join('|') })
+  const remoteUrl = buildUrl('/api/entities', { action: 'by-uris', uris: uris.join('|') })
   return federatedRequest<GetEntitiesByUrisResponse>('get', remoteUrl)
 }
 
@@ -32,7 +29,7 @@ export async function getRemoteEntityByUri ({ uri }: { uri: EntityUri }) {
 }
 
 export async function getRemoteReverseClaims (params: ReverseClaimsParams) {
-  const remoteUrl = buildUrl(`${remoteEntitiesOrigin}/api/entities`, { action: 'reverse-claims', ...params })
+  const remoteUrl = buildUrl('/api/entities', { action: 'reverse-claims', ...params })
   const { uris } = await federatedRequest<GetReverseClaimsResponse>('get', remoteUrl)
   return uris
 }

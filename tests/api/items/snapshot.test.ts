@@ -13,7 +13,7 @@ import {
 import { humanName } from '#fixtures/text'
 import { wait } from '#lib/promises'
 import { getRandomString } from '#lib/utils/random_string'
-import config from '#server/config'
+import config, { federatedMode } from '#server/config'
 import 'should'
 import {
   getByUri,
@@ -42,6 +42,15 @@ describe('items:snapshot', () => {
   })
 
   it("should snapshot the item's work series ordinal", async () => {
+    const workEntity = await createWork()
+    await addSerie(workEntity)
+    await updateClaim({ uri: workEntity.uri, property: 'wdt:P1545', newValue: '5' })
+    await wait(debounceDelay)
+    const item = await authReq('post', '/api/items', { entity: workEntity.uri })
+    item.snapshot['entity:ordinal'].should.equal('5')
+  })
+
+  it("should update the item's snapshoted work data after a work claim update", async () => {
     const workEntity = await createWork()
     const [ item ] = await Promise.all([
       authReq('post', '/api/items', { entity: workEntity.uri }),
@@ -167,7 +176,9 @@ describe('items:snapshot', () => {
       updatedItem.snapshot['entity:authors'].should.equal(updateAuthorName)
     })
 
-    it('should be updated when its local work entity is merged (work entity)', async () => {
+    it('should be updated when its local work entity is merged (work entity)', async function () {
+      // Disable in federated mode yet as this test relies on a special role
+      if (federatedMode) this.skip()
       const [ workEntityA, workEntityB ] = await Promise.all([
         createWork(),
         createWork(),
@@ -179,7 +190,9 @@ describe('items:snapshot', () => {
       updatedItem.snapshot['entity:title'].should.equal(updatedTitle)
     })
 
-    it('should be updated when its local work entity is merged (edition entity)', async () => {
+    it('should be updated when its local work entity is merged (edition entity)', async function () {
+      // Disable in federated mode yet as this test relies on a special role
+      if (federatedMode) this.skip()
       const [ workEntityA, workEntityB ] = await Promise.all([
         createWork(),
         createWork(),
@@ -196,7 +209,9 @@ describe('items:snapshot', () => {
       updatedItem.snapshot['entity:authors'].should.equal(authorName)
     })
 
-    it('should be updated when its local author entity is merged', async () => {
+    it('should be updated when its local author entity is merged', async function () {
+      // Disable in federated mode yet as this test relies on a special role
+      if (federatedMode) this.skip()
       const [ authorEntityA, authorEntityB ] = await Promise.all([
         createHuman(),
         createHuman(),
@@ -210,7 +225,9 @@ describe('items:snapshot', () => {
       updatedItem.snapshot['entity:authors'].should.equal(updatedAuthors)
     })
 
-    it('should be updated when its local author merge is reverted', async () => {
+    it('should be updated when its local author merge is reverted', async function () {
+      // Disable in federated mode yet as this test relies on a special role
+      if (federatedMode) this.skip()
       const [ authorEntityA, authorEntityB ] = await Promise.all([
         createHuman(),
         createHuman(),
@@ -273,7 +290,9 @@ describe('items:snapshot', () => {
     })
 
     // Flaky: seen to fail when called within the whole test suite
-    it('should be updated when its remote work entity is target for a merge [flaky]', async () => {
+    it('should be updated when its remote work entity is target for a merge [flaky]', async function () {
+      // Disable in federated mode yet as this test relies on a special role
+      if (federatedMode) this.skip()
       const workEntity = await createWork()
       const editionEntity = await createEditionFromWorks(workEntity)
       const item = await authReq('post', '/api/items', { entity: editionEntity.uri })
@@ -284,7 +303,9 @@ describe('items:snapshot', () => {
       updatedItem.snapshot['entity:authors'].should.equal('Alain Damasio')
     })
 
-    it('should be updated when its remote author entity is target for a merge', async () => {
+    it('should be updated when its remote author entity is target for a merge', async function () {
+      // Disable in federated mode yet as this test relies on a special role
+      if (federatedMode) this.skip()
       const work = await createWork()
       const [ edition, author ] = await Promise.all([
         createEdition({ work }),

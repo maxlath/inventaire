@@ -8,6 +8,7 @@ import { newError } from '#lib/error/error'
 import type { ContextualizedError } from '#lib/error/format_error'
 import { newUnauthorizedApiAccessError } from '#lib/error/pre_filled'
 import { instanceActorName } from '#lib/federation/instance'
+import { runPostProxiedRequestHooks } from '#lib/federation/proxied_requests_hooks'
 import { remoteUserHeader } from '#lib/federation/remote_user'
 import { requests_ } from '#lib/requests'
 import type { AccessLevel } from '#lib/user_access_levels'
@@ -64,13 +65,17 @@ async function _proxiedController (req: Req | AuthentifiedReq, accessLevel: Acce
   const body = (method === 'get' || method === 'delete') ? undefined : req.body
   if (isAuthentifiedReq(req)) {
     try {
-      return await signedProxyRequest(req, method, remoteUrl, body)
+      const res = await signedProxyRequest(req, method, remoteUrl, body)
+      runPostProxiedRequestHooks(method, url, action, params)
+      return res
     } catch (err) {
       throw forwardRemoteError(err, remoteUrl)
     }
   } else if (accessLevel === 'public') {
     try {
-      return await requests_[method](remoteUrl, { body })
+      const res = await requests_[method](remoteUrl, { body })
+      runPostProxiedRequestHooks(method, url, action, params)
+      return res
     } catch (err) {
       throw forwardRemoteError(err, remoteUrl)
     }

@@ -1,4 +1,5 @@
 import { map } from 'lodash-es'
+import { prefixifyInv } from '#controllers/entities/lib/prefix'
 import { dbFactory } from '#db/couchdb/base'
 import { maxKey } from '#lib/couch'
 import { oneDay } from '#lib/time'
@@ -216,4 +217,9 @@ function formatPatchesPage (viewRes, limit, offset, total?: number) {
   const rangeEnd = offset + limit
   if (rangeEnd < total) data.continue = rangeEnd
   return data
+}
+
+export function getInvEntityUriFromPatchId (patchId: PatchId) {
+  const entityId = patchId.split(':')[0]
+  return prefixifyInv(entityId)
 }

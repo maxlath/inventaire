@@ -1,6 +1,6 @@
 import removeLabel from '#controllers/entities/remove_label'
 import { methodAndActionsControllersFactory } from '#lib/actions_controllers'
-import { buildProxiedControllers } from '#lib/federation/proxied_controllers'
+import { buildProxiedControllers } from '#lib/federation/build_proxied_controllers'
 import type { MethodsAndActionsControllers } from '#types/controllers'
 import byUrisGet from './by_uris_get.js'
 import contributions from './contributions.js'

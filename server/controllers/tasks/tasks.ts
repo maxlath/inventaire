@@ -1,6 +1,6 @@
 import { initTasksHooks } from '#controllers/tasks/hooks'
 import { methodAndActionsControllersFactory } from '#lib/actions_controllers'
-import { buildProxiedControllers } from '#lib/federation/proxied_controllers'
+import { buildProxiedControllers } from '#lib/federation/build_proxied_controllers'
 import { federatedMode } from '#server/config'
 import type { MethodsAndActionsControllers } from '#types/controllers'
 import byEntitiesType from './by_entities_type.js'

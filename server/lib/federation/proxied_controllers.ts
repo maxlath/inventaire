@@ -1,4 +1,3 @@
-import { methodAndActionsControllersFactory } from '#lib/actions_controllers'
 import { isAuthentifiedReq, isRelativeUrl } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
 import { newUnauthorizedApiAccessError } from '#lib/error/pre_filled'
@@ -7,16 +6,15 @@ import { runPostProxiedRequestHooks } from '#lib/federation/proxied_requests_hoo
 import { signedFederatedRequest } from '#lib/federation/signed_federated_request'
 import { httpMethodHasBody, requests_ } from '#lib/requests'
 import type { AccessLevel } from '#lib/user_access_levels'
-import { arrayIncludes, objectEntries } from '#lib/utils/base'
 import config from '#server/config'
 import type { AbsoluteUrl, RelativeUrl } from '#types/common'
-import type { ActionController, ActionControllerFunction, ActionControllerStandaloneFunction, HttpMethod, MethodsAndActionsControllers } from '#types/controllers'
+import type { ActionController, ActionControllerFunction, ActionControllerStandaloneFunction, HttpMethod } from '#types/controllers'
 import type { SanitizedParameters } from '#types/controllers_input_sanitization_parameters'
 import type { AuthentifiedReq, Req, Res } from '#types/server'
 
 const { remoteEntitiesOrigin } = config.federation
 
-function proxiedController (accessLevel: AccessLevel, method: HttpMethod, pathname: RelativeUrl, action: string, actionController: ActionController) {
+export function proxiedController (accessLevel: AccessLevel, method: HttpMethod, pathname: RelativeUrl, action: string, actionController: ActionController) {
   if (accessLevel === 'admin' || accessLevel === 'dataadmin') return closedEndpointFactory(method, pathname, action)
   let sanitization, track
   if (typeof actionController !== 'function') {
@@ -86,31 +84,4 @@ function closedEndpointFactory (method: HttpMethod, pathname: RelativeUrl, actio
   return function closedEndpointController () {
     throw newError('This endpoint is closed in federated mode', 400, { endpoint: `${method.toUpperCase()} ${pathname}?action=${action}` })
   }
-}
-
-const closedAccessLevels = [ 'admin', 'dataadmin' ] as const
-
-// Use-cases for duplicating remote endpoints locally:
-// - proxy read controllers to keep a local cache and trigger hooks
-// - proxy write controllers to handle authenfication
-// Note that requests requiring Wikidata OAuth could possibly be replaced by request
-// authentified with a server Wikidata account
-export function buildProxiedControllers (pathname: RelativeUrl, localControllersParams: MethodsAndActionsControllers) {
-  const proxiedControllersParams = {}
-
-  for (const [ method, methodParams ] of objectEntries(localControllersParams)) {
-    proxiedControllersParams[method] = {}
-    for (const [ accessLevel, actionControllers ] of objectEntries(methodParams)) {
-      // Register closed endpoints as public to directly send the "Closed endpoint" error
-      // rather than falsly hinting that it's an authentification problem
-      const localAccessLevel = arrayIncludes(closedAccessLevels, accessLevel) ? 'public' : accessLevel
-      proxiedControllersParams[method][localAccessLevel] ??= {}
-      for (const [ actionName, actionController ] of objectEntries(actionControllers)) {
-        const controller = proxiedController(accessLevel, method, pathname, actionName as string, actionController)
-        proxiedControllersParams[method][localAccessLevel][actionName] = controller
-      }
-    }
-  }
-
-  return methodAndActionsControllersFactory(proxiedControllersParams)
 }

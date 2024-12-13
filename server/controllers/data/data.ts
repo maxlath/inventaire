@@ -1,5 +1,5 @@
 import { methodAndActionsControllersFactory } from '#lib/actions_controllers'
-import { buildProxiedControllers } from '#lib/federation/proxied_controllers'
+import { buildProxiedControllers } from '#lib/federation/build_proxied_controllers'
 import isbn from './isbn.js'
 import { propertyValues, propertiesMetadata } from './properties_metadata.js'
 import summaries from './summaries.js'

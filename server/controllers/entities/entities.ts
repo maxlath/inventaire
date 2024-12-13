@@ -1,5 +1,6 @@
 import removeLabel from '#controllers/entities/remove_label'
 import { methodAndActionsControllersFactory } from '#lib/actions_controllers'
+import { buildProxiedControllers } from '#lib/federation/proxied_controllers'
 import type { MethodsAndActionsControllers } from '#types/controllers'
 import byUrisGet from './by_uris_get.js'
 import contributions from './contributions.js'
@@ -21,7 +22,7 @@ import revertMerge from './revert_merge.js'
 import updateClaim from './update_claim.js'
 import updateLabel from './update_label.js'
 
-export const localEntitiesControllersParams = {
+const localEntitiesControllersParams = {
   get: {
     public: {
       'by-uris': byUrisGet,
@@ -70,3 +71,4 @@ export const localEntitiesControllersParams = {
 } satisfies MethodsAndActionsControllers
 
 export const localEntitiesControllers = methodAndActionsControllersFactory(localEntitiesControllersParams)
+export const federatedEntitiesControllers = buildProxiedControllers('/api/entities', localEntitiesControllersParams)

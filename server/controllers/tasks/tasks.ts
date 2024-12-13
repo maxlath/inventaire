@@ -1,5 +1,6 @@
 import { initTasksHooks } from '#controllers/tasks/hooks'
 import { methodAndActionsControllersFactory } from '#lib/actions_controllers'
+import { buildProxiedControllers } from '#lib/federation/proxied_controllers'
 import { federatedMode } from '#server/config'
 import type { MethodsAndActionsControllers } from '#types/controllers'
 import byEntitiesType from './by_entities_type.js'
@@ -12,7 +13,7 @@ import deduplicateWorks from './deduplicate_works.js'
 import getTasksCount from './get_tasks_count.js'
 import update from './update.js'
 
-export const localTasksControllersParams = {
+const localTasksControllersParams = {
   get: {
     public: {
       'by-ids': byIds,
@@ -44,5 +45,6 @@ export const localTasksControllersParams = {
 } satisfies MethodsAndActionsControllers
 
 export const localTasksControllers = methodAndActionsControllersFactory(localTasksControllersParams)
+export const federatedTasksControllers = buildProxiedControllers('/api/tasks', localTasksControllersParams)
 
 if (!federatedMode) initTasksHooks()

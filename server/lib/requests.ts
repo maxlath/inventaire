@@ -6,6 +6,7 @@ import { newError, addContextToStack } from '#lib/error/error'
 import { newInvalidError } from '#lib/error/pre_filled'
 import { wait } from '#lib/promises'
 import { assertObject, assertString } from '#lib/utils/assert_types'
+import { arrayIncludes } from '#lib/utils/base'
 import { requireJson } from '#lib/utils/json'
 import { warn } from '#lib/utils/logs'
 import config from '#server/config'
@@ -273,3 +274,9 @@ export const requests_ = {
 }
 
 export const get = requests_.get
+
+const methodWithBody = [ 'put', 'post' ] as const
+
+export function httpMethodHasBody (method: HttpMethod) {
+  return arrayIncludes(methodWithBody, method)
+}

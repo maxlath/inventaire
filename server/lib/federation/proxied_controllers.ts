@@ -10,7 +10,7 @@ import { forwardRemoteError } from '#lib/federation/forward_remote_error'
 import { instanceActorName } from '#lib/federation/instance'
 import { runPostProxiedRequestHooks } from '#lib/federation/proxied_requests_hooks'
 import { remoteUserHeader } from '#lib/federation/remote_user'
-import { requests_ } from '#lib/requests'
+import { httpMethodHasBody, requests_ } from '#lib/requests'
 import type { AccessLevel } from '#lib/user_access_levels'
 import { arrayIncludes, objectEntries } from '#lib/utils/base'
 import config from '#server/config'
@@ -28,7 +28,7 @@ function proxiedController (accessLevel: AccessLevel, method: HttpMethod, pathna
     ;({ sanitization, track } = actionController)
   }
 
-  const controller = proxiedControllerFunctionFactory(accessLevel, method, action, actionController)
+  const controller = proxiedControllerFunctionFactory(accessLevel, method, pathname, action, actionController)
 
   if (typeof actionController === 'function') {
     return controller
@@ -38,15 +38,23 @@ function proxiedController (accessLevel: AccessLevel, method: HttpMethod, pathna
   }
 }
 
-function proxiedControllerFunctionFactory (accessLevel: AccessLevel, method: HttpMethod, action: string, actionController: ActionController) {
+function proxiedControllerFunctionFactory (accessLevel: AccessLevel, method: HttpMethod, pathname: RelativeUrl, action: string, actionController: ActionController) {
   if (typeof actionController === 'function') {
     return async function controller (req: Req, res: Res) {
+      const remoteUrl = `${remoteEntitiesOrigin}${req.url}` as AbsoluteUrl
       if (accessLevel === 'public') {
-        const remoteUrl = `${remoteEntitiesOrigin}${req.url}` as AbsoluteUrl
-        // Redirecting is a simple way to support the different types or responses that an endpoint such as /api/entities?action=images might return
-        // Alternatively, a `fetch` request could be piped to `res`
-        // See https://stackoverflow.com/a/77589444
-        res.redirect(remoteUrl)
+        if (shouldBeRedirected(method, pathname, action, req.query)) {
+          // Redirecting is a simple way to support the different types or responses that an endpoint such as /api/entities?action=images might return
+          // Alternatively, a `fetch` request could be piped to `res`
+          // See https://stackoverflow.com/a/77589444
+          res.redirect(remoteUrl)
+        } else {
+          const { url } = req
+          const body = httpMethodHasBody(method) ? req.body : undefined
+          const remoteRes = await requests_[method](remoteUrl, { body })
+          runPostProxiedRequestHooks(method, url as RelativeUrl, action, req.query)
+          return res.json(remoteRes)
+        }
       } else {
         throw newError('non-public controllers can not be redirected', 500, { url: req.url, accessLevel, method, action })
       }
@@ -58,11 +66,15 @@ function proxiedControllerFunctionFactory (accessLevel: AccessLevel, method: Htt
   }
 }
 
+function shouldBeRedirected (method: HttpMethod, pathname: RelativeUrl, action: string, query?: { redirect?: boolean }) {
+  return method === 'get' && pathname === '/api/entities' && action === 'images' && query.redirect
+}
+
 async function _proxiedController (req: Req | AuthentifiedReq, accessLevel: AccessLevel, method: HttpMethod, action: string, params?: SanitizedParameters) {
   const { url } = req
   if (!isRelativeUrl(url)) throw newError('invalid relative url', 500, { method, action, params })
   const remoteUrl = `${remoteEntitiesOrigin}${req.url}` as AbsoluteUrl
-  const body = (method === 'get' || method === 'delete') ? undefined : req.body
+  const body = httpMethodHasBody(method) ? req.body : undefined
   if (isAuthentifiedReq(req)) {
     try {
       const res = await signedProxyRequest(req, method, remoteUrl, body)

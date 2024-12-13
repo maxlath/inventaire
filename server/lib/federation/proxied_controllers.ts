@@ -5,8 +5,8 @@ import { getUserAnonymizableId } from '#controllers/user/lib/anonymizable_user'
 import { methodAndActionsControllersFactory } from '#lib/actions_controllers'
 import { isAuthentifiedReq, isRelativeUrl } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
-import type { ContextualizedError } from '#lib/error/format_error'
 import { newUnauthorizedApiAccessError } from '#lib/error/pre_filled'
+import { forwardRemoteError } from '#lib/federation/forward_remote_error'
 import { instanceActorName } from '#lib/federation/instance'
 import { runPostProxiedRequestHooks } from '#lib/federation/proxied_requests_hooks'
 import { remoteUserHeader } from '#lib/federation/remote_user'
@@ -104,16 +104,6 @@ async function signedProxyRequest (req: AuthentifiedReq, method: HttpMethod, rem
     },
   })
   return requests_[method](remoteUrl, { headers, body })
-}
-
-function forwardRemoteError (err: ContextualizedError, remoteUrl: AbsoluteUrl) {
-  if (!('body' in err)) throw err
-  const { statusCode } = err
-  // @ts-expect-error
-  const { status_verbose: message, context } = err.body
-  const repackedError = newError(message, statusCode, context)
-  repackedError.forwardedFrom = remoteUrl
-  return repackedError
 }
 
 const closedAccessLevels = [ 'admin', 'dataadmin' ] as const

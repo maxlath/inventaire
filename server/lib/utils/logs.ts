@@ -49,7 +49,7 @@ export function warn (err: unknown, label?: string) {
   }
   if (err instanceof Error) {
     // shorten the stack trace
-    err.stack = err.stack.split('\n').slice(0, 5).join('\n')
+    err.stack = err.stack.split('\n').slice(0, 10).join('\n')
     reduceForwardedErrorsVerbosity(err)
   }
 

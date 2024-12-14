@@ -1,4 +1,3 @@
-import type { ParsedForm } from '#controllers/images/lib/parse_form'
 import type { BareRemoteUser } from '#lib/federation/remote_user'
 import type { RelativeUrl, Host } from '#types/common'
 import type { User, UserId } from '#types/user'
@@ -33,10 +32,6 @@ export type Res = Express.Response & { warnings?: string[] }
 export type Next = () => void
 
 export type Sanitized<Params> = Params & { reqUserId?: UserId }
-
-export interface FormReq extends AuthentifiedReq {
-  form: ParsedForm
-}
 
 export type Middleware = (req: Req, res: Res, next: Next) => void
 

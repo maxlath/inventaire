@@ -6,7 +6,7 @@ export default {
     // log(req.headers, 'headers')
 
     // useful to see text/plain bodys
-    if (isPlainText(req)) {
+    if (isPlainTextReq(req)) {
       rawBody(req, res)
     } else {
       // log(req.query, 'query')
@@ -16,7 +16,7 @@ export default {
   },
 }
 
-const isPlainText = (req: Req) => req.headers['content-type'] === 'text/plain'
+const isPlainTextReq = (req: Req) => req.headers['content-type'] === 'text/plain'
 
 // Overpassing the bodyParser middleware
 // as it handles json only

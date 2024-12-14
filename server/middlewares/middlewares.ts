@@ -1,4 +1,4 @@
-import { parseFormMiddleware } from '#controllers/images/lib/parse_form'
+import { prepareFormParse } from '#controllers/images/lib/parse_form'
 import type { Middleware, PathSpecificMiddleware } from '#types/server'
 import auth from './auth.js'
 import { acceptUrlencoded, jsonBodyParser, deduplicateRequests } from './content.js'
@@ -13,7 +13,7 @@ export const middlewares: (Middleware | PathSpecificMiddleware)[] = [
 
   security.setCorsPolicy,
 
-  [ '/api/images', parseFormMiddleware ],
+  [ '/api/images', prepareFormParse ],
 
   // server/controllers/auth/fake_submit.ts relies on the possibility
   // to submit a url encoded form data, so it needs to have the body-parser ready for it

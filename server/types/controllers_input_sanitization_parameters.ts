@@ -88,14 +88,15 @@ interface WellknownSanitizedParameters {
 }
 
 interface GenericsBasedSanitizedParameters {
+  claims: Claims
+  container: string
   height: number
+  labels: Labels
   open: boolean
   redirect: boolean
   searchable: boolean
   sort: boolean
   width: number
-  labels: Labels
-  claims: Claims
 }
 
 type ClassicDocId = Exclude<string, 'patch'>

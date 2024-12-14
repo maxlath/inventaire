@@ -16,7 +16,7 @@ export async function federatedRequest <Response = unknown> (method: HttpMethod,
   }
 }
 
-function forwardRemoteError (err: ContextualizedError, remoteUrl: AbsoluteUrl) {
+export function forwardRemoteError (err: ContextualizedError, remoteUrl: AbsoluteUrl) {
   if (!('body' in err)) throw err
   const { statusCode } = err
   // @ts-expect-error

@@ -11,11 +11,13 @@ export interface ParsedForm {
   files: Files
 }
 
+export const multipartFormContentType = 'multipart/form-data'
+
 // Parse forms in an early middleware to not let the time to any other middleware
 // to start consuming the form request stream, to avoid getting hanging requests
 // See https://github.com/node-formidable/formidable/issues/959
 export async function prepareFormParse (req, res, next) {
-  if (!req.headers['content-type']?.startsWith('multipart/form-data')) return next()
+  if (!req.headers['content-type']?.startsWith(multipartFormContentType)) return next()
 
   // Pause req stream to let parseReqForm trigger req.resume once ready
   // to get around this bug https://github.com/node-formidable/formidable/issues/959

@@ -6,17 +6,22 @@ import { federatedRequest } from '#lib/federation/federated_requests'
 import { instanceActorName } from '#lib/federation/instance'
 import { remoteUserHeader } from '#lib/federation/remote_user'
 import config from '#server/config'
-import type { AbsoluteUrl, RelativeUrl } from '#types/common'
+import type { AbsoluteUrl, HttpHeaders, RelativeUrl } from '#types/common'
 import type { HttpMethod } from '#types/controllers'
 import type { AuthentifiedReq } from '#types/server'
 
 const { remoteEntitiesOrigin } = config.federation
 
 export async function signedFederatedRequest (req: AuthentifiedReq, method: HttpMethod, url: RelativeUrl, body: unknown) {
+  const headers = await getSignedFederatedRequestHeaders(req, method, url, body)
+  return federatedRequest(method, url, { headers, body })
+}
+
+export async function getSignedFederatedRequestHeaders (req: AuthentifiedReq, method: HttpMethod, url: RelativeUrl, body: unknown, extraHeaders?: HttpHeaders) {
   const remoteUrl = `${remoteEntitiesOrigin}${url}` as AbsoluteUrl
   const userAnonymizableId = await getUserAnonymizableId(req.user)
   const { privateKey, publicKeyHash } = await getSharedKeyPair()
-  const headers = signRequest({
+  return signRequest({
     url: remoteUrl,
     method,
     keyId: makeActorKeyUrl(instanceActorName, publicKeyHash),
@@ -24,7 +29,7 @@ export async function signedFederatedRequest (req: AuthentifiedReq, method: Http
     body,
     headers: {
       [remoteUserHeader]: userAnonymizableId,
+      ...extraHeaders,
     },
   })
-  return federatedRequest(method, url, { headers, body })
 }

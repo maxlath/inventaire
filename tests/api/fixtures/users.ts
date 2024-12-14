@@ -78,7 +78,7 @@ export interface UserWithCookie extends User {
 export type AwaitableUserWithCookie = Awaitable<UserWithCookie>
 
 export async function getUserWithCookie (cookie: string) {
-  const user = await request('get', '/api/user', null, cookie)
+  const user = await request('get', '/api/user', null, { cookie })
   user.cookie = cookie
   assertString(user.cookie)
   return user as UserWithCookie

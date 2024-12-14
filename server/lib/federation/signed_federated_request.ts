@@ -24,6 +24,8 @@ export async function getSignedFederatedRequestHeaders (req: AuthentifiedReq, me
   return signRequest({
     url: remoteUrl,
     method,
+    // Using the instance actor rather than a keyId customize per user
+    // to maximize key cache hits
     keyId: makeActorKeyUrl(instanceActorName, publicKeyHash),
     privateKey,
     body,

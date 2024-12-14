@@ -4,7 +4,7 @@ import { unprefixify } from '#controllers/entities/lib/prefix'
 import { indexesNamesByBaseNames } from '#db/elasticsearch/indexes'
 import { createHuman, createEdition, addSerie } from '#fixtures/entities'
 import { wait } from '#lib/promises'
-import config from '#server/config'
+import config, { federatedMode } from '#server/config'
 import { deleteByUris, merge, updateLabel } from '#tests/api/utils/entities'
 import { getIndexedDoc } from '#tests/api/utils/search'
 
@@ -12,6 +12,10 @@ const { entities: entitiesIndex } = indexesNamesByBaseNames
 const { updateDelay: elasticsearchUpdateDelay } = config.elasticsearch
 
 describe('indexation:entities', () => {
+  before(function () {
+    // Entities are not indexed locally in federated mode
+    if (federatedMode) this.skip()
+  })
   it('should index a new local entity', async () => {
     const { _id } = await createHuman()
     await wait(elasticsearchUpdateDelay)
@@ -66,6 +70,10 @@ describe('indexation:entities', () => {
 })
 
 describe('deindexation:entities', () => {
+  before(function () {
+    // Entities are not indexed locally in federated mode
+    if (federatedMode) this.skip()
+  })
   it('should unindex a deleted local entity', async () => {
     const { _id, uri } = await createHuman()
     await wait(elasticsearchUpdateDelay)

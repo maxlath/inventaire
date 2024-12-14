@@ -3,7 +3,7 @@ import { unprefixify } from '#controllers/entities/lib/prefix'
 import { indexesNamesByBaseNames } from '#db/elasticsearch/indexes'
 import { getSomeWdEditionUri } from '#fixtures/entities'
 import { wait } from '#lib/promises'
-import config from '#server/config'
+import config, { federatedMode } from '#server/config'
 import { addClaim, getByUri } from '#tests/api/utils/entities'
 import { getIndexedDoc, deindex, indexPlaceholder } from '#tests/api/utils/search'
 import { getAdminUser } from '#tests/api/utils/utils'
@@ -12,6 +12,10 @@ const { wikidata: wikidataIndex } = indexesNamesByBaseNames
 const { updateDelay: elasticsearchUpdateDelay } = config.elasticsearch
 
 describe('indexation:wikidata', () => {
+  before(function () {
+    // Entities are not indexed locally in federated mode
+    if (federatedMode) this.skip()
+  })
   // Flaky tests: seen to fail when called within the whole test suite
   // Running `lev db/leveldb-tests --prefix '!job'` revealed that jobs
   // were waiting in the queue for some reason

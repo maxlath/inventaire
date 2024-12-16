@@ -8,6 +8,10 @@
 /** @type {PartialDeep<Config>} */
 const config = {
   env: 'dev',
+  outgoingRequests: {
+    // Allow entity federation between servers on localhost
+    rejectPrivateUrls: false,
+  },
   dataseed: {
     enabled: true,
   },

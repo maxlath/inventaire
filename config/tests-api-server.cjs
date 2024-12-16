@@ -30,8 +30,9 @@ const config = {
     minReindexationInterval: 0,
   },
   outgoingRequests: {
-    // Required to be able to request images from the image placeholder server
-    // See tests/api/utils/placeholder_images.ts
+    // Required
+    // - to allow entity federation between servers on localhost
+    // - to be able to request images from the image placeholder server, see tests/api/utils/placeholder_images.ts
     rejectPrivateUrls: false,
   },
 }

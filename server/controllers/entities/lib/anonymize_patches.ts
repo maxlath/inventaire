@@ -1,5 +1,6 @@
 import { map, property, uniq } from 'lodash-es'
-import { getUsersByAccts, type UserWithAcct } from '#lib/federation/remote_user'
+import type { InstanceAgnosticContributor } from '#controllers/user/lib/anonymizable_user'
+import { getUsersByAccts } from '#lib/federation/remote_user'
 import { userShouldBeAnonymized } from '#models/user'
 import type { Patch } from '#types/patch'
 import type { UserAccountUri } from '#types/server'
@@ -20,7 +21,7 @@ export async function anonymizePatches ({ patches, reqUserAcct }: AnonymizePatch
   })
 }
 
-function getDeanonymizedUsersAccts (users: UserWithAcct[]) {
+function getDeanonymizedUsersAccts (users: InstanceAgnosticContributor[]) {
   const deanonymizedUsersAccts = users
     .filter(user => !userShouldBeAnonymized(user))
     .map(property('acct'))

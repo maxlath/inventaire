@@ -1,5 +1,5 @@
 import { verifySignature } from '#controllers/activitypub/lib/security'
-import { anonymizeUser, buildAnonymizedUser, getUsersByAnonymizedIds, type AnonymizedUser, type AnonymizeUserOptions, type DeanonymizedUser } from '#controllers/user/lib/anonymizable_user'
+import { anonymizeUser, buildAnonymizedUser, getUsersByAnonymizedIds, type AnonymizedUser, type AnonymizeUserOptions, type DeanonymizedUser, type InstanceAgnosticContributor } from '#controllers/user/lib/anonymizable_user'
 import { isUserId } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
 import { requests_ } from '#lib/requests'
@@ -10,7 +10,6 @@ import { publicHost } from '#server/config'
 import type { Host } from '#types/common'
 import type { AuthentifiedReq, MaybeSignedReq, RemoteUserAuthentifiedReq, UserAccountUri } from '#types/server'
 import type { AnonymizableUserId, SpecialUser, User, UserOAuth, UserRole } from '#types/user'
-import type { SetOptional } from 'type-fest'
 
 export interface BareRemoteUser {
   anonymizableId: AnonymizableUserId
@@ -32,7 +31,7 @@ export interface LocalUserWithAcct extends User {
   acct: UserAccountUri
 }
 
-export type UserWithAcct = LocalUserWithAcct | RemoteUserWithAcct | BareRemoteUser
+export type UserWithAcct = LocalUserWithAcct | RemoteUserWithAcct | BareRemoteUser | InstanceAgnosticContributor
 
 export const remoteUserHeader = 'x-remote-user'
 
@@ -132,14 +131,10 @@ async function getRemoteUsersByAnonymizableIds (host: Host, anonymizableUsersIds
   }
 }
 
-function setUserAcctAndRoles (user: SetOptional<LocalUserWithAcct | RemoteUserWithAcct, 'acct' | 'roles'>, host: Host) {
-  user.acct = buildUserAcct(user.anonymizableId, host)
-  user.roles ??= []
-  if (host === publicHost) {
-    return user as LocalUserWithAcct
-  } else {
-    return user as RemoteUserWithAcct
-  }
+function setUserAcctAndRoles <T extends Pick<User, 'anonymizableId'>> (user: T, host: Host) {
+  const acct = buildUserAcct(user.anonymizableId, host)
+  const roles = ('roles' in user ? user.roles : []) as UserRole[]
+  return { ...user, acct, roles }
 }
 
 export async function getUserByAcct (userAcct: UserAccountUri) {

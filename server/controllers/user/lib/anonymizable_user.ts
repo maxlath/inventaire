@@ -1,7 +1,8 @@
 import { get, pick } from 'lodash-es'
 import { dbFactory } from '#db/couchdb/base'
 import type { RemoteUserWithAcct } from '#lib/federation/remote_user'
-import type { AnonymizableUserId, User } from '#types/user'
+import type { UserAccountUri } from '#types/server'
+import type { AnonymizableUserId, User, UserRole } from '#types/user'
 
 const db = await dbFactory('users')
 
@@ -9,8 +10,8 @@ export async function getUsersByAnonymizedIds (anonymizableIds: AnonymizableUser
   return db.getDocsByViewKeys<User>('byAnonymizableId', anonymizableIds)
 }
 
-export const deanonymizedAttributes = [ 'username', 'bio', 'picture', 'created' ] as const
-type DeanonymizedAttribute = typeof deanonymizedAttributes[number]
+export const deanonymizedAttributes = [ 'username', 'bio', 'picture', 'created', 'roles' ] as const
+export type DeanonymizedAttribute = typeof deanonymizedAttributes[number]
 
 export interface AnonymizedUser {
   anonymizableId: AnonymizableUserId
@@ -61,4 +62,9 @@ export function buildAnonymizedUser (anonymizableId: AnonymizableUserId) {
       },
     },
   } as AnonymizedUser
+}
+
+export interface InstanceAgnosticContributor extends Pick<User, 'settings'>, Partial<Pick<User, DeanonymizedAttribute>> {
+  acct: UserAccountUri
+  roles: UserRole[]
 }

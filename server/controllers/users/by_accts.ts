@@ -1,5 +1,6 @@
 import { keyBy, omit } from 'lodash-es'
-import { getUsersByAccts, type LocalUserWithAcct, type RemoteUserWithAcct } from '#lib/federation/remote_user'
+import type { InstanceAgnosticContributor } from '#controllers/user/lib/anonymizable_user'
+import { getUsersByAccts } from '#lib/federation/remote_user'
 import { hasAdminAccess } from '#lib/user_access_levels'
 import type { SanitizedParameters } from '#types/controllers_input_sanitization_parameters'
 import type { AuthentifiedReq } from '#types/server'
@@ -12,11 +13,8 @@ const sanitization = {
 async function controller ({ accts }: SanitizedParameters, req: AuthentifiedReq) {
   const reqUserHasAdminAccess = hasAdminAccess(req.user)
   const users = await getUsersByAccts(accts, { reqUserHasAdminAccess })
-  return { users: keyBy(users.map(format), 'acct') }
-}
-
-function format (user: LocalUserWithAcct | RemoteUserWithAcct) {
-  return omit(user, 'anonymizableId')
+  const formattedUsers = users.map(user => omit(user, 'anonymizableId')) as InstanceAgnosticContributor[]
+  return { users: keyBy(formattedUsers, 'acct') }
 }
 
 export default { sanitization, controller }

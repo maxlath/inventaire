@@ -1,12 +1,12 @@
 import 'should'
 import { map, uniq } from 'lodash-es'
 import { createWork, generateIsbn13h, createEditionWithIsbn, createHuman } from '#fixtures/entities'
+import { getLocalUserAcct } from '#lib/federation/remote_user'
 import { wait } from '#lib/promises'
 import { objectValues } from '#lib/utils/base'
 import { federatedMode } from '#server/config'
 import { getByUris, getByUri, merge } from '#tests/api/utils/entities'
 import { getBySuspectUri } from '#tests/api/utils/tasks'
-import { getTestUserAcct } from '#tests/api/utils/users'
 import { authReq, getUser } from '#tests/api/utils/utils'
 import { shouldNotBeCalled, rethrowShouldNotBeCalledErrors } from '#tests/unit/utils/utils'
 
@@ -66,7 +66,7 @@ describe('tasks:deduplicate:works', () => {
     newTask.entitiesType.should.equal('work')
     newTask.suggestionUri.should.equal(editionWorkUri)
     const user = await getUser()
-    const userAcct = await getTestUserAcct(user)
+    const userAcct = await getLocalUserAcct(user)
     newTask.reporters.should.deepEqual([ userAcct ])
     newTask.clue.should.equal(isbn)
   })

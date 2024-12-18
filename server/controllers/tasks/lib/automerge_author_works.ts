@@ -4,12 +4,12 @@ import { getEntitiesList } from '#controllers/entities/lib/get_entities_list'
 import mergeEntities from '#controllers/entities/lib/merge_entities'
 import { getEntityNormalizedTerms } from '#controllers/entities/lib/terms_normalization'
 import { hardCodedUsers } from '#db/couchdb/hard_coded_documents'
-import { getLocalUserAcct } from '#lib/federation/remote_user'
+import { buildLocalUserAcct } from '#lib/federation/remote_user'
 import { someMatch } from '#lib/utils/base'
 import { log } from '#lib/utils/logs'
 import type { EntityUri } from '#types/entity'
 
-const reconcilerUserAcct = getLocalUserAcct(hardCodedUsers.reconciler._id)
+const reconcilerUserAcct = buildLocalUserAcct(hardCodedUsers.reconciler.anonymizableId)
 
 export default function (authorUri: EntityUri) {
   return getAuthorWorksByDomain(authorUri)

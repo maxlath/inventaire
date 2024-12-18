@@ -1,6 +1,6 @@
 import { createTasksInBulk } from '#controllers/tasks/lib/tasks'
 import { newError } from '#lib/error/error'
-import { getLocalUserAcct } from '#lib/federation/remote_user'
+import { buildLocalUserAcct } from '#lib/federation/remote_user'
 import { federatedMode } from '#server/config'
 import { getByIds } from '#tests/api/utils/tasks'
 import type { EntityUri, EntityType } from '#types/entity'
@@ -37,7 +37,7 @@ const createWorkTaskDoc = async (params: TaskDoc) => {
   const taskDoc: TaskDoc = await createTaskBase(params)
   taskDoc.suggestionUri = params.suggestionUri || 'wd:Q104889737'
   const userId = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-  taskDoc.reporter = getLocalUserAcct(userId)
+  taskDoc.reporter = buildLocalUserAcct(userId)
   const isbn = '978-1-59184-233-0'
   taskDoc.clue = isbn
   return taskDoc

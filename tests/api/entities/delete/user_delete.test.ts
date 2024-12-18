@@ -1,7 +1,7 @@
 import should from 'should'
 import { createHuman, createWork, createWorkWithAuthor, existsOrCreate } from '#fixtures/entities'
 import { createTask } from '#fixtures/tasks'
-import { getLocalUserAcct } from '#lib/federation/remote_user'
+import { buildLocalUserAcct } from '#lib/federation/remote_user'
 import { federatedMode } from '#server/config'
 import { getByUris, deleteByUris } from '#tests/api/utils/entities'
 import { getBySuspectUri } from '#tests/api/utils/tasks'
@@ -70,7 +70,7 @@ describe('entities:delete:as:user', () => {
     if (federatedMode) this.skip()
 
     const { uri } = await createWorkWithAuthor()
-    const firstReporterAcct = getLocalUserAcct('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+    const firstReporterAcct = buildLocalUserAcct('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
     await createTask({
       type: 'delete',
       entitiesType: 'human',
@@ -84,7 +84,7 @@ describe('entities:delete:as:user', () => {
 
     const user = await getUser()
     tasksRes[0].reporters.length.should.equal(2)
-    tasksRes[0].reporters.should.deepEqual([ firstReporterAcct, getLocalUserAcct(user._id) ])
+    tasksRes[0].reporters.should.deepEqual([ firstReporterAcct, buildLocalUserAcct(user.anonymizableId) ])
 
     // should not create another task
     await userDelete(uri)

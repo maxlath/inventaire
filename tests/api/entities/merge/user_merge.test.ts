@@ -1,6 +1,7 @@
 import should from 'should'
 import { createTask } from '#fixtures/tasks'
 import { createUser } from '#fixtures/users'
+import { getLocalUserAcct } from '#lib/federation/remote_user'
 import { federatedMode } from '#server/config'
 import {
   createCollection,
@@ -18,7 +19,6 @@ import {
 } from '#tests/api/fixtures/entities'
 import { getByUris, merge } from '#tests/api/utils/entities'
 import { getBySuspectUri } from '#tests/api/utils/tasks'
-import { getTestUserAcct } from '#tests/api/utils/users'
 import { publicReq, getUser } from '#tests/api/utils/utils'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
 
@@ -116,7 +116,7 @@ describe('entities:merge:as:user', () => {
       const tasks = await getMergeTaskBySuspectUri(human.uri)
       tasks.length.should.aboveOrEqual(1)
       const user = await getUser()
-      const userAcct = await getTestUserAcct(user)
+      const userAcct = await getLocalUserAcct(user)
       const task = tasks[0]
       task.type.should.equal('merge')
       task.reporters.should.deepEqual([ userAcct ])
@@ -140,7 +140,7 @@ describe('entities:merge:as:user', () => {
         createWorkWithAuthor(human3, workLabel3),
       ])
       const reporter = await createUser()
-      const reporterAcct = await getTestUserAcct(reporter)
+      const reporterAcct = await getLocalUserAcct(reporter)
       const task = await createTask({
         type: 'merge',
         entitiesType: 'human',
@@ -154,7 +154,7 @@ describe('entities:merge:as:user', () => {
       tasks2.length.should.equal(1)
 
       const user = await getUser()
-      const userAcct = await getTestUserAcct(user)
+      const userAcct = await getLocalUserAcct(user)
       tasks2[0].reporters.length.should.equal(2)
       tasks2[0].reporters.should.deepEqual([ reporterAcct, userAcct ])
       res.taskId.should.equal(task._id)

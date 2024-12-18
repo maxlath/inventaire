@@ -17,7 +17,7 @@ import { hardCodedUsers } from '#db/couchdb/hard_coded_documents'
 import { addWdEntityToIndexationQueue } from '#db/elasticsearch/wikidata_entities_indexation_queue'
 import { isWdEntityUri } from '#lib/boolean_validations'
 import { cache_ } from '#lib/cache'
-import { getLocalUserAcct } from '#lib/federation/remote_user'
+import { buildLocalUserAcct } from '#lib/federation/remote_user'
 import { emit } from '#lib/radio'
 import { assertString } from '#lib/utils/assert_types'
 import { arrayIncludes, objectEntries } from '#lib/utils/base'
@@ -36,7 +36,7 @@ async function importCircularDependencies () {
 }
 setImmediate(importCircularDependencies)
 
-const hookUserAcct = getLocalUserAcct(hardCodedUsers.hook._id)
+const hookUserAcct = buildLocalUserAcct(hardCodedUsers.hook.anonymizableId)
 
 export async function getWikidataEnrichedEntities (ids: WdEntityId[], { refresh, dry, includeReferences }: EntitiesGetterParams) {
   const [ remoteEntitiesByIds, localEntitiesLayersByIds ] = await Promise.all([

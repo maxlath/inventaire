@@ -1,12 +1,12 @@
 import { flatMap, map, some } from 'lodash-es'
 import mergeEntities from '#controllers/entities/lib/merge_entities'
 import { hardCodedUsers } from '#db/couchdb/hard_coded_documents'
-import { getLocalUserAcct } from '#lib/federation/remote_user'
+import { buildLocalUserAcct } from '#lib/federation/remote_user'
 import { wait } from '#lib/promises'
 import { log } from '#lib/utils/logs'
 import automergeAuthorWorks from './automerge_author_works.js'
 
-const reconcilerUserAcct = getLocalUserAcct(hardCodedUsers.reconciler._id)
+const reconcilerUserAcct = buildLocalUserAcct(hardCodedUsers.reconciler.anonymizableId)
 const longTitleLimit = 12
 
 // Merge if perfect matched of works title and if title is long enough

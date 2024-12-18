@@ -1,7 +1,6 @@
 import { makeActorKeyUrl } from '#controllers/activitypub/lib/get_actor'
 import { signRequest } from '#controllers/activitypub/lib/security'
 import { getSharedKeyPair } from '#controllers/activitypub/lib/shared_key_pair'
-import { getUserAnonymizableId } from '#controllers/user/lib/anonymizable_user'
 import { federatedRequest } from '#lib/federation/federated_requests'
 import { instanceActorName } from '#lib/federation/instance'
 import { remoteUserHeader } from '#lib/federation/remote_user'
@@ -19,7 +18,7 @@ export async function signedFederatedRequest (req: AuthentifiedReq, method: Http
 
 export async function getSignedFederatedRequestHeaders (req: AuthentifiedReq, method: HttpMethod, url: RelativeUrl, body: unknown, extraHeaders?: HttpHeaders) {
   const remoteUrl = `${remoteEntitiesOrigin}${url}` as AbsoluteUrl
-  const userAnonymizableId = await getUserAnonymizableId(req.user)
+  const { anonymizableId: userAnonymizableId } = req.user
   const { privateKey, publicKeyHash } = await getSharedKeyPair()
   return signRequest({
     url: remoteUrl,

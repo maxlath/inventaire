@@ -3,14 +3,14 @@ import { getEntityById, getWorkEditions } from '#controllers/entities/lib/entiti
 import { getFirstClaimValue } from '#controllers/entities/lib/inv_claims_utils'
 import { hardCodedUsers } from '#db/couchdb/hard_coded_documents'
 import { isNonEmptyString } from '#lib/boolean_validations'
-import { getLocalUserAcct } from '#lib/federation/remote_user'
+import { buildLocalUserAcct } from '#lib/federation/remote_user'
 import { warn, info, LogError } from '#lib/utils/logs'
 import { getOriginalLang } from '#lib/wikidata/get_original_lang'
 import type { InvEntity } from '#types/entity'
 import { updateLabel } from './update_label.js'
 import type { WikimediaLanguageCode } from 'wikibase-sdk'
 
-const hookUserAcct = getLocalUserAcct(hardCodedUsers.hook._id)
+const hookUserAcct = buildLocalUserAcct(hardCodedUsers.hook.anonymizableId)
 
 // TODO: also check for edition subtitle
 

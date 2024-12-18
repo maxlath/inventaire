@@ -15,8 +15,10 @@ export const specialUserDocBase = {
 } as const
 
 function buildSpecialUserDoc (username, idLastCharacters) {
+  const id = `00000000000000000000000000000${idLastCharacters}`
   const specialUser: Omit<SpecialUser, '_rev' | 'stableUsername' | 'roles'> = {
-    _id: `00000000000000000000000000000${idLastCharacters}`,
+    _id: id,
+    anonymizableId: id,
     username,
     ...specialUserDocBase,
   }

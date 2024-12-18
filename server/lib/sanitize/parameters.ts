@@ -1,7 +1,7 @@
 import { isArray, isNumber, isPlainObject, isString, uniq } from 'lodash-es'
 import { isNonEmptyArray, isLocalActivityPubActorUrl, isLang, isCollection, isPositiveIntegerString, isStrictlyPositiveInteger, isNonEmptyString, isColorHexCode, isPatchId, isPropertyUri, isUserAcct, isCouchUuid, isUserId } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
-import { getLocalUserAcct } from '#lib/federation/remote_user'
+import { buildLocalUserAcct } from '#lib/federation/remote_user'
 import { truncateLatLng } from '#lib/geo'
 import { isValidIsbn } from '#lib/isbn/isbn'
 import { normalizeString, parseBooleanString } from '#lib/utils/base'
@@ -193,7 +193,7 @@ const langs = {
 
 const user = {
   format: (value, name, config) => {
-    if (config.type === 'acct' && isUserId(value)) return getLocalUserAcct(value)
+    if (config.type === 'acct' && isUserId(value)) return buildLocalUserAcct(value)
     else return value
   },
   validate: (value, name, config) => {

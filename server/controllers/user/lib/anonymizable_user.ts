@@ -1,23 +1,11 @@
 import { get, pick } from 'lodash-es'
 import { dbFactory } from '#db/couchdb/base'
-import { getRandomUuid } from '#lib/crypto'
 import type { AnonymizableUserId, User, UserId } from '#types/user'
-import type { SetRequired } from 'type-fest'
 
 const db = await dbFactory('users')
 
-export async function getUserAnonymizableId (user: User) {
-  const refreshedUser = await db.get<User>(user._id)
-  if ('anonymizableId' in refreshedUser) return refreshedUser.anonymizableId
-  const anonymizableId = getRandomUuid()
-  refreshedUser.anonymizableId = anonymizableId
-  await db.put(refreshedUser)
-  return anonymizableId
-}
-
-export type UserWithAnonymizedId = SetRequired<User, 'anonymizableId'>
 export async function getUsersByAnonymizedIds (anonymizableIds: AnonymizableUserId[]) {
-  return db.getDocsByViewKeys<UserWithAnonymizedId>('byAnonymizableId', anonymizableIds)
+  return db.getDocsByViewKeys<User>('byAnonymizableId', anonymizableIds)
 }
 
 const deanonymizedAttributes = [ 'username', 'bio', 'picture', 'created' ] as const
@@ -41,7 +29,7 @@ export interface DeanonymizedUser extends Pick<User, DeanonymizedAttribute> {
   }
 }
 
-export function anonymizeUser (user: UserWithAnonymizedId) {
+export function anonymizeUser (user: User) {
   const anonymizeSetting = get(user, 'settings.contributions.anonymize', true)
   if (anonymizeSetting) {
     return buildAnonymizedUser(user.anonymizableId)

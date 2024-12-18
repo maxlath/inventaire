@@ -5,7 +5,7 @@ import { putInvEntityUpdate } from '#controllers/entities/lib/entities'
 import { prefixifyIsbn } from '#controllers/entities/lib/prefix'
 import { generateIsbn13, createHuman, createWorkWithAuthor, randomLabel, createEdition } from '#fixtures/entities'
 import { newError } from '#lib/error/error'
-import { getLocalUserAcct } from '#lib/federation/remote_user'
+import { buildLocalUserAcct } from '#lib/federation/remote_user'
 import { federatedMode } from '#server/config'
 import { getByUris, findOrIndexEntities, deleteByUris } from '#tests/api/utils/entities'
 import { checkEntities } from '#tests/api/utils/tasks'
@@ -142,6 +142,6 @@ async function forceUpdateEntityClaims (entity, claims, userId = 'aaaaaaaaaaaaaa
   await putInvEntityUpdate({
     currentDoc: entity,
     updatedDoc,
-    userAcct: getLocalUserAcct(userId),
+    userAcct: buildLocalUserAcct(userId),
   })
 }

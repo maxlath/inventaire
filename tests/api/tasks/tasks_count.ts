@@ -1,6 +1,6 @@
 import 'should'
 import { createTask } from '#fixtures/tasks'
-import { getLocalUserAcct } from '#lib/federation/remote_user'
+import { buildLocalUserAcct } from '#lib/federation/remote_user'
 import { federatedMode } from '#server/config'
 import { tasksCount } from '#tests/api/utils/tasks'
 
@@ -11,7 +11,7 @@ describe('tasks:count', () => {
     await createTask({
       type: 'deduplicate',
       entitiesType: 'human',
-      reporter: getLocalUserAcct('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
+      reporter: buildLocalUserAcct('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
     })
     const count = await tasksCount()
     count.deduplicate.human.should.be.aboveOrEqual(1)

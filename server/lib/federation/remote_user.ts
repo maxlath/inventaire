@@ -10,7 +10,7 @@ import { buildUrl } from '#lib/utils/url'
 import { publicHost } from '#server/config'
 import type { Host } from '#types/common'
 import type { AuthentifiedReq, MaybeSignedReq, RemoteUserAuthentifiedReq, UserAccountUri } from '#types/server'
-import type { SpecialUser, User, UserId, UserOAuth, UserRole } from '#types/user'
+import type { AnonymizableUserId, SpecialUser, User, UserId, UserOAuth, UserRole } from '#types/user'
 import type { SetOptional } from 'type-fest'
 
 export interface BareRemoteUser {
@@ -59,8 +59,13 @@ export function isRemoteUser (user: User | SpecialUser | BareRemoteUser): user i
   return 'acct' in user
 }
 
-export function getLocalUserAcct (userId: UserId) {
-  return `${userId}@${publicHost}` as UserAccountUri
+export function getLocalUserAcct (user: User | SpecialUser) {
+  const { anonymizableId } = user
+  return buildLocalUserAcct(anonymizableId)
+}
+
+export function buildLocalUserAcct (anonymizableId: AnonymizableUserId) {
+  return `${anonymizableId}@${publicHost}` as UserAccountUri
 }
 
 export function getLocalUserIdFromAcct (userAcct: UserAccountUri): UserId | undefined {
@@ -72,7 +77,7 @@ export function getUserAcct (user: User | SpecialUser | BareRemoteUser) {
   if ('acct' in user) {
     return user.acct
   } else {
-    return getLocalUserAcct(user._id)
+    return buildLocalUserAcct(user.anonymizableId)
   }
 }
 

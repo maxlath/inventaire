@@ -1,12 +1,8 @@
-import { getUserAnonymizableId } from '#controllers/user/lib/anonymizable_user'
 import type { UserWithCookie } from '#fixtures/users'
 import type { ContextualizedError } from '#lib/error/format_error'
-import { getLocalUserAcct } from '#lib/federation/remote_user'
 import { assertObject, assertString } from '#lib/utils/assert_types'
-import { federatedMode } from '#server/config'
 import { customAuthReq } from '#tests/api/utils/request'
 import type { RelativeUrl } from '#types/common'
-import type { User } from '#types/user'
 import { getUser } from './utils.js'
 
 export async function getUsersNearPosition (position, user) {
@@ -32,13 +28,4 @@ const getBboxFromPosition = ([ lat, lng ]) => {
 
 export function catchSpamRejection (err: ContextualizedError) {
   if (err.statusCode !== 403) throw err
-}
-
-export async function getTestUserAcct (user: User) {
-  if (federatedMode) {
-    const anonymizableUserId = await getUserAnonymizableId(user)
-    return getLocalUserAcct(anonymizableUserId)
-  } else {
-    return getLocalUserAcct(user._id)
-  }
 }

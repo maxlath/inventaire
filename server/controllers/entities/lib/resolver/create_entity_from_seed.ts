@@ -3,7 +3,6 @@ import { findClaimByValue, getFirstClaimValue } from '#controllers/entities/lib/
 import { convertAndCleanupImageUrl } from '#controllers/images/lib/convert_and_cleanup_image_url'
 import { getImageByIsbn } from '#data/dataseed/dataseed'
 import { isNonEmptyString } from '#lib/boolean_validations'
-import { getLocalUserAcct } from '#lib/federation/remote_user'
 import { toIsbn13h } from '#lib/isbn/isbn'
 import { arrayIncludes } from '#lib/utils/base'
 import { logError, warn } from '#lib/utils/logs'
@@ -95,7 +94,7 @@ async function createEntityFromSeed ({ seed, userAcct, batchId }: { seed: Entity
     entity = await createInvEntity({
       labels: seed.labels,
       claims: seed.claims,
-      userAcct: getLocalUserAcct(userAcct),
+      userAcct,
       batchId,
     })
   } catch (err) {

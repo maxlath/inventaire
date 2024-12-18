@@ -1,5 +1,5 @@
 import { get, omit, pick, without } from 'lodash-es'
-import { hashPassword } from '#lib/crypto'
+import { getRandomUuid, hashPassword } from '#lib/crypto'
 import { newError } from '#lib/error/error'
 import { newInvalidError } from '#lib/error/pre_filled'
 import type { UserWithAcct } from '#lib/federation/remote_user'
@@ -38,6 +38,10 @@ export async function createUserDoc (username: string, email: Email, language: s
     created: Date.now(),
     language,
     settings: {},
+    // A secondary user id, that will expose different user info depending on the value of settings.contributions.anonymize
+    // - if true: no user info is sent, the user account uri `${anonymizableId}@${host}` is used as the account pseudo
+    // - if false: basic user info (username, picture, created, etc) become publicly accessible from that user account uri
+    anonymizableId: getRandomUuid(),
     // A token that, when combined with the right user id,
     // gives access to all the resources the user can read
     // Use case:

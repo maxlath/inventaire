@@ -1,10 +1,10 @@
 import should from 'should'
 import { createHuman, getSomeRemoteEditionWithALocalImage } from '#fixtures/entities'
 import { createUser } from '#fixtures/users'
+import { getLocalUserAcct } from '#lib/federation/remote_user'
 import { federatedMode } from '#server/config'
 import { deleteByUris } from '#tests/api/utils/entities'
 import { customAuthReq } from '#tests/api/utils/request'
-import { getTestUserAcct } from '#tests/api/utils/users'
 import {
   adminReq,
   dataadminReq,
@@ -89,7 +89,7 @@ describe('entities:history', () => {
     })
     const { patches } = await publicReq('get', `${endpoint}&id=${human._id}`)
     should(patches[0].user).not.be.ok()
-    const userAcct = await getTestUserAcct(user)
+    const userAcct = await getLocalUserAcct(user)
     patches[1].user.should.equal(userAcct)
   })
 
@@ -105,7 +105,7 @@ describe('entities:history', () => {
     })
     const { patches } = await customAuthReq(user, 'get', `${endpoint}&id=${human._id}`)
     should(patches[0].user).not.be.ok()
-    const userAcct = await getTestUserAcct(user)
+    const userAcct = await getLocalUserAcct(user)
     patches[1].user.should.equal(userAcct)
   })
 

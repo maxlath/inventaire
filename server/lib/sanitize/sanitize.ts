@@ -48,7 +48,7 @@ export function sanitize (req: Req | AuthentifiedReq | RemoteUserAuthentifiedReq
 
   if ('user' in req) {
     input.reqUserId = req.user._id
-    input.reqUserAcct = getLocalUserAcct(req.user._id)
+    input.reqUserAcct = getLocalUserAcct(req.user)
   } else if ('remoteUser' in req) {
     input.reqUserAcct = req.remoteUser.acct
   }

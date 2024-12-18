@@ -4,7 +4,7 @@ import { resolveUpdateAndCreate } from '#controllers/entities/lib/resolver/resol
 import type { ResolverParams } from '#controllers/entities/resolve'
 import { getAuthoritiesAggregatedEntry } from '#data/dataseed/get_authorities_aggregated_entry'
 import { hardCodedUsers } from '#db/couchdb/hard_coded_documents'
-import { getLocalUserAcct } from '#lib/federation/remote_user'
+import { buildLocalUserAcct } from '#lib/federation/remote_user'
 import { parseIsbn } from '#lib/isbn/parse'
 import temporarilyMemoize from '#lib/temporarily_memoize'
 import { logError } from '#lib/utils/logs'
@@ -12,7 +12,7 @@ import config from '#server/config'
 import type { ResolverEntry } from '#types/resolver'
 import { getSeedsByIsbns, type DataSeed } from './dataseed.js'
 
-const seedUserAcct = getLocalUserAcct(hardCodedUsers.seed._id)
+const seedUserAcct = buildLocalUserAcct(hardCodedUsers.seed.anonymizableId)
 
 const { enabled: dataseedEnabled } = config.dataseed
 

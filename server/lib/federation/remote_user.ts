@@ -64,8 +64,12 @@ export function getLocalUserAcct (user: User | SpecialUser) {
   return buildLocalUserAcct(anonymizableId)
 }
 
+export function buildUserAcct (anonymizableId: AnonymizableUserId, host: Host) {
+  return `${anonymizableId}@${host}` as UserAccountUri
+}
+
 export function buildLocalUserAcct (anonymizableId: AnonymizableUserId) {
-  return `${anonymizableId}@${publicHost}` as UserAccountUri
+  return buildUserAcct(anonymizableId, publicHost)
 }
 
 export function getLocalUserIdFromAcct (userAcct: UserAccountUri): UserId | undefined {
@@ -134,10 +138,13 @@ async function getRemoteUsersByIds (host: Host, usersIds: UserId[]) {
 }
 
 function setUserAcctAndRoles (user: SetOptional<LocalUserWithAcct | RemoteUserWithAcct, 'acct' | 'roles'>, host: Host) {
-  user.acct = `${user._id}@${host}`
+  user.acct = buildUserAcct(user.anonymizableId, host)
   user.roles ??= []
-  if (host === publicHost) return user as LocalUserWithAcct
-  else return user as RemoteUserWithAcct
+  if (host === publicHost) {
+    return user as LocalUserWithAcct
+  } else {
+    return user as RemoteUserWithAcct
+  }
 }
 
 export async function getUserByAcct (userAcct: UserAccountUri) {

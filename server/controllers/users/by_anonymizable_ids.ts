@@ -9,7 +9,7 @@ const sanitization = {
 async function controller ({ ids }: SanitizedParameters) {
   const users = await getUsersByAnonymizedIds(ids)
   const anonymizedUsers = users.map(anonymizeUser)
-  return { users: keyBy(anonymizedUsers, '_id') }
+  return { users: keyBy(anonymizedUsers, 'anonymizableId') }
 }
 
 export default { sanitization, controller }

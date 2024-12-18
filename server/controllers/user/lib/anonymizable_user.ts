@@ -1,6 +1,6 @@
 import { get, pick } from 'lodash-es'
 import { dbFactory } from '#db/couchdb/base'
-import type { AnonymizableUserId, User, UserId } from '#types/user'
+import type { AnonymizableUserId, User } from '#types/user'
 
 const db = await dbFactory('users')
 
@@ -12,7 +12,7 @@ const deanonymizedAttributes = [ 'username', 'bio', 'picture', 'created' ] as co
 type DeanonymizedAttribute = typeof deanonymizedAttributes[number]
 
 export interface AnonymizedUser {
-  _id: AnonymizableUserId
+  anonymizableId: AnonymizableUserId
   settings: {
     contributions: {
       anonymize: true
@@ -21,7 +21,7 @@ export interface AnonymizedUser {
 }
 
 export interface DeanonymizedUser extends Pick<User, DeanonymizedAttribute> {
-  _id: AnonymizableUserId
+  anonymizableId: AnonymizableUserId
   settings: {
     contributions: {
       anonymize: false
@@ -35,7 +35,7 @@ export function anonymizeUser (user: User) {
     return buildAnonymizedUser(user.anonymizableId)
   } else {
     return {
-      _id: user.anonymizableId,
+      anonymizableId: user.anonymizableId,
       settings: {
         contributions: {
           anonymize: false,
@@ -46,9 +46,9 @@ export function anonymizeUser (user: User) {
   }
 }
 
-export function buildAnonymizedUser (anonymizableId: UserId) {
+export function buildAnonymizedUser (anonymizableId: AnonymizableUserId) {
   return {
-    _id: anonymizableId,
+    anonymizableId,
     settings: {
       contributions: {
         anonymize: true,

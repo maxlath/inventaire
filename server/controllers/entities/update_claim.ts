@@ -4,7 +4,7 @@ import { checkSpamContent } from '#controllers/user/lib/spam'
 import { isInvEntityId, isNonEmptyString } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
 import { newMissingBodyError } from '#lib/error/pre_filled'
-import { parseReqLocalOrRemoteUser } from '#lib/federation/remote_user'
+import { getMaybeRemoteReqUser, parseReqLocalOrRemoteUser } from '#lib/federation/remote_user'
 import { log } from '#lib/utils/logs'
 import type { SanitizedParameters } from '#types/controllers_input_sanitization_parameters'
 import type { IsbnEntityUri } from '#types/entity'
@@ -35,7 +35,10 @@ async function controller (params: SanitizedParameters, req: AuthentifiedReq | R
   oldValue = parseEmptyValue(oldValue)
   newValue = parseEmptyValue(newValue)
 
-  if (isNonEmptyString(newValue)) await checkSpamContent(req.user, newValue)
+  if (isNonEmptyString(newValue)) {
+    const user = getMaybeRemoteReqUser(req)
+    await checkSpamContent(user, newValue)
+  }
 
   ;[ prefix, id ] = uri.split(':')
 

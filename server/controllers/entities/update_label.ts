@@ -24,13 +24,12 @@ async function controller (params: SanitizedParameters, req: AuthentifiedReq | R
 
   if (value === '') throw newError('invalid value', 400, params)
 
-  await checkSpamContent(req.user, value)
+  const user = getMaybeRemoteReqUser(req)
+  await checkSpamContent(user, value)
 
   if (updater == null) {
     throw newError(`unsupported uri prefix: ${prefix}`, 400, params)
   }
-
-  const user = getMaybeRemoteReqUser(req)
 
   await updater(user, id, lang, value)
   return { ok: true }

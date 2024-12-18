@@ -1,6 +1,5 @@
 import { verifySignature } from '#controllers/activitypub/lib/security'
-import { buildAnonymizedUser, type AnonymizedUser, type DeanonymizedUser } from '#controllers/user/lib/anonymizable_user'
-import { getUsersByIds } from '#controllers/user/lib/user'
+import { buildAnonymizedUser, getUsersByAnonymizedIds, type AnonymizedUser, type DeanonymizedUser } from '#controllers/user/lib/anonymizable_user'
 import { isUserId } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
 import { requests_ } from '#lib/requests'
@@ -10,11 +9,11 @@ import { buildUrl } from '#lib/utils/url'
 import { publicHost } from '#server/config'
 import type { Host } from '#types/common'
 import type { AuthentifiedReq, MaybeSignedReq, RemoteUserAuthentifiedReq, UserAccountUri } from '#types/server'
-import type { AnonymizableUserId, SpecialUser, User, UserId, UserOAuth, UserRole } from '#types/user'
+import type { AnonymizableUserId, SpecialUser, User, UserOAuth, UserRole } from '#types/user'
 import type { SetOptional } from 'type-fest'
 
 export interface BareRemoteUser {
-  remoteUserId: UserId
+  remoteUserId: AnonymizableUserId
   host: Host
   acct: UserAccountUri
   roles: UserRole[]
@@ -72,11 +71,6 @@ export function buildLocalUserAcct (anonymizableId: AnonymizableUserId) {
   return buildUserAcct(anonymizableId, publicHost)
 }
 
-export function getLocalUserIdFromAcct (userAcct: UserAccountUri): UserId | undefined {
-  const [ userId, host ] = userAcct.split('@')
-  if (host === publicHost) return userId
-}
-
 export function getUserAcct (user: User | SpecialUser | BareRemoteUser) {
   if ('acct' in user) {
     return user.acct
@@ -101,7 +95,7 @@ export async function getUsersByAccts (usersAccts: UserAccountUri[]) {
 }
 
 function getUsersIdsByHostsFromUsersAccts (usersAccts: UserAccountUri[]) {
-  const usersIdsByHosts: Record<Host, UserId[]> = {}
+  const usersIdsByHosts: Record<Host, AnonymizableUserId[]> = {}
   for (const userAcct of usersAccts) {
     const [ userId, host ] = userAcct.split('@')
     usersIdsByHosts[host] ??= []
@@ -110,28 +104,28 @@ function getUsersIdsByHostsFromUsersAccts (usersAccts: UserAccountUri[]) {
   return usersIdsByHosts
 }
 
-async function getHostUsersByIds ([ host, usersIds ]: [ Host, UserId[] ]) {
+async function getHostUsersByIds ([ host, anonymizableUsersIds ]: [ Host, AnonymizableUserId[] ]) {
   let users: User[]
   if (host === publicHost) {
-    users = await getUsersByIds(usersIds)
+    users = await getUsersByAnonymizedIds(anonymizableUsersIds)
     return users.map(user => setUserAcctAndRoles(user, host))
   } else {
-    return getRemoteUsersByIds(host, usersIds)
+    return getRemoteUsersByAnonymizableIds(host, anonymizableUsersIds)
   }
 }
 
-async function getRemoteUsersByIds (host: Host, usersIds: UserId[]) {
+async function getRemoteUsersByAnonymizableIds (host: Host, anonymizableUsersIds: AnonymizableUserId[]) {
   try {
     const protocol = host.startsWith('localhost') ? 'http' : 'https'
-    const path = buildUrl(`${protocol}://${host}/api/users`, { action: 'by-anonymizable-ids', ids: usersIds.join('|') })
+    const path = buildUrl(`${protocol}://${host}/api/users`, { action: 'by-anonymizable-ids', ids: anonymizableUsersIds.join('|') })
     const { users } = await requests_.get(path, { timeout: 10000 })
     return Object.values(users).map((user: RemoteUser) => setUserAcctAndRoles(user, host))
   } catch (err) {
     err.context ??= {}
-    Object.assign(err.context, { host, usersIds })
+    Object.assign(err.context, { host, anonymizableUsersIds })
     logError(err, 'failed to get remote users')
-    return usersIds.map(userId => {
-      const userPlaceholder = buildAnonymizedUser(userId)
+    return anonymizableUsersIds.map(anonymizableUsersId => {
+      const userPlaceholder = buildAnonymizedUser(anonymizableUsersId)
       return setUserAcctAndRoles(userPlaceholder, host)
     })
   }
@@ -149,7 +143,9 @@ function setUserAcctAndRoles (user: SetOptional<LocalUserWithAcct | RemoteUserWi
 
 export async function getUserByAcct (userAcct: UserAccountUri) {
   const users = await getUsersByAccts([ userAcct ])
-  return users[0]
+  const user = users[0]
+  if (!user) throw newError('user not found', 500, { userAcct })
+  return user
 }
 
 export function parseReqLocalOrRemoteUser (req: AuthentifiedReq | RemoteUserAuthentifiedReq) {

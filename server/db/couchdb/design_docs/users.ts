@@ -60,7 +60,7 @@ export const views: Views<DocInUserDb> = {
   },
   byAnonymizableId: {
     map: doc => {
-      if (doc.type === 'user') {
+      if (doc.type === 'user' || 'special' in doc) {
         if ('anonymizableId' in doc) emit(doc.anonymizableId, null)
       }
     },

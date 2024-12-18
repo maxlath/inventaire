@@ -1,9 +1,12 @@
 import { pick } from 'lodash-es'
 import { deanonymizedAttributes } from '#controllers/user/lib/anonymizable_user'
+import { hardCodedUsers } from '#db/couchdb/hard_coded_documents'
 import { createUser } from '#fixtures/users'
-import { buildLocalUserAcct } from '#lib/federation/remote_user'
+import { buildLocalUserAcct, getLocalUserAcct } from '#lib/federation/remote_user'
 import { adminReq, getDeanonymizedUser, publicReq } from '#tests/api/utils/utils'
 import { shouldNotBeCalled, rethrowShouldNotBeCalledErrors } from '#tests/unit/utils/utils'
+
+const { seed: seedUser } = hardCodedUsers
 
 const endpoint = '/api/users?action=by-accts'
 
@@ -66,5 +69,13 @@ describe('users:by-accts', () => {
       },
       ...pick(user, deanonymizedAttributes),
     })
+  })
+
+  it('should get a special user flag', async () => {
+    const acct = getLocalUserAcct(seedUser)
+    const res = await publicReq('get', `${endpoint}&accts=${acct}`)
+    const foundUser = res.users[acct]
+    foundUser.acct.should.equal(acct)
+    foundUser.special.should.be.true()
   })
 })

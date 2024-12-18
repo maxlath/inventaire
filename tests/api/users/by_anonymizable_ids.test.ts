@@ -1,7 +1,10 @@
 import should from 'should'
+import { hardCodedUsers } from '#db/couchdb/hard_coded_documents'
 import { createUser } from '#fixtures/users'
 import { getDeanonymizedUser, publicReq } from '#tests/api/utils/utils'
 import { shouldNotBeCalled, rethrowShouldNotBeCalledErrors } from '#tests/unit/utils/utils'
+
+const { seed: seedUser } = hardCodedUsers
 
 const endpoint = '/api/users?action=by-anonymizable-ids'
 
@@ -44,5 +47,13 @@ describe('users:by-anonymizable-ids', () => {
         anonymize: false,
       },
     })
+  })
+
+  it('should get a special user flag', async () => {
+    const { anonymizableId } = seedUser
+    const res = await publicReq('get', `${endpoint}&ids=${anonymizableId}`)
+    const foundUser = res.users[anonymizableId]
+    foundUser.anonymizableId.should.equal(anonymizableId)
+    foundUser.special.should.be.true()
   })
 })

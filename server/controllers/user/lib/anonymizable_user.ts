@@ -43,6 +43,7 @@ export function anonymizeUser (user: User | RemoteUserWithAcct, options: Anonymi
   } else {
     return {
       anonymizableId: user.anonymizableId,
+      special: 'special' in user ? user.special : undefined,
       settings: {
         contributions: {
           anonymize: anonymizeSetting,
@@ -67,4 +68,5 @@ export function buildAnonymizedUser (anonymizableId: AnonymizableUserId) {
 export interface InstanceAgnosticContributor extends Pick<User, 'settings'>, Partial<Pick<User, DeanonymizedAttribute>> {
   acct: UserAccountUri
   roles: UserRole[]
+  special?: boolean
 }

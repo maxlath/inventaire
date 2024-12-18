@@ -57,7 +57,7 @@ export function isRemoteUser (user: User | SpecialUser | BareRemoteUser): user i
   return 'acct' in user
 }
 
-export function getLocalUserAcct (user: User | SpecialUser) {
+export function getLocalUserAcct (user: { anonymizableId: AnonymizableUserId }) {
   const { anonymizableId } = user
   return buildLocalUserAcct(anonymizableId)
 }

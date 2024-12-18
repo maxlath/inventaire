@@ -20,6 +20,7 @@ import type { VisibilityKey } from '#types/visibility'
 // Match the keys in sanitizationParameters from server/lib/sanitize/parameters.ts
 interface WellknownSanitizedParameters {
   '@context': Context[]
+  accts: UserAccountUri[]
   actor: string
   attribute: string
   attributes: string[]

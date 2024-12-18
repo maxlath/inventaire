@@ -1,4 +1,4 @@
-import { map, uniq } from 'lodash-es'
+import { map, property, uniq } from 'lodash-es'
 import { getUsersByAccts, type UserWithAcct } from '#lib/federation/remote_user'
 import { userShouldBeAnonymized } from '#models/user'
 import type { Patch } from '#types/patch'
@@ -21,12 +21,9 @@ export async function anonymizePatches ({ patches, reqUserAcct }: AnonymizePatch
 }
 
 function getDeanonymizedUsersAccts (users: UserWithAcct[]) {
-  const deanonymizedUsersAccts = []
-  for (const user of users) {
-    if ('settings' in user) {
-      if (!userShouldBeAnonymized(user)) deanonymizedUsersAccts.push(user.acct)
-    }
-  }
+  const deanonymizedUsersAccts = users
+    .filter(user => !userShouldBeAnonymized(user))
+    .map(property('acct'))
   return new Set(deanonymizedUsersAccts)
 }
 

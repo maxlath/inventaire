@@ -1,5 +1,6 @@
 import { get, pick } from 'lodash-es'
 import { dbFactory } from '#db/couchdb/base'
+import type { RemoteUserWithAcct } from '#lib/federation/remote_user'
 import type { AnonymizableUserId, User } from '#types/user'
 
 const db = await dbFactory('users')
@@ -8,7 +9,7 @@ export async function getUsersByAnonymizedIds (anonymizableIds: AnonymizableUser
   return db.getDocsByViewKeys<User>('byAnonymizableId', anonymizableIds)
 }
 
-const deanonymizedAttributes = [ 'username', 'bio', 'picture', 'created' ] as const
+export const deanonymizedAttributes = [ 'username', 'bio', 'picture', 'created' ] as const
 type DeanonymizedAttribute = typeof deanonymizedAttributes[number]
 
 export interface AnonymizedUser {
@@ -29,16 +30,21 @@ export interface DeanonymizedUser extends Pick<User, DeanonymizedAttribute> {
   }
 }
 
-export function anonymizeUser (user: User) {
+export interface AnonymizeUserOptions {
+  reqUserHasAdminAccess?: boolean
+}
+
+export function anonymizeUser (user: User | RemoteUserWithAcct, options: AnonymizeUserOptions = {}) {
+  const { reqUserHasAdminAccess } = options
   const anonymizeSetting = get(user, 'settings.contributions.anonymize', true)
-  if (anonymizeSetting) {
+  if (anonymizeSetting && !reqUserHasAdminAccess) {
     return buildAnonymizedUser(user.anonymizableId)
   } else {
     return {
       anonymizableId: user.anonymizableId,
       settings: {
         contributions: {
-          anonymize: false,
+          anonymize: anonymizeSetting,
         },
       },
       ...pick(user, deanonymizedAttributes),

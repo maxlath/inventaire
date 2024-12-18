@@ -1,3 +1,4 @@
+import byAccts from '#controllers/users/by_accts'
 import byCreationDate from '#controllers/users/by_creation_date'
 import { actionsControllersFactory } from '#lib/actions_controllers'
 import byAnonymizableIds from './by_anonymizable_ids.js'
@@ -11,6 +12,7 @@ export default {
   get: actionsControllersFactory({
     public: {
       'by-ids': byIds,
+      'by-accts': byAccts,
       'by-anonymizable-ids': byAnonymizableIds,
       'by-usernames': byUsernames,
       search: searchByText,

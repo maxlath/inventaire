@@ -255,6 +255,10 @@ export const genericParameters = {
 
 export const sanitizationParameters = {
   '@context': allowlistedStrings,
+  accts: {
+    format: arrayOrPipedString,
+    validate: arrayOfAType(isUserAcct),
+  },
   actor: nonEmptyString,
   attribute: nonEmptyString,
   attributes: allowlistedStrings,

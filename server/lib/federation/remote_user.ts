@@ -1,5 +1,5 @@
 import { verifySignature } from '#controllers/activitypub/lib/security'
-import { buildAnonymizedUser, getUsersByAnonymizedIds, type AnonymizedUser, type DeanonymizedUser } from '#controllers/user/lib/anonymizable_user'
+import { anonymizeUser, buildAnonymizedUser, getUsersByAnonymizedIds, type AnonymizedUser, type AnonymizeUserOptions, type DeanonymizedUser } from '#controllers/user/lib/anonymizable_user'
 import { isUserId } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
 import { requests_ } from '#lib/requests'
@@ -13,7 +13,7 @@ import type { AnonymizableUserId, SpecialUser, User, UserOAuth, UserRole } from 
 import type { SetOptional } from 'type-fest'
 
 export interface BareRemoteUser {
-  remoteUserId: AnonymizableUserId
+  anonymizableId: AnonymizableUserId
   host: Host
   acct: UserAccountUri
   roles: UserRole[]
@@ -39,17 +39,17 @@ export const remoteUserHeader = 'x-remote-user'
 export async function geRemoteUserFromSignedReqHeader (req: MaybeSignedReq) {
   await verifySignature(req)
   const { host } = req.signed
-  const remoteUserId = req.headers[remoteUserHeader]
-  if (!remoteUserId) {
+  const anonymizableId = req.headers[remoteUserHeader]
+  if (!anonymizableId) {
     throw newError(`could not authentify remote user: missing ${remoteUserHeader} header`, 400)
   }
-  if (!isUserId(remoteUserId)) {
-    throw newError(`could not authentify remote user: invalid ${remoteUserHeader} header`, 400, { remoteUserId })
+  if (!isUserId(anonymizableId)) {
+    throw newError(`could not authentify remote user: invalid ${remoteUserHeader} header`, 400, { anonymizableId })
   }
   return {
-    remoteUserId,
+    anonymizableId,
     host,
-    acct: `${remoteUserId}@${host}`,
+    acct: buildUserAcct(anonymizableId, host),
     roles: [],
   } as BareRemoteUser
 }
@@ -88,9 +88,10 @@ export function getReqUserAcct (req: AuthentifiedReq | RemoteUserAuthentifiedReq
   return getUserAcct(user)
 }
 
-export async function getUsersByAccts (usersAccts: UserAccountUri[]) {
+export async function getUsersByAccts (usersAccts: UserAccountUri[], options: AnonymizeUserOptions = {}) {
   const usersIdsByHosts = getUsersIdsByHostsFromUsersAccts(usersAccts)
-  const hostsUsers = await Promise.all(objectEntries(usersIdsByHosts).map(getHostUsersByIds))
+  const hostsUsers = await Promise.all(objectEntries(usersIdsByHosts)
+    .map(([ host, anonymizableUsersIds ]) => getHostUsersByIds(host, anonymizableUsersIds, options)))
   return hostsUsers.flat()
 }
 
@@ -104,11 +105,11 @@ function getUsersIdsByHostsFromUsersAccts (usersAccts: UserAccountUri[]) {
   return usersIdsByHosts
 }
 
-async function getHostUsersByIds ([ host, anonymizableUsersIds ]: [ Host, AnonymizableUserId[] ]) {
+async function getHostUsersByIds (host: Host, anonymizableUsersIds: AnonymizableUserId[], options: AnonymizeUserOptions) {
   let users: User[]
   if (host === publicHost) {
     users = await getUsersByAnonymizedIds(anonymizableUsersIds)
-    return users.map(user => setUserAcctAndRoles(user, host))
+    return users.map(user => setUserAcctAndRoles(anonymizeUser(user, options), host))
   } else {
     return getRemoteUsersByAnonymizableIds(host, anonymizableUsersIds)
   }

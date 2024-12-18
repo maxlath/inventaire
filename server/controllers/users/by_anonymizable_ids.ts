@@ -6,9 +6,11 @@ const sanitization = {
   ids: {},
 }
 
+// This endpoint is primarily used for sharing user info between instances
+// It plays the role of a webfinger with multi-user per request support
 async function controller ({ ids }: SanitizedParameters) {
   const users = await getUsersByAnonymizedIds(ids)
-  const anonymizedUsers = users.map(anonymizeUser)
+  const anonymizedUsers = users.map(user => anonymizeUser(user))
   return { users: keyBy(anonymizedUsers, 'anonymizableId') }
 }
 

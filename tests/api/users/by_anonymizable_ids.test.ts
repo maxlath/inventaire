@@ -1,6 +1,6 @@
 import should from 'should'
 import { hardCodedUsers } from '#db/couchdb/hard_coded_documents'
-import { createUser } from '#fixtures/users'
+import { createUser, getDeletedUser } from '#fixtures/users'
 import { getDeanonymizedUser, publicReq } from '#tests/api/utils/utils'
 import { shouldNotBeCalled, rethrowShouldNotBeCalledErrors } from '#tests/unit/utils/utils'
 
@@ -21,11 +21,11 @@ describe('users:by-anonymizable-ids', () => {
 
   it('should get an anonymized user without their public data', async () => {
     const user = await createUser()
-    const { anonymizableId: userAnonymizableId } = user
-    const res = await publicReq('get', `${endpoint}&ids=${userAnonymizableId}`)
-    const foundUser = res.users[userAnonymizableId]
+    const { anonymizableId } = user
+    const res = await publicReq('get', `${endpoint}&ids=${anonymizableId}`)
+    const foundUser = res.users[anonymizableId]
     foundUser.should.deepEqual({
-      anonymizableId: userAnonymizableId,
+      anonymizableId,
       settings: {
         contributions: {
           anonymize: true,
@@ -36,10 +36,10 @@ describe('users:by-anonymizable-ids', () => {
 
   it('should get a deanonymized user public data', async () => {
     const user = await getDeanonymizedUser()
-    const { anonymizableId: userAnonymizableId } = user
-    const res = await publicReq('get', `${endpoint}&ids=${userAnonymizableId}`)
-    const foundUser = res.users[userAnonymizableId]
-    foundUser.anonymizableId.should.equal(userAnonymizableId)
+    const { anonymizableId } = user
+    const res = await publicReq('get', `${endpoint}&ids=${anonymizableId}`)
+    const foundUser = res.users[anonymizableId]
+    foundUser.anonymizableId.should.equal(anonymizableId)
     foundUser.username.should.equal(user.username)
     should(foundUser.bio).equal(user.bio)
     foundUser.settings.should.deepEqual({
@@ -55,5 +55,14 @@ describe('users:by-anonymizable-ids', () => {
     const foundUser = res.users[anonymizableId]
     foundUser.anonymizableId.should.equal(anonymizableId)
     foundUser.special.should.be.true()
+  })
+
+  it('should get a deleted user flag', async () => {
+    const user = await getDeletedUser()
+    const { anonymizableId } = user
+    const res = await publicReq('get', `${endpoint}&ids=${anonymizableId}`)
+    const foundUser = res.users[anonymizableId]
+    foundUser.anonymizableId.should.equal(anonymizableId)
+    foundUser.deleted.should.be.true()
   })
 })

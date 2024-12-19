@@ -8,6 +8,7 @@ import { getRandomString } from '#lib/utils/random_string'
 import config from '#server/config'
 import { makeFriends } from '#tests/api/utils/relations'
 import { request, rawRequest } from '#tests/api/utils/request'
+import { deleteUser } from '#tests/api/utils/users'
 import type { Awaitable } from '#tests/api/utils/utils'
 import type { User, UserRole } from '#types/user'
 
@@ -146,3 +147,9 @@ function randomCoordinate (min: number, max: number) {
 }
 
 export const someSpamText = 'SEO! https://spamers.corp'
+
+export async function getDeletedUser () {
+  const user = await createUser()
+  await deleteUser(user)
+  return getRefreshedUser(user)
+}

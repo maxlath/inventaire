@@ -104,6 +104,7 @@ describe('user model', () => {
       userSouvenir.should.deepEqual({
         _id: user._id,
         _rev: user._rev,
+        anonymizableId: user.anonymizableId,
         username: user.username,
         type: 'deleted',
         created: user.created,

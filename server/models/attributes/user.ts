@@ -67,6 +67,7 @@ const userAttributes = {
     'created',
     'username',
     'stableUsername',
+    'anonymizableId',
   ] as const,
 
   // Attributes to keep in documents where a stakeholder might loose

@@ -1,7 +1,7 @@
 import { pick } from 'lodash-es'
 import { deanonymizedAttributes } from '#controllers/user/lib/anonymizable_user'
 import { hardCodedUsers } from '#db/couchdb/hard_coded_documents'
-import { createUser } from '#fixtures/users'
+import { createUser, getDeletedUser } from '#fixtures/users'
 import { buildLocalUserAcct, getLocalUserAcct } from '#lib/federation/remote_user'
 import { adminReq, getDeanonymizedUser, publicReq } from '#tests/api/utils/utils'
 import { shouldNotBeCalled, rethrowShouldNotBeCalledErrors } from '#tests/unit/utils/utils'
@@ -77,5 +77,14 @@ describe('users:by-accts', () => {
     const foundUser = res.users[acct]
     foundUser.acct.should.equal(acct)
     foundUser.special.should.be.true()
+  })
+
+  it('should get a deleted user flag', async () => {
+    const user = await getDeletedUser()
+    const acct = getLocalUserAcct(user)
+    const res = await publicReq('get', `${endpoint}&accts=${acct}`)
+    const foundUser = res.users[acct]
+    foundUser.acct.should.equal(acct)
+    foundUser.deleted.should.be.true()
   })
 })

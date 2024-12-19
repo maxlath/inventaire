@@ -123,3 +123,4 @@ export interface InvitedUser extends CouchDoc {
 
 export type DocInUserDb = User | InvitedUser | DeletedUser | SpecialUser
 export type DocWithUsernameInUserDb = User | DeletedUser | SpecialUser
+export type DocWithAnonymizableId = User | DeletedUser | SpecialUser

@@ -114,9 +114,8 @@ function getUsersIdsByHostsFromUsersAccts (usersAccts: UserAccountUri[]) {
 }
 
 async function getHostUsersByIds (host: Host, anonymizableUsersIds: AnonymizableUserId[], options: AnonymizeUserOptions) {
-  let users: User[]
   if (host === publicHost) {
-    users = await getUsersByAnonymizedIds(anonymizableUsersIds)
+    const users = await getUsersByAnonymizedIds(anonymizableUsersIds)
     return users.map(user => setUserAcctAndRoles(anonymizeUser(user, options), host))
   } else {
     return getRemoteUsersByAnonymizableIds(host, anonymizableUsersIds)
@@ -155,7 +154,7 @@ export async function getUserByAcct (userAcct: UserAccountUri) {
   const users = await getUsersByAccts([ userAcct ])
   const user = users[0]
   if (!user) throw newError('user not found', 500, { userAcct })
-  return user
+  return user as InstanceAgnosticContributor
 }
 
 export function parseReqLocalOrRemoteUser (req: AuthentifiedReq | RemoteUserAuthentifiedReq) {

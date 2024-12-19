@@ -4,6 +4,7 @@ import { formatClaimsForWikidata } from '#controllers/entities/lib/create_wd_ent
 import { expandInvClaims } from '#controllers/entities/lib/inv_claims_utils'
 import { updateWdEntityLocalClaims } from '#controllers/entities/lib/update_wd_entity_local_claims'
 import { getWikidataOAuthCredentials, hasWikidataOAuth, validateWikidataOAuth } from '#controllers/entities/lib/wikidata_oauth'
+import type { InstanceAgnosticContributor } from '#controllers/user/lib/anonymizable_user'
 import { getWdEntity } from '#data/wikidata/get_entity'
 import { isEntityUri, isInvEntityUri, isInvPropertyUri, isWdEntityId } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
@@ -135,7 +136,7 @@ function getQualifierHash (claim, property, value) {
   return matchingQualifiers[0].hash
 }
 
-export async function addWdClaims (id: WdEntityId, claims: Claims, user: UserWithAcct) {
+export async function addWdClaims (id: WdEntityId, claims: Claims, user: InstanceAgnosticContributor) {
   if (isEmpty(claims)) return
   const context = { id, claims, user: pick(user, 'acct', 'username') }
   // TODO: Let users without Wikidata OAuth use the botAccountWikidataOAuth crendentials(?)
@@ -144,7 +145,7 @@ export async function addWdClaims (id: WdEntityId, claims: Claims, user: UserWit
     return
   }
   const credentials = getWikidataOAuthCredentials(user)
-  const bot = user.type === 'special'
+  const bot = user.special === true
   const expandedClaims = expandInvClaims(claims)
   const formattedClaims = formatClaimsForWikidata(omitLocalClaims(expandedClaims))
   await wdEdit.entity.edit({

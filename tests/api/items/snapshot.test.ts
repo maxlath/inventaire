@@ -303,7 +303,7 @@ describe('items:snapshot', () => {
       updatedItem.snapshot['entity:authors'].should.equal('Alain Damasio')
     })
 
-    it('should be updated when its remote author entity is target for a merge', async function () {
+    it('should be updated when its remote author entity is target for a merge [flaky]', async function () {
       // Disabled in federated mode yet as this test relies on a special role
       if (federatedMode) this.skip()
       const work = await createWork()

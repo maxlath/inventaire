@@ -1,3 +1,4 @@
+import { difference, map } from 'lodash-es'
 import { verifySignature } from '#controllers/activitypub/lib/security'
 import { anonymizeUser, buildAnonymizedUser, getUsersByAnonymizedIds, type AnonymizedUser, type AnonymizeUserOptions, type DeanonymizedUser, type InstanceAgnosticContributor } from '#controllers/user/lib/anonymizable_user'
 import { isUserId } from '#lib/boolean_validations'
@@ -91,7 +92,15 @@ export async function getUsersByAccts (usersAccts: UserAccountUri[], options: An
   const usersIdsByHosts = getUsersIdsByHostsFromUsersAccts(usersAccts)
   const hostsUsers = await Promise.all(objectEntries(usersIdsByHosts)
     .map(([ host, anonymizableUsersIds ]) => getHostUsersByIds(host, anonymizableUsersIds, options)))
-  return hostsUsers.flat()
+  const foundUsers = hostsUsers.flat().map(setAsFound)
+  const notFoundUsers = difference(usersAccts, map(foundUsers, 'acct'))
+  const notFoundUsersPlaceholders = notFoundUsers.map(getNotFoundUserPlaceholder)
+  return foundUsers.concat(notFoundUsersPlaceholders)
+}
+
+function setAsFound (user) {
+  user.found = true
+  return user
 }
 
 function getUsersIdsByHostsFromUsersAccts (usersAccts: UserAccountUri[]) {
@@ -118,17 +127,22 @@ async function getRemoteUsersByAnonymizableIds (host: Host, anonymizableUsersIds
   try {
     const protocol = host.startsWith('localhost') ? 'http' : 'https'
     const path = buildUrl(`${protocol}://${host}/api/users`, { action: 'by-anonymizable-ids', ids: anonymizableUsersIds.join('|') })
+    // Use a short timeout as that should be a cheap operation
+    // A lagging instance should not slow down the aggregated response
     const { users } = await requests_.get(path, { timeout: 10000 })
     return Object.values(users).map((user: RemoteUser) => setUserAcctAndRoles(user, host))
   } catch (err) {
     err.context ??= {}
     Object.assign(err.context, { host, anonymizableUsersIds })
     logError(err, 'failed to get remote users')
-    return anonymizableUsersIds.map(anonymizableUsersId => {
-      const userPlaceholder = buildAnonymizedUser(anonymizableUsersId)
-      return setUserAcctAndRoles(userPlaceholder, host)
-    })
+    return []
   }
+}
+
+function getNotFoundUserPlaceholder (acct: UserAccountUri) {
+  const [ anonymizableId, host ] = acct.split('@')
+  const userPlaceholder = buildAnonymizedUser({ anonymizableId })
+  return { ...setUserAcctAndRoles(userPlaceholder, host), found: false }
 }
 
 function setUserAcctAndRoles <T extends Pick<User, 'anonymizableId'>> (user: T, host: Host) {

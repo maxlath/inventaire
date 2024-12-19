@@ -74,5 +74,7 @@ export function buildAnonymizedUser (user: User | DeletedUser | RemoteUserWithAc
 export interface InstanceAgnosticContributor extends Pick<User, 'settings'>, Partial<Pick<User, DeanonymizedAttribute>> {
   acct: UserAccountUri
   roles: UserRole[]
+  found: boolean
   special?: boolean
+  deleted?: boolean
 }

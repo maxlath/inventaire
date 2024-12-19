@@ -1,7 +1,7 @@
 import { pick } from 'lodash-es'
 import { deanonymizedAttributes } from '#controllers/user/lib/anonymizable_user'
 import { hardCodedUsers } from '#db/couchdb/hard_coded_documents'
-import { createUser, getDeletedUser } from '#fixtures/users'
+import { createUser, getDeletedUser, getSomeRandomAnonymizableId } from '#fixtures/users'
 import { buildLocalUserAcct, getLocalUserAcct } from '#lib/federation/remote_user'
 import { adminReq, getDeanonymizedUser, publicReq } from '#tests/api/utils/utils'
 import { shouldNotBeCalled, rethrowShouldNotBeCalledErrors } from '#tests/unit/utils/utils'
@@ -29,6 +29,7 @@ describe('users:by-accts', () => {
     foundUser.should.deepEqual({
       acct,
       roles: [],
+      found: true,
       settings: {
         contributions: {
           anonymize: true,
@@ -45,6 +46,7 @@ describe('users:by-accts', () => {
     foundUser.should.deepEqual({
       acct,
       roles: [],
+      found: true,
       settings: {
         contributions: {
           anonymize: false,
@@ -62,6 +64,7 @@ describe('users:by-accts', () => {
     foundUser.should.deepEqual({
       acct,
       roles: [],
+      found: true,
       settings: {
         contributions: {
           anonymize: true,
@@ -77,6 +80,7 @@ describe('users:by-accts', () => {
     const foundUser = res.users[acct]
     foundUser.acct.should.equal(acct)
     foundUser.special.should.be.true()
+    foundUser.found.should.be.true()
   })
 
   it('should get a deleted user flag', async () => {
@@ -86,5 +90,15 @@ describe('users:by-accts', () => {
     const foundUser = res.users[acct]
     foundUser.acct.should.equal(acct)
     foundUser.deleted.should.be.true()
+    foundUser.found.should.be.true()
+  })
+
+  it('should get a placeholder for user not found', async () => {
+    const anonymizableId = getSomeRandomAnonymizableId()
+    const acct = buildLocalUserAcct(anonymizableId)
+    const res = await publicReq('get', `${endpoint}&accts=${acct}`)
+    const foundUser = res.users[acct]
+    foundUser.acct.should.equal(acct)
+    foundUser.found.should.be.false()
   })
 })

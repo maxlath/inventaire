@@ -3,6 +3,7 @@ import { randomBytes } from 'node:crypto'
 import { isPlainObject, random, round } from 'lodash-es'
 import { addUserRole } from '#controllers/user/lib/user'
 import { getSomeEmail, getSomeUsername } from '#fixtures/text'
+import { getRandomUuid } from '#lib/crypto'
 import { assertString } from '#lib/utils/assert_types'
 import { getRandomString } from '#lib/utils/random_string'
 import config from '#server/config'
@@ -153,3 +154,5 @@ export async function getDeletedUser () {
   await deleteUser(user)
   return getRefreshedUser(user)
 }
+
+export const getSomeRandomAnonymizableId = getRandomUuid

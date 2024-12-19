@@ -1,10 +1,11 @@
 import util from 'node:util'
 import { isArguments } from 'lodash-es'
 import chalk, { red, grey } from 'tiny-chalk'
-import { isUrl } from '#lib/boolean_validations'
+import { isAbsoluteUrl } from '#lib/boolean_validations'
 import { iscontextualizedError, type ContextualizedError } from '#lib/error/format_error'
 import { getHost } from '#lib/network/helpers'
 import config from '#server/config'
+import type { AbsoluteUrl, Host } from '#types/common'
 
 const { offline, verbose } = config
 // Log full objects
@@ -76,8 +77,11 @@ export function logError (err: ContextualizedError, label?: string) {
   reduceForwardedErrorsVerbosity(err)
   log(err, label, 'red')
 
-  const url = err?.context?.url
-  const host = isUrl(url) ? getHost(url) : 'local'
+  let host = 'local'
+  if ('context' in err) {
+    const { host: errHost, url } = err.context
+    host = (errHost as Host) || (isAbsoluteUrl(url) ? getHost(url as AbsoluteUrl) : 'local')
+  }
   const errorStatusCode = err.statusCode || 500
   countsByHostAndErrorStatusCode[host] ??= {}
   countsByHostAndErrorStatusCode[host][errorStatusCode] ??= 0

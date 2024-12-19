@@ -37,6 +37,8 @@ export function isUrl (url: unknown): url is AbsoluteUrl {
   return true
 }
 
+export const isAbsoluteUrl = isUrl
+
 export function isRelativeUrl (url: unknown): url is RelativeUrl {
   return isUrl(`${publicOrigin}${url}`)
 }

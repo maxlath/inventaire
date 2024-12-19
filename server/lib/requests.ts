@@ -14,7 +14,7 @@ import type { AbsoluteUrl, HighResolutionTime, HttpHeaders, HttpMethod } from '#
 import { isUrl, isPositiveIntegerString } from './boolean_validations.js'
 import { isPrivateUrl } from './network/is_private_url.js'
 import { getAgent, insecureHttpsAgent } from './requests_agent.js'
-import { assertHostIsNotTemporarilyBanned, resetBanData, declareHostError, recordPossibleTimeoutError } from './requests_temporary_host_ban.js'
+import { assertHostIsNotTemporarilyBanned, resetBanData, declareHostError, conditionallyDeclareHostError } from './requests_temporary_host_ban.js'
 import { coloredElapsedTime } from './time.js'
 import type { Agent } from 'node:http'
 import type { Stream } from 'node:stream'
@@ -71,7 +71,8 @@ export async function request (method: HttpMethod, url: AbsoluteUrl, options: Re
       warn(err, `retrying request ${timer.requestId}`)
       res = await fetch(url, fetchOptions)
     } else {
-      if (!noHostBanOnTimeout) recordPossibleTimeoutError(host, err)
+      conditionallyDeclareHostError(host, err, { noHostBanOnTimeout })
+      err.context = { method, url }
       throw err
     }
   } finally {

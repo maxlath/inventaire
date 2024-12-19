@@ -3,7 +3,7 @@ import { AbortController } from 'abort-controller'
 import fetch from 'node-fetch'
 import { newError } from '#lib/error/error'
 import { endReqTimer, startReqTimer } from '#lib/requests'
-import { assertHostIsNotTemporarilyBanned, declareHostError, recordPossibleTimeoutError, resetBanData } from '#lib/requests_temporary_host_ban'
+import { assertHostIsNotTemporarilyBanned, declareHostError, conditionallyDeclareHostError, resetBanData } from '#lib/requests_temporary_host_ban'
 import { encodeURL } from '#lib/utils/base'
 import { logError } from '#lib/utils/logs'
 import type { AbsoluteUrl, Path } from '#types/common'
@@ -32,7 +32,7 @@ export default async function (url: AbsoluteUrl, path: Path) {
   } catch (err) {
     errorCode = err.code || err.type || err.name || err.message
     logError(err, 'download image private error')
-    recordPossibleTimeoutError(host, err)
+    conditionallyDeclareHostError(host, err)
     throw newError('could not download image', 400, { url })
   } finally {
     endReqTimer(timer, res?.status || errorCode)

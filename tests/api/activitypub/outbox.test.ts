@@ -192,8 +192,9 @@ describe('outbox', () => {
   })
 
   describe('entities', () => {
-    it('should return a first page URL', async function () {
-      if (federatedMode) this.skip()
+    before(function () { if (federatedMode) this.skip() })
+
+    it('should return a first page URL', async () => {
       const { uri: authorUri } = await createHuman()
       const { uri: workUri } = await createWork()
       await addAuthor(workUri, authorUri)
@@ -207,8 +208,7 @@ describe('outbox', () => {
       res.next.should.equal(`${url}&offset=0`)
     })
 
-    it('should return entities activities', async function () {
-      if (federatedMode) this.skip()
+    it('should return entities activities', async () => {
       const { uri: authorUri } = await createHuman()
       const { uri: workUri, _id: workId } = await createWork()
       await addAuthor(workUri, authorUri)
@@ -234,8 +234,7 @@ describe('outbox', () => {
       createActivity.to.should.containEql('Public')
     })
 
-    it('should paginate activities', async function () {
-      if (federatedMode) this.skip()
+    it('should paginate activities', async () => {
       const { uri: authorUri } = await createHuman()
       const { uri: workUri, _id: workId1 } = await createWork()
       const { uri: workUri2, _id: workId2 } = await createWork()

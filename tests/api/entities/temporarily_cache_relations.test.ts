@@ -14,8 +14,9 @@ import { publicReq } from '#tests/api/utils/utils'
 // Due to this feature being primarily used to keep data after edits on Wikidata,
 // and due to the revalidation on primary data, it's quite hard to test from the API itself.
 describe('temporarily cache relations', () => {
-  it('should add author relation to cache', async function () {
-    if (federatedMode) this.skip()
+  before(function () { if (federatedMode) this.skip() })
+
+  it('should add author relation to cache', async () => {
     const someAuthorUri = 'wd:Q1345582'
     const { uri: workUri } = await createWorkWithAuthor({ uri: someAuthorUri })
     await cacheEntityRelations(workUri)
@@ -27,8 +28,7 @@ describe('temporarily cache relations', () => {
     map(cachedRelationsEntity, 'uri').should.containEql(workUri)
   })
 
-  it('should add serie relation to cache', async function () {
-    if (federatedMode) this.skip()
+  it('should add serie relation to cache', async () => {
     const someSerieUri = 'wd:Q3656893'
     const { uri: workUri } = await createWorkWithSerie({ uri: someSerieUri })
     await cacheEntityRelations(workUri)
@@ -40,8 +40,7 @@ describe('temporarily cache relations', () => {
     map(cachedRelationsEntity, 'uri').should.containEql(workUri)
   })
 
-  it('should add any entity relation to cache', async function () {
-    if (federatedMode) this.skip()
+  it('should add any entity relation to cache', async () => {
     const someSubjectUri = 'wd:Q8314'
     const { uri: workUri } = await createWork()
     await addClaim(({ uri: workUri, property: 'wdt:P921', value: someSubjectUri }))
@@ -54,8 +53,7 @@ describe('temporarily cache relations', () => {
     map(cachedRelationsEntity, 'uri').should.containEql(workUri)
   })
 
-  it('should check the primary data', async function () {
-    if (federatedMode) this.skip()
+  it('should check the primary data', async () => {
     const someSerieUri = 'wd:Q3656893'
     const someUnrelatedWorkUri = 'wd:Q187655'
     const workWithSerie = await createWorkWithSerie({ uri: someSerieUri })
@@ -73,8 +71,7 @@ describe('temporarily cache relations', () => {
     matchingWorks.length.should.equal(0)
   })
 
-  it('should find redirected claim subjects', async function () {
-    if (federatedMode) this.skip()
+  it('should find redirected claim subjects', async () => {
     const someAuthorUri = 'wd:Q1345582'
     const { uri: workUri } = await createWorkWithAuthor({ uri: someAuthorUri })
     await cacheEntityRelations(workUri)
@@ -88,8 +85,7 @@ describe('temporarily cache relations', () => {
     map(cachedRelationsEntity, 'uri').should.containEql(otherWorkUri)
   })
 
-  it('should find a claim subject when the value has been redirected', async function () {
-    if (federatedMode) this.skip()
+  it('should find a claim subject when the value has been redirected', async () => {
     const redirectedAuthorUri = 'wd:Q1'
     const canonicalAuthorUri = 'wd:Q2'
     await entitiesRelationsTemporaryCache.set(someFakeUri, 'wdt:P50', redirectedAuthorUri)

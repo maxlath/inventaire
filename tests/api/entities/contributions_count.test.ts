@@ -6,8 +6,9 @@ import { adminReq } from '#tests/api/utils/utils'
 const endpoint = '/api/entities?action=contributions-count'
 
 describe('entities:activity', () => {
-  it('should return global contributions count', async function () {
-    if (federatedMode) this.skip()
+  before(function () { if (federatedMode) this.skip() })
+
+  it('should return global contributions count', async () => {
     const { contributions } = await adminReq('get', endpoint)
     contributions.forEach(contribution => {
       contribution.user.should.be.a.String()
@@ -15,8 +16,7 @@ describe('entities:activity', () => {
     })
   })
 
-  it('should return contributions count for a specific period', async function () {
-    if (federatedMode) this.skip()
+  it('should return contributions count for a specific period', async () => {
     const { contributions, start, end } = await adminReq('get', `${endpoint}&period=7`)
     contributions.should.be.an.Array()
     contributions.forEach(contribution => {
@@ -27,8 +27,7 @@ describe('entities:activity', () => {
     end.should.equal(simpleDay(Date.now()))
   })
 
-  it('should restrict activity to the specfied period', async function () {
-    if (federatedMode) this.skip()
+  it('should restrict activity to the specfied period', async () => {
     const { contributions, start, end } = await adminReq('get', `${endpoint}&period=1`)
     const yesterdayTime = Date.now() - (24 * 60 * 60 * 1000)
     const yesterday = simpleDay(yesterdayTime)

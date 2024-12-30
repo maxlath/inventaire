@@ -1,5 +1,5 @@
 import { sendStaticJson } from '#lib/responses'
-import config from '#server/config'
+import config, { publicHost } from '#server/config'
 
 const { piwik, mapTilesAccessToken } = config
 const { remoteEntitiesOrigin, instanceClientCustomization } = config.federation
@@ -11,6 +11,7 @@ const clientConfig = JSON.stringify({
   remoteEntitiesOrigin,
   piwik: endpoint && endpoint.replace('/piwik.php', ''),
   mapTilesAccessToken,
+  publicHost,
 })
 
 // A endpoint dedicated to pass configuration parameters to the client

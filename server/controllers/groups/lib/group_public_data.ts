@@ -5,6 +5,6 @@ import type { UserId } from '#types/user'
 
 export default async function (group: Group, reqUserId: UserId) {
   const usersIds = getAllGroupMembersIds(group)
-  const users = await getUsersAuthorizedDataByIds(usersIds, reqUserId)
+  const users = await getUsersAuthorizedDataByIds(usersIds, { reqUserId })
   return { group, users }
 }

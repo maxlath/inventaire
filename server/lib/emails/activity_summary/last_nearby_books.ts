@@ -17,7 +17,7 @@ export async function getLastNearbyPublicBooks (user: User, limitDate: number = 
   const usersIds = await getUsersNearby(reqUserId, range, strictRange)
   const [ items, users ] = await Promise.all([
     getAuthorizedItemsByUsers(usersIds, reqUserId),
-    getUsersAuthorizedDataByIds(usersIds, reqUserId),
+    getUsersAuthorizedDataByIds(usersIds, { reqUserId }),
   ])
 
   return formatItems({ items, users, limitDate, position, lang })

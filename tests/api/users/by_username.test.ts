@@ -12,6 +12,8 @@ import {
   authReq,
   getUser,
   getUserB,
+  getDeanonymizedUser,
+  adminReq,
 } from '#tests/api/utils/utils'
 import { shouldNotBeCalled, rethrowShouldNotBeCalledErrors } from '#tests/unit/utils/utils'
 
@@ -95,5 +97,39 @@ describe('users:by-usernames', () => {
     res1.users[initialUsername.toLowerCase()].should.be.ok()
     const res2 = await publicReq('get', `${endpoint}&usernames=${newUsername}`)
     res2.users[newUsername.toLowerCase()].should.be.ok()
+  })
+
+  describe('anonymizable id', () => {
+    it('should not get the anonymizableId of an anonymized user', async () => {
+      const user = await createUser()
+      const { username } = user
+      const { users } = await authReq('get', `${endpoint}&usernames=${username}`)
+      const lowerCasedUsername = username.toLowerCase()
+      should(users[lowerCasedUsername].anonymizableId).not.be.ok()
+    })
+
+    it('should get the anonymizableId of an anonymized user, when requested by the user', async () => {
+      const user = await createUser()
+      const { username } = user
+      const { users } = await customAuthReq(user, 'get', `${endpoint}&usernames=${username}`)
+      const lowerCasedUsername = username.toLowerCase()
+      users[lowerCasedUsername].anonymizableId.should.be.a.String()
+    })
+
+    it('should get the anonymizableId of a deanonymized user', async () => {
+      const user = await getDeanonymizedUser()
+      const { username } = user
+      const { users } = await publicReq('get', `${endpoint}&usernames=${username}`)
+      const lowerCasedUsername = username.toLowerCase()
+      users[lowerCasedUsername].anonymizableId.should.be.a.String()
+    })
+
+    it('should get the anonymizableId of an anonymized user, when requested as admin', async () => {
+      const user = await createUser()
+      const { username } = user
+      const { users } = await adminReq('get', `${endpoint}&usernames=${username}`)
+      const lowerCasedUsername = username.toLowerCase()
+      users[lowerCasedUsername].anonymizableId.should.be.a.String()
+    })
   })
 })

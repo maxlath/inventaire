@@ -19,7 +19,7 @@ async function addUsersData (page, reqParams) {
 
   const ownersIds = uniq(map(items, 'owner'))
 
-  const users = await getUsersAuthorizedDataByIds(ownersIds, reqUserId)
+  const users = await getUsersAuthorizedDataByIds(ownersIds, { reqUserId })
   page.users = users
   return page
 }

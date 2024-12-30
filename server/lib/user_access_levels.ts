@@ -1,6 +1,7 @@
 import { uniq } from 'lodash-es'
 import type { BareRemoteUser, UserWithAcct } from '#lib/federation/remote_user'
 import { objectKeys } from '#lib/utils/types'
+import type { Req } from '#types/server'
 import type { SpecialUser, User } from '#types/user'
 
 export const rolesByAccess = {
@@ -34,3 +35,7 @@ export function getUserAccessLevels (user: User | SpecialUser | BareRemoteUser |
 
 export const hasAdminAccess = (user: User | SpecialUser | BareRemoteUser) => getUserAccessLevels(user).includes('admin')
 export const hasDataadminAccess = (user: User | SpecialUser | BareRemoteUser) => getUserAccessLevels(user).includes('dataadmin')
+
+export function reqHasAdminAccess (req: Req) {
+  return 'user' in req && hasAdminAccess(req.user)
+}

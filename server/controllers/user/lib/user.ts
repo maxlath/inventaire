@@ -32,7 +32,7 @@ export function getUsersAuthorizedDataByEmails (emails: Email[], reqUserId: User
   assertArray(emails)
   // Keeping the email is required to map the users returned
   // with the initial input
-  return getUsersAuthorizedData(getUsersByEmails(emails), reqUserId, 'email')
+  return getUsersAuthorizedData(getUsersByEmails(emails), { reqUserId, extraAttribute: 'email' })
 }
 
 export function getUserByUsername (username: Username) {
@@ -60,28 +60,35 @@ export function findUserByUsernameOrEmail (str: Username | Email) {
   }
 }
 
-export async function getUsersAuthorizedDataByIds (ids: UserId[], reqUserId: UserId, extraAttribute?: UserExtraAttribute) {
-  assertArray(ids)
-  if (ids.length === 0) return []
-  return getUsersAuthorizedData(getUsersByIds(ids), reqUserId, extraAttribute)
+interface GetUsersAuthorizedDataParams {
+  reqUserId: UserId
+  extraAttribute?: UserExtraAttribute
+  reqUserHasAdminAccess?: boolean
 }
 
-export async function getUsersAuthorizedData (usersDocsPromise: Promise<DocWithUsernameInUserDb[]>, reqUserId: UserId, extraAttribute?: UserExtraAttribute) {
+export async function getUsersAuthorizedDataByIds (ids: UserId[], params: GetUsersAuthorizedDataParams) {
+  assertArray(ids)
+  if (ids.length === 0) return []
+  return getUsersAuthorizedData(getUsersByIds(ids), params)
+}
+
+export async function getUsersAuthorizedData (usersDocsPromise: Promise<DocWithUsernameInUserDb[]>, params: GetUsersAuthorizedDataParams) {
+  const { reqUserId } = params
   const [ usersDocs, networkIds ] = await Promise.all([
     usersDocsPromise,
     getNetworkIds(reqUserId),
   ])
 
-  return usersDocs.map(omitPrivateData(reqUserId, networkIds, extraAttribute))
+  return usersDocs.map(omitPrivateData({ networkIds, ...params }))
 }
 
-export async function getUsersIndexedByIds (ids: UserId[], reqUserId: UserId, extraAttribute?: UserExtraAttribute) {
-  const users = await getUsersAuthorizedDataByIds(ids, reqUserId, extraAttribute)
+export async function getUsersIndexedByIds (ids: UserId[], params: GetUsersAuthorizedDataParams) {
+  const users = await getUsersAuthorizedDataByIds(ids, params)
   return keyBy(users, '_id')
 }
 
-export async function getUsersIndexByUsernames (reqUserId: UserId, usernames: Username[]) {
-  const users = await getUsersAuthorizedData(getUsersByUsernames(usernames), reqUserId)
+export async function getUsersIndexByUsernames (usernames: Username[], reqUserId: UserId, reqUserHasAdminAccess: boolean) {
+  const users = await getUsersAuthorizedData(getUsersByUsernames(usernames), { reqUserId, reqUserHasAdminAccess })
   const usersByLowercasedUsername = {}
   const lowercasedUsernames = usernames.map(username => username.toLowerCase())
   for (const user of users) {

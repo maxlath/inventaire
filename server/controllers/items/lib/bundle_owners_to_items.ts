@@ -7,7 +7,7 @@ import type { UserId } from '#types/user'
 export default async function (items: Item[], reqUserId: UserId) {
   if (!(items && items.length > 0)) throw newError('no item found', 404)
   const usersIds = getItemsOwners(items)
-  const users = await getUsersAuthorizedDataByIds(usersIds, reqUserId)
+  const users = await getUsersAuthorizedDataByIds(usersIds, { reqUserId })
   return { items, users }
 }
 

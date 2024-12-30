@@ -10,9 +10,9 @@ const sanitization = {
 }
 
 // This endpoint is primarily used for server local and remote users info in the client via a unified endpoint
-async function controller ({ accts }: SanitizedParameters, req: AuthentifiedReq) {
+async function controller ({ accts, reqUserId }: SanitizedParameters, req: AuthentifiedReq) {
   const reqUserHasAdminAccess = hasAdminAccess(req.user)
-  const users = await getUsersByAccts(accts, { reqUserHasAdminAccess })
+  const users = await getUsersByAccts(accts, { reqUserHasAdminAccess, reqUserId })
   const formattedUsers = users.map(user => omit(user, 'anonymizableId')) as InstanceAgnosticContributor[]
   return { users: keyBy(formattedUsers, 'acct') }
 }

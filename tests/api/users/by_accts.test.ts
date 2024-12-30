@@ -3,6 +3,7 @@ import { deanonymizedAttributes } from '#controllers/user/lib/anonymizable_user'
 import { hardCodedUsers } from '#db/couchdb/hard_coded_documents'
 import { createUser, getDeletedUser, getSomeRandomAnonymizableId } from '#fixtures/users'
 import { buildLocalUserAcct, getLocalUserAcct } from '#lib/federation/remote_user'
+import { customAuthReq } from '#tests/api/utils/request'
 import { adminReq, getDeanonymizedUser, publicReq } from '#tests/api/utils/utils'
 import { shouldNotBeCalled, rethrowShouldNotBeCalledErrors } from '#tests/unit/utils/utils'
 
@@ -60,6 +61,24 @@ describe('users:by-accts', () => {
     const user = await createUser()
     const acct = buildLocalUserAcct(user.anonymizableId)
     const res = await adminReq('get', `${endpoint}&accts=${acct}`)
+    const foundUser = res.users[acct]
+    foundUser.should.deepEqual({
+      acct,
+      roles: [],
+      found: true,
+      settings: {
+        contributions: {
+          anonymize: true,
+        },
+      },
+      ...pick(user, deanonymizedAttributes),
+    })
+  })
+
+  it('should get deanonymized user info for the requesting user', async () => {
+    const user = await createUser()
+    const acct = buildLocalUserAcct(user.anonymizableId)
+    const res = await customAuthReq(user, 'get', `${endpoint}&accts=${acct}`)
     const foundUser = res.users[acct]
     foundUser.should.deepEqual({
       acct,

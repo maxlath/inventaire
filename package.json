@@ -46,7 +46,7 @@
     "update-i18n": "./scripts/update_i18n.sh",
     "update-toc": "./scripts/update_toc.sh",
     "watch": "./scripts/start_dev_server.sh",
-    "watch-federated": "./scripts/start_federated_server.sh",
+    "watch-federated": "export NODE_ENV=dev ; ./scripts/start_federated_server.sh",
     "watch-types": "tsc  --project ./tsconfig.build.json --watch"
   },
   "license": "AGPL-3.0",

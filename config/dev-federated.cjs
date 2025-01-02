@@ -1,3 +1,6 @@
+// This config file will be used if: NODE_ENV=dev NODE_APP_INSTANCE=federated
+// Override locally in ./local-dev-federated.cjs
+
 /** @typedef { import('../types/types.ts').Config } Config */
 /** @typedef { import('type-fest').PartialDeep } PartialDeep */
 

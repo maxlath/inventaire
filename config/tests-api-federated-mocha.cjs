@@ -1,6 +1,6 @@
 // Custom config for the API tests mocha process
 // This config file will be used if: NODE_ENV=tests-api NODE_APP_INSTANCE=mocha
-// Override locally in ./local-tests-api-mocha.js
+// Override locally in ./local-tests-api-mocha.cjs
 
 /** @typedef { import('../types/types.ts').Config } Config */
 /** @typedef { import('type-fest').PartialDeep } PartialDeep */

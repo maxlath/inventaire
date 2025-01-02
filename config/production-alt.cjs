@@ -4,7 +4,7 @@
 // - sends activity reports
 
 // This config file will be used if: NODE_ENV=production NODE_APP_INSTANCE=alt
-// Override locally in ./local-production-alt.js
+// Override locally in ./local-production-alt.cjs
 
 /** @typedef { import('../types/types.ts').Config } Config */
 /** @typedef { import('type-fest').PartialDeep } PartialDeep */

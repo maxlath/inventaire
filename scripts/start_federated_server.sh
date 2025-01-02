@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export NODE_ENV=federated
+export NODE_APP_INSTANCE=federated
 
 ./scripts/watch.sh 2>&1 |
   # Print logs in both the terminal and this log file

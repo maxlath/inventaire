@@ -12,12 +12,12 @@ import type { Host } from '#types/common'
 import type { AuthentifiedReq, MaybeSignedReq, RemoteUserAuthentifiedReq, UserAccountUri } from '#types/server'
 import type { AnonymizableUserId, SpecialUser, User, UserOAuth, UserRole } from '#types/user'
 
-export interface BareRemoteUser {
+export interface MinimalRemoteUser {
   anonymizableId: AnonymizableUserId
   host: Host
   acct: UserAccountUri
   roles: UserRole[]
-  // Not used currently, but required to avoid type errors when typing user as (User | BareRemoteUser)
+  // Not used currently, but required to avoid type errors when typing user as (User | MinimalRemoteUser)
   oauth?: UserOAuth
 }
 
@@ -32,7 +32,7 @@ export interface LocalUserWithAcct extends User {
   acct: UserAccountUri
 }
 
-export type UserWithAcct = LocalUserWithAcct | RemoteUserWithAcct | BareRemoteUser | InstanceAgnosticContributor
+export type UserWithAcct = LocalUserWithAcct | RemoteUserWithAcct | MinimalRemoteUser | InstanceAgnosticContributor
 
 export const remoteUserHeader = 'x-remote-user'
 
@@ -51,10 +51,10 @@ export async function geRemoteUserFromSignedReqHeader (req: MaybeSignedReq) {
     host,
     acct: buildUserAcct(anonymizableId, host),
     roles: [],
-  } as BareRemoteUser
+  } as MinimalRemoteUser
 }
 
-export function isRemoteUser (user: User | SpecialUser | BareRemoteUser): user is BareRemoteUser {
+export function isRemoteUser (user: User | SpecialUser | MinimalRemoteUser): user is MinimalRemoteUser {
   return 'acct' in user
 }
 
@@ -71,7 +71,7 @@ export function buildLocalUserAcct (anonymizableId: AnonymizableUserId) {
   return buildUserAcct(anonymizableId, publicHost)
 }
 
-export function getUserAcct (user: User | SpecialUser | BareRemoteUser) {
+export function getUserAcct (user: User | SpecialUser | MinimalRemoteUser) {
   if ('acct' in user) {
     return user.acct
   } else {

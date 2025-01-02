@@ -1,5 +1,5 @@
 import parseUrl from 'parseurl'
-import type { BareRemoteUser } from '#lib/federation/remote_user'
+import type { MinimalRemoteUser } from '#lib/federation/remote_user'
 import { coloredElapsedTime } from '#lib/time'
 import config from '#server/config'
 import type { Next, Req, Res } from '#types/server'
@@ -32,7 +32,7 @@ function skip (req: Req) {
 function logRequest (req: Req, res: Res) {
   const { method, originalUrl: url } = req
   const user = 'user' in req ? req.user : null
-  const remoteUser = 'remoteUser' in req ? req.remoteUser as BareRemoteUser : null
+  const remoteUser = 'remoteUser' in req ? req.remoteUser as MinimalRemoteUser : null
   const { statusCode: status, finished } = res
 
   const color = statusCategoryColor[status.toString()[0]]

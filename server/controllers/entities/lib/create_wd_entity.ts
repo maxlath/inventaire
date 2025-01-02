@@ -1,7 +1,7 @@
 import { getClaimValue, getFirstClaimValue } from '#controllers/entities/lib/inv_claims_utils'
 import { getWikidataOAuthCredentials, validateWikidataOAuth } from '#controllers/entities/lib/wikidata_oauth'
 import { newError } from '#lib/error/error'
-import type { BareRemoteUser } from '#lib/federation/remote_user'
+import type { MinimalRemoteUser } from '#lib/federation/remote_user'
 import { mapKeysValues, objectEntries } from '#lib/utils/base'
 import { requireJson } from '#lib/utils/json'
 import { info, log } from '#lib/utils/logs'
@@ -20,7 +20,7 @@ interface CreateWdEntityParams {
   labels: Labels
   descriptions?: Descriptions
   claims: ExpandedClaims
-  user: User | BareRemoteUser
+  user: User | MinimalRemoteUser
   isAlreadyValidated?: boolean
 }
 

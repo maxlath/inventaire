@@ -83,7 +83,7 @@ async function updateAttribute (user, attribute, value) {
   if (attribute === 'email') {
     return updateEmail(user, value)
   } else {
-    if (attribute === 'fediversable') await setUserStableUsername(user)
+    if (attribute === 'fediversable' || attribute === 'poolActivities') await setUserStableUsername(user)
     return db.update(user._id, basicUpdater.bind(null, attribute, value))
   }
 }

@@ -3,8 +3,12 @@ import { getActorTypeFromName, getEntityUriFromActorName } from './helpers.js'
 const getActorHtmlUrlByType = {
   user: name => `/users/${name}`,
   shelf: name => {
-    const shelfId = name.split('-')[1]
-    return `/shelves/${shelfId}`
+    const id = name.split('-')[1]
+    return `/shelves/${id}`
+  },
+  item: name => {
+    const id = name.split('-')[1]
+    return `/items/${id}`
   },
   entity: name => {
     const uri = getEntityUriFromActorName(name)

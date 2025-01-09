@@ -160,6 +160,15 @@ describe('user:update', () => {
       // therefore fediversable user shall have a stable username
       updatedUser.stableUsername.should.equal(user.username)
     })
+
+    it('should update a user poolActivities setting', async () => {
+      const user = await createUser()
+      const attribute = 'poolActivities'
+      const value = true
+      await customAuthReq(user, 'put', endpoint, { attribute, value })
+      const updatedUser = await getRefreshedUser(user)
+      updatedUser.poolActivities.should.equal(value)
+    })
   })
 
   describe('custom properties', () => {

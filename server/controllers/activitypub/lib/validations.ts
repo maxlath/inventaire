@@ -1,4 +1,5 @@
 import { getEntityByUri } from '#controllers/entities/lib/get_entity_by_uri'
+import { getItemById } from '#controllers/items/lib/items'
 import { getShelfById } from '#controllers/shelves/lib/shelves'
 import { findUserByUsername, getUserById } from '#controllers/user/lib/user'
 import { isCouchUuid } from '#lib/boolean_validations'
@@ -22,6 +23,14 @@ export async function validateUser (username) {
   if (!user) throw notFoundError({ username })
   if (!user.fediversable) throw newError('user is not on the fediverse', 404, { username })
   return { user }
+}
+
+export async function validateItem (itemId) {
+  const item = await getItemById(itemId)
+  if (!item) throw notFoundError({ itemId })
+  const owner = await getUserById(item.owner)
+  if (!owner.fediversable) throw newError("item's owner is not on the fediverse", 404, { itemId })
+  return { item, owner }
 }
 
 export async function validateEntity (name) {

@@ -16,6 +16,7 @@ const ownerSafe = [
   'readToken',
   'roles',
   'fediversable',
+  'poolActivities',
   'customProperties',
   'snapshot',
 ] as const
@@ -55,6 +56,7 @@ const userAttributes = {
     'settings',
     'position',
     'fediversable',
+    'poolActivities',
     'summaryPeriodicity',
     'customProperties',
   ] as const,

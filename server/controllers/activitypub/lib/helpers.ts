@@ -38,6 +38,7 @@ export const isEntityActivityId = activityId => activityIdPattern.test(activityI
 export function getActorTypeFromName (name) {
   if (isEntityUri(getEntityUriFromActorName(name))) return 'entity'
   else if (name.startsWith('shelf-')) return 'shelf'
+  else if (name.startsWith('item-')) return 'item'
   else if (isUsername(name)) return 'user'
   else throw notFoundError({ name })
 }

@@ -13,8 +13,8 @@ const debounceTime = config.activitypub.activitiesDebounceTime + 50
 
 describe('activity', () => {
   describe('users', () => {
-    it('should get an activity', async () => {
-      const user = await createUser({ fediversable: true })
+    it('should get an activity with pooled items', async () => {
+      const user = await createUser({ fediversable: true, poolActivities: true })
       const { username } = user
       await createItem(user)
       await wait(debounceTime)
@@ -23,6 +23,22 @@ describe('activity', () => {
       const activityUrl = orderedItems[0].object.id
       const activityId = new URL(activityUrl).searchParams.get('id')
       const activity = await publicReq('get', `/api/activitypub?action=activity&id=${activityId}`)
+      activity.id.should.equal(`${activityUrl}#create`)
+      activity.type.should.equal('Create')
+      activity.object.id.should.equal(activityUrl)
+      activity.object.type.should.equal('Note')
+      activity.object.content.should.be.a.String()
+    })
+
+    it('should get an activity with an id based on item._id', async () => {
+      const user = await createUser({ fediversable: true })
+      const { username } = user
+      const item = await createItem(user)
+      await wait(debounceTime)
+      const outboxUrl = makeUrl({ params: { action: 'outbox', name: username, offset: 0 } })
+      const { orderedItems } = await publicReq('get', outboxUrl)
+      const activityUrl = orderedItems[0].object.id
+      const activity = await publicReq('get', `/api/activitypub?action=activity&id=item-${item._id}`)
       activity.id.should.equal(`${activityUrl}#create`)
       activity.type.should.equal('Create')
       activity.object.id.should.equal(activityUrl)

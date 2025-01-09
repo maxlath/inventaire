@@ -1,11 +1,11 @@
-import { compact } from 'lodash-es'
+import { compact, flatten } from 'lodash-es'
 import { getPublicItemsByShelfAndDate } from '#controllers/items/lib/items'
 import type { CreateActivity } from '#types/activity'
 import type { RelativeUrl, AbsoluteUrl } from '#types/common'
-import { createItemsNote, findFullRangeFromActivities } from './format_items_activities.js'
+import { buildItemsCreateActivities, buildPooledCreateActivities, findFullRangeFromActivities } from './format_items_activities.js'
 import { makeUrl } from './helpers.js'
 
-export default async function (activitiesDocs, shelfId, name) {
+export default async function (activitiesDocs, shelfId, name, poolActivities) {
   if (activitiesDocs.length === 0) return
   const actor: AbsoluteUrl = makeUrl({ params: { action: 'actor', name } })
   const parentLink: RelativeUrl = `/shelves/${shelfId}`
@@ -16,6 +16,13 @@ export default async function (activitiesDocs, shelfId, name) {
     until,
   })
 
-  const formattedActivities: CreateActivity[] = await Promise.all(activitiesDocs.map(createItemsNote({ allActivitiesItems, name, actor, parentLink })))
+  let formattedActivities: CreateActivity[] = []
+
+  if (poolActivities) {
+    formattedActivities = await Promise.all(activitiesDocs.map(buildPooledCreateActivities({ allActivitiesItems, name, actor, parentLink })))
+  } else {
+    formattedActivities = flatten(await Promise.all(activitiesDocs.map(buildItemsCreateActivities({ allActivitiesItems, name, actor, parentLink }))
+    ))
+  }
   return compact(formattedActivities)
 }

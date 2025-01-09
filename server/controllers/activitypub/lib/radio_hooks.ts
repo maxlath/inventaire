@@ -42,11 +42,12 @@ const createDebouncedActivity = ({ userId, shelfId }: createActivityParams) => a
 }
 
 async function _createDebouncedActivity ({ userId, shelfId }: createActivityParams) {
-  let name, user
+  let name, user, poolActivities
   if (userId) {
     delete debouncedActivities[userId]
     user = await getUserById(userId) as User
     if (!user.fediversable) return
+    ;({ poolActivities } = user)
     name = user.stableUsername as Username
   } else if (shelfId) {
     delete debouncedActivities[shelfId]
@@ -56,6 +57,7 @@ async function _createDebouncedActivity ({ userId, shelfId }: createActivityPara
     if (!shelf.visibility.includes('public')) return
     const owner = await getUserById(shelf.owner)
     if (!owner.fediversable) return
+    ;({ poolActivities } = owner)
     // todo: use group slugify to create shelf name
     // shelf = await getShelfById(shelfId)
     name = `shelf-${shelfId}` as ShelfActorName
@@ -68,12 +70,11 @@ async function _createDebouncedActivity ({ userId, shelfId }: createActivityPara
     actor: { name },
     object: { items: { since, until: Date.now() } },
   })
-
   let createActivities: CreateActivity[]
   if (userId) {
     createActivities = await formatUserItemsActivities([ activityDoc ], user)
   } else if (shelfId) {
-    createActivities = await formatShelfItemsActivities([ activityDoc ], shelfId, name)
+    createActivities = await formatShelfItemsActivities([ activityDoc ], shelfId, name, poolActivities)
   }
   const activity: CreateActivity = createActivities[0]
   if (!activity) return

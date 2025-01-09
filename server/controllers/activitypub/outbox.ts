@@ -40,14 +40,14 @@ async function controller (params: SanitizedParameters, req: Req, res: Res) {
 }
 
 async function getShelfActivities ({ name, offset, limit }) {
-  const { shelf } = await validateShelf(name)
+  const { shelf, owner } = await validateShelf(name)
   const fullOutboxUrl = makeUrl({ params: { action: 'outbox', name } })
   const baseOutbox = getBaseOutbox(fullOutboxUrl)
   if (offset == null) {
     baseOutbox.totalItems = await getActivitiesCountByName(name)
     return baseOutbox
   } else {
-    return buildPaginatedShelfOutbox(shelf, name, offset, limit, baseOutbox)
+    return buildPaginatedShelfOutbox(shelf, name, offset, limit, baseOutbox, owner.poolActivities)
   }
 }
 
@@ -116,13 +116,13 @@ async function buildPaginatedUserOutbox (user, offset, limit, outbox) {
   return outbox
 }
 
-async function buildPaginatedShelfOutbox (shelf, name, offset, limit, outbox) {
+async function buildPaginatedShelfOutbox (shelf, name, offset, limit, outbox, poolActivities) {
   const { id: fullOutboxUrl } = outbox
   outbox.type = 'OrderedCollectionPage'
   outbox.partOf = fullOutboxUrl
   outbox.next = `${fullOutboxUrl}&offset=${offset + limit}`
   const activitiesDocs = await getActivitiesByActorName({ name, offset, limit })
-  outbox.orderedItems = await formatShelfItemsActivities(activitiesDocs, shelf._id, name)
+  outbox.orderedItems = await formatShelfItemsActivities(activitiesDocs, shelf._id, name, poolActivities)
   return outbox
 }
 

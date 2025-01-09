@@ -3,6 +3,7 @@ import { find } from 'lodash-es'
 import { makeUrl, getEntityActorName, propertyLabel } from '#controllers/activitypub/lib/helpers'
 import { propertiesDisplay } from '#controllers/activitypub/lib/properties_display'
 import { createHuman, createEdition } from '#fixtures/entities'
+import { createItem } from '#fixtures/items'
 import { createShelf } from '#fixtures/shelves'
 import { createUser, createUsername } from '#fixtures/users'
 import { i18n } from '#lib/emails/i18n/i18n'
@@ -233,6 +234,18 @@ describe('activitypub:actor', () => {
       statusCode.should.equal(302)
       headers.location.should.equal(`${publicOrigin}/shelves/${shelf._id}`)
     })
+  })
+})
+
+describe('item', () => {
+  it('should redirect to the item url when requesting html', async () => {
+    const user = await createUser({ fediversable: true })
+    const item = await createItem(user)
+    const name = `item-${item._id}`
+    const actorUrl = makeUrl({ params: { action: 'actor', name } })
+    const { statusCode, headers } = await getHtml(actorUrl)
+    statusCode.should.equal(302)
+    headers.location.should.equal(`${origin}/items/${item._id}`)
   })
 })
 

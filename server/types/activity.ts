@@ -16,11 +16,13 @@ export interface PropertyValueAttachment {
   url?: Url
 }
 
-export interface ActivityIcon{
+export interface ImageAttachment {
   mediaType: 'image/jpeg'
   type: 'Image' | 'Document'
   url: string
 }
+
+export type Attachment = PropertyValueAttachment | ImageAttachment
 
 export type ShelfActorName = `shelf-${CouchUuid}`
 export type EntityActorName = `${EntityUriPrefix}-${CouchUuid}`
@@ -45,7 +47,7 @@ export interface ActorActivity {
       publicKeyHash: string
     }
   }
-  icon?: ActivityIcon
+  icon?: ImageAttachment
   attachment?: PropertyValueAttachment[]
 }
 
@@ -97,7 +99,7 @@ export interface NoteActivity extends BaseActivity {
   type: 'Note'
   content: string
   published: DateValue
-  attachment?: PropertyValueAttachment[]
+  attachment?: Attachment[]
 }
 
 export interface AcceptActivity extends BaseActivity {

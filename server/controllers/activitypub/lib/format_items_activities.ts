@@ -3,8 +3,9 @@ import { context } from '#controllers/activitypub/lib/helpers'
 import { addSnapshotToItem } from '#controllers/items/lib/snapshot/snapshot'
 import { i18n } from '#lib/emails/i18n/i18n'
 import config from '#server/config'
-import type { ActivityDoc, ItemNote, NoteActivity, CreateActivity, Attachment } from '#types/activity'
+import type { ActivityDoc, ItemNote, NoteActivity, CreateActivity, ImageAttachment } from '#types/activity'
 import type { Url, AbsoluteUrl, RelativeUrl } from '#types/common'
+import type { SerializedItem } from '#types/item'
 
 const origin = config.getPublicOrigin()
 const maxLinksToDisplay = 3
@@ -97,10 +98,10 @@ function buildContent ({ links, name, lang = 'en', itemsLength, parentLink }: Bu
   return html
 }
 
-function buildAttachment (item) {
+function buildAttachment (item: SerializedItem) {
   const imageUrl = item.snapshot['entity:image']
   if (!imageUrl) return
-  const attachment: Attachment = {
+  const attachment: ImageAttachment = {
     type: 'Image',
     mediaType: 'image/jpeg',
     url: `${origin}${imageUrl}`,

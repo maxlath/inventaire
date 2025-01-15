@@ -51,7 +51,7 @@ export function warn (err: unknown, label?: string) {
   if (err instanceof Error) {
     // shorten the stack trace
     err.stack = err.stack.split('\n').slice(0, 10).join('\n')
-    reduceForwardedErrorsVerbosity(err)
+    decreaseForwardedErrorsVerbosity(err)
   }
 
   log(err, label, 'yellow')
@@ -74,7 +74,7 @@ export function logError (err: ContextualizedError, label?: string) {
     return
   }
 
-  reduceForwardedErrorsVerbosity(err)
+  decreaseForwardedErrorsVerbosity(err)
   log(err, label, 'red')
 
   let host = 'local'
@@ -89,7 +89,7 @@ export function logError (err: ContextualizedError, label?: string) {
   errorCount++
 }
 
-function reduceForwardedErrorsVerbosity (err: ContextualizedError) {
+function decreaseForwardedErrorsVerbosity (err: ContextualizedError) {
   if ('forwardedFrom' in err) {
     if ('emitter' in err) delete err.emitter
   }

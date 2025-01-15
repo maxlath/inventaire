@@ -10,7 +10,7 @@ import { newError } from '#lib/error/error'
 import { getUrlFromImageHash } from '#lib/images'
 import { toIsbn13h } from '#lib/isbn/isbn'
 import { emit } from '#lib/radio'
-import { assertTypes, assertString } from '#lib/utils/assert_types'
+import { assertString } from '#lib/utils/assert_types'
 import { beforeEntityDocSave } from '#models/entity'
 import { federatedMode } from '#server/config'
 import type { EntityUri, InvEntityDoc, EntityValue, PropertyUri, InvEntity, Isbn, InvClaimValue, SerializedEntity, WdEntityId, WdEntityUri, EntityType, Claims, NewInvEntity } from '#types/entity'
@@ -111,7 +111,6 @@ interface PutInvEntityUpdateParams extends PutInvEntityCommonParams {
 }
 export async function putInvEntityUpdate <T extends InvEntityDoc = InvEntity> (params: PutInvEntityCreationParams | PutInvEntityUpdateParams) {
   const { userAcct, currentDoc, updatedDoc, create, batchId, context } = params
-  assertTypes([ 'string', 'object', 'object' ], [ userAcct, currentDoc, updatedDoc ])
   if (currentDoc === updatedDoc) {
     // @ts-expect-error TS2345
     throw newError('currentDoc and updatedDoc can not be the same object', 500, params)

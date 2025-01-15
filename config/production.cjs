@@ -1,6 +1,6 @@
 // Production config
 // This config file will be used if: NODE_ENV=production
-// Override locally in ./local-production.js
+// Override locally in ./local-production.cjs
 
 /** @typedef { import('../types/types.ts').Config } Config */
 /** @typedef { import('type-fest').PartialDeep } PartialDeep */

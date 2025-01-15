@@ -1,6 +1,5 @@
 import { getAggregatedPropertiesValues } from '#controllers/entities/lib/entities'
-import { getEntitiesByUris } from '#controllers/entities/lib/get_entities_by_uris'
-import { getEntityByUri } from '#controllers/entities/lib/get_entity_by_uri'
+import { getEntitiesByUris, getEntityByUri } from '#controllers/entities/lib/federation/instance_agnostic_entities'
 import { workAuthorRelationsProperties } from '#controllers/entities/lib/properties/properties'
 import { assertArray } from '#lib/utils/assert_types'
 import type { EntityUri, PropertyUri } from '#types/entity'

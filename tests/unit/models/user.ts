@@ -8,10 +8,11 @@ const someLanguage = 'se'
 const somePassword = 'password'
 
 describe('user model', () => {
-  describe('local signup', () => {
+  describe('signup', () => {
     it('should return a user on valid args', async () => {
       const user = await createUserDoc(someUsername, someEmail, someLanguage, somePassword)
       user.should.be.an.Object()
+      user.anonymizableId.should.be.a.String()
     })
 
     describe('username validation', () => {
@@ -48,6 +49,7 @@ describe('user model', () => {
 
     describe('email validation', () => {
       it('should throw on invalid email', async () => {
+        // @ts-expect-error
         await createUserDoc(someUsername, 'notanemail', someLanguage, somePassword)
         .then(shouldNotBeCalled)
         .catch(err => {
@@ -92,6 +94,7 @@ describe('user model', () => {
   describe('delete', () => {
     it('should delete user attributes not needed by the user souvenir', async () => {
       const user = await createUserDoc(someUsername, someEmail, someLanguage, somePassword)
+      // @ts-expect-error
       user._id = user._rev = 'foo'
       // @ts-ignore
       const userSouvenir = softDeleteUser(user)
@@ -101,6 +104,7 @@ describe('user model', () => {
       userSouvenir.should.deepEqual({
         _id: user._id,
         _rev: user._rev,
+        anonymizableId: user.anonymizableId,
         username: user.username,
         type: 'deleted',
         created: user.created,

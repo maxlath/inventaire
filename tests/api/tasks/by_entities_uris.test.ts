@@ -1,6 +1,7 @@
 import 'should'
 import { createHuman, someFakeUri } from '#fixtures/entities'
 import { createTask } from '#fixtures/tasks'
+import { federatedMode } from '#server/config'
 import {
   endpoint,
   getBySuspectUris,
@@ -10,7 +11,10 @@ import {
 import { publicReq } from '#tests/api/utils/utils'
 
 describe('tasks:bySuspectUris', () => {
-  it('should return an array of tasks', async () => {
+  it('should return an array of tasks', async function () {
+    // Disabled in federated mode as the test relies on directly calling createTask
+    // which operates on the local tasks database, and not on the remote one
+    if (federatedMode) this.skip()
     const suspect = await createHuman()
     await createTask({ suspectUri: suspect.uri })
     const { uri } = suspect
@@ -21,7 +25,10 @@ describe('tasks:bySuspectUris', () => {
     tasks[uri][0].should.be.an.Object()
   })
 
-  it('should return an array of tasks when passed an empty type', async () => {
+  it('should return an array of tasks when passed an empty type', async function () {
+    // Disabled in federated mode as the test relies on directly calling createTask
+    // which operates on the local tasks database, and not on the remote one
+    if (federatedMode) this.skip()
     const suspect = await createHuman()
     await createTask({ suspectUri: suspect.uri })
     const { uri } = suspect
@@ -29,10 +36,13 @@ describe('tasks:bySuspectUris', () => {
     tasks[uri][0].should.be.an.Object()
   })
 
-  it('should not return archived tasks', async () => {
+  it('should not return archived tasks', async function () {
+    // Disabled in federated mode as the test relies on directly calling createTask
+    // which operates on the local tasks database, and not on the remote one
+    if (federatedMode) this.skip()
     const suspect = await createHuman()
     const { uri } = suspect
-    const task = await createTask({ uri })
+    const task = await createTask({ suspectUri: uri })
     await update(task._id, 'state', 'dismissed')
     const tasks = await getBySuspectUris(uri)
     tasks[uri].length.should.equal(0)
@@ -48,7 +58,10 @@ describe('tasks:bySuspectUris', () => {
 })
 
 describe('tasks:bySuggestionUris', () => {
-  it('should return tasks', async () => {
+  it('should return tasks', async function () {
+    // Disabled in federated mode as the test relies on directly calling createTask
+    // which operates on the local tasks database, and not on the remote one
+    if (federatedMode) this.skip()
     const suggestion = await createHuman()
     const { uri } = suggestion
     await createTask({ suggestionUri: uri })

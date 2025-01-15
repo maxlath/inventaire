@@ -1,11 +1,12 @@
-import { actionsControllersFactory } from '#lib/actions_controllers'
+import { methodAndActionsControllersFactory } from '#lib/actions_controllers'
+import { buildProxiedControllers } from '#lib/federation/build_proxied_controllers'
 import isbn from './isbn.js'
 import { propertyValues, propertiesMetadata } from './properties_metadata.js'
 import summaries from './summaries.js'
 import wpExtract from './wp_extract.js'
 
-export default {
-  get: actionsControllersFactory({
+const localDataControllersParams = {
+  get: {
     public: {
       'wp-extract': wpExtract,
       summaries,
@@ -13,5 +14,8 @@ export default {
       'property-values': propertyValues,
       properties: propertiesMetadata,
     },
-  }),
+  },
 }
+
+export const localDataControllers = methodAndActionsControllersFactory(localDataControllersParams)
+export const federatedDataControllers = buildProxiedControllers('/api/tasks', localDataControllersParams)

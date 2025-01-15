@@ -3,11 +3,13 @@ import { randomBytes } from 'node:crypto'
 import { isPlainObject, random, round } from 'lodash-es'
 import { addUserRole } from '#controllers/user/lib/user'
 import { getSomeEmail, getSomeUsername } from '#fixtures/text'
+import { getRandomUuid } from '#lib/crypto'
 import { assertString } from '#lib/utils/assert_types'
 import { getRandomString } from '#lib/utils/random_string'
 import config from '#server/config'
 import { makeFriends } from '#tests/api/utils/relations'
 import { request, rawRequest } from '#tests/api/utils/request'
+import { deleteUser } from '#tests/api/utils/users'
 import type { Awaitable } from '#tests/api/utils/utils'
 import type { User, UserRole } from '#types/user'
 
@@ -78,7 +80,7 @@ export interface UserWithCookie extends User {
 export type AwaitableUserWithCookie = Awaitable<UserWithCookie>
 
 export async function getUserWithCookie (cookie: string) {
-  const user = await request('get', '/api/user', null, cookie)
+  const user = await request('get', '/api/user', null, { cookie })
   user.cookie = cookie
   assertString(user.cookie)
   return user as UserWithCookie
@@ -146,3 +148,11 @@ function randomCoordinate (min: number, max: number) {
 }
 
 export const someSpamText = 'SEO! https://spamers.corp'
+
+export async function getDeletedUser () {
+  const user = await createUser()
+  await deleteUser(user)
+  return getRefreshedUser(user)
+}
+
+export const getSomeRandomAnonymizableId = getRandomUuid

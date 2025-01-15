@@ -1,8 +1,10 @@
+import { isAuthentifiedReq } from '#lib/boolean_validations'
 import { errorHandler } from '#lib/error/error_handler'
+import { remoteUserHeader, geRemoteUserFromSignedReqHeader } from '#lib/federation/remote_user'
 import { assertFunction, assertArray, assertObject, assertString } from '#lib/utils/assert_types'
 import { someMatch } from '#lib/utils/base'
 import validateObject from '#lib/validate_object'
-import { bundleUnauthorizedApiAccess } from './error/pre_filled.js'
+import { newUnauthorizedApiAccessError } from './error/pre_filled.js'
 import { send } from './responses.js'
 import { sanitize, validateSanitization } from './sanitize/sanitize.js'
 import { track } from './track.js'
@@ -15,19 +17,23 @@ import { rolesByAccess } from './user_access_levels.js'
 // - handle errors
 // - track actions
 export async function controllerWrapper (controllerParams, req, res) {
-  const { access, controller, sanitization, track: trackActionArray } = controllerParams
-  // user.roles doesn't contain 'public' and 'authentified', but those are needed to resolve access levels
-  const roles = [ 'public' ]
-  if (req.user) {
-    roles.push('authentified')
-    if (req.user.roles) roles.push(...req.user.roles)
-  }
-
-  if (!someMatch(roles, rolesByAccess[access])) {
-    return bundleUnauthorizedApiAccess(req, res, { roles, requiredAccessLevel: access })
-  }
-
   try {
+    const { access, controller, sanitization, track: trackActionArray } = controllerParams
+    // user.roles doesn't contain 'public' and 'authentified', but those are needed to resolve access levels
+    const roles = [ 'public' ]
+    if (req.user) {
+      roles.push('authentified')
+      if (req.user.roles) roles.push(...req.user.roles)
+    } else if ('signature' in req.headers && remoteUserHeader in req.headers) {
+      req.remoteUser = await geRemoteUserFromSignedReqHeader(req)
+      roles.push('authentified')
+    }
+
+    if (!someMatch(roles, rolesByAccess[access])) {
+      const statusCode = isAuthentifiedReq(req) ? 403 : 401
+      throw newUnauthorizedApiAccessError(statusCode, { roles, requiredAccessLevel: access })
+    }
+
     if (sanitization) {
       const params = sanitize(req, res, sanitization)
       const result = await controller(params, req, res)

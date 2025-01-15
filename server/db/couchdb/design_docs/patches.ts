@@ -16,7 +16,7 @@ export const views: Views<Patch> = {
       emit([ entityId, parseInt(patchNumber) ], null)
     },
   },
-  byUserIdAndDate: {
+  byUserAcctAndDate: {
     map: doc => emit([ doc.user, doc.timestamp ], null),
     reduce: '_count',
   },
@@ -60,7 +60,7 @@ export const views: Views<Patch> = {
     ],
     reduce: '_count',
   },
-  byUserIdAndFilterAndDate: {
+  byUserAcctAndFilterAndDate: {
     map: doc => {
       const { user, timestamp } = doc
       // Use an object to deduplicate filters

@@ -7,6 +7,7 @@ import { createElement, createListing, updateElement, updateListing } from '#fix
 import { createShelf } from '#fixtures/shelves'
 import { createUser, someSpamText, type UserWithCookie } from '#fixtures/users'
 import { buildUrl } from '#lib/utils/url'
+import { federatedMode } from '#server/config'
 import { updateClaim, updateLabel } from '#tests/api/utils/entities'
 import { updateGroup } from '#tests/api/utils/groups'
 import { updateItem, updateItems } from '#tests/api/utils/items'
@@ -121,7 +122,9 @@ describe('user:abuse reports', () => {
   })
 
   describe('reports access', () => {
-    it('should let admin users access the abuse reports', async () => {
+    it('should let admin users access the abuse reports', async function () {
+      // Disabled in federated mode yet as this test relies on a special role
+      if (federatedMode) this.skip()
       const user = await createUser()
       await updateUser({ user, attribute: 'bio', value: someSpamText }).catch(catchSpamRejection)
       await userShouldHaveASpamAbuseReport(user)

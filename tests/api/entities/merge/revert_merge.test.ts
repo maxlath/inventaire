@@ -1,12 +1,14 @@
 import should from 'should'
 import { createWork, createHuman, createWorkWithAuthor } from '#fixtures/entities'
 import { getRandomString } from '#lib/utils/random_string'
+import { federatedMode } from '#server/config'
 import { getByUris, merge, revertMerge, updateLabel, addClaim } from '#tests/api/utils/entities'
 import { authReq, dataadminReq } from '#tests/api/utils/utils'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
 
 describe('entities:revert-merge', () => {
-  it('should require data admin rights', async () => {
+  it('should require data admin rights', async function () {
+    if (federatedMode) this.skip()
     await authReq('put', '/api/entities?action=revert-merge')
     .then(shouldNotBeCalled)
     .catch(err => {
@@ -14,7 +16,8 @@ describe('entities:revert-merge', () => {
     })
   })
 
-  it('should reject without "from" uri', async () => {
+  it('should reject without "from" uri', async function () {
+    if (federatedMode) this.skip()
     // Not using utils/entities `revertMerge` function to avoid getting an error from `assertString(fromUri)`
     await dataadminReq('put', '/api/entities?action=revert-merge', {})
     .then(shouldNotBeCalled)
@@ -24,7 +27,8 @@ describe('entities:revert-merge', () => {
     })
   })
 
-  it('should reject invalid prefix', async () => {
+  it('should reject invalid prefix', async function () {
+    if (federatedMode) this.skip()
     await revertMerge('wd:Q42')
     .then(shouldNotBeCalled)
     .catch(err => {
@@ -33,7 +37,8 @@ describe('entities:revert-merge', () => {
     })
   })
 
-  it('should revert merge two entities with an inv URI', async () => {
+  it('should revert merge two entities with an inv URI', async function () {
+    if (federatedMode) this.skip()
     const [ workA, workB ] = await Promise.all([
       createWork(),
       createWork(),
@@ -48,7 +53,8 @@ describe('entities:revert-merge', () => {
     res2.entities[workA.uri].should.be.ok()
   })
 
-  it('should revert claims transfer', async () => {
+  it('should revert claims transfer', async function () {
+    if (federatedMode) this.skip()
     const [ workA, workB, author ] = await Promise.all([
       createWork(),
       createWork(),
@@ -65,7 +71,8 @@ describe('entities:revert-merge', () => {
     should(authorsUris2).not.be.ok()
   })
 
-  it('should revert labels transfer', async () => {
+  it('should revert labels transfer', async function () {
+    if (federatedMode) this.skip()
     const label = getRandomString(6)
     const [ workA, workB ] = await Promise.all([
       createWork({ labels: { zh: label } }),
@@ -79,7 +86,8 @@ describe('entities:revert-merge', () => {
     should(res2.entities[workB.uri].labels.zh).not.be.ok()
   })
 
-  it('should revert claim transfers, even when several patches away', async () => {
+  it('should revert claim transfers, even when several patches away', async function () {
+    if (federatedMode) this.skip()
     const [ workA, workB, authorA, authorB ] = await Promise.all([
       createWork(),
       createWork(),
@@ -99,7 +107,8 @@ describe('entities:revert-merge', () => {
     authorsUris2.should.deepEqual([ authorB.uri ])
   })
 
-  it('should revert labels transfer', async () => {
+  it('should revert labels transfer', async function () {
+    if (federatedMode) this.skip()
     const labelA = getRandomString(6)
     const labelB = getRandomString(6)
     const [ workA, workB ] = await Promise.all([
@@ -116,7 +125,8 @@ describe('entities:revert-merge', () => {
     should(res2.entities[workB.uri].labels.zh).not.be.ok()
   })
 
-  it('should revert redirected claims', async () => {
+  it('should revert redirected claims', async function () {
+    if (federatedMode) this.skip()
     const [ humanA, humanB, work ] = await Promise.all([
       createHuman(),
       createHuman(),
@@ -130,7 +140,8 @@ describe('entities:revert-merge', () => {
     authorsUris.should.deepEqual([ humanA.uri ])
   })
 
-  it('should restore deduplicated redirected claims', async () => {
+  it('should restore deduplicated redirected claims', async function () {
+    if (federatedMode) this.skip()
     const [ humanA, humanB, humanC, work ] = await Promise.all([
       createHuman(),
       createHuman(),
@@ -152,7 +163,8 @@ describe('entities:revert-merge', () => {
     authorsUris.should.deepEqual([ humanA.uri, humanB.uri ])
   })
 
-  it('should restore removed human placeholders', async () => {
+  it('should restore removed human placeholders', async function () {
+    if (federatedMode) this.skip()
     const [ workA, workB ] = await Promise.all([
       createWorkWithAuthor(),
       createWorkWithAuthor(),

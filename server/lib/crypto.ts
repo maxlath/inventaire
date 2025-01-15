@@ -1,7 +1,8 @@
-import crypto from 'node:crypto'
+import crypto, { randomUUID } from 'node:crypto'
 import { promisify } from 'node:util'
 import { newError } from '#lib/error/error'
 import type { StringifiedHashedSecretData } from '#types/common'
+import type { CouchUuid } from '#types/couchdb'
 import passwordHashing from './password_hashing.js'
 
 const generateKeyPair = promisify(crypto.generateKeyPair)
@@ -59,4 +60,8 @@ export async function generateRsaKeyPair () {
       format: 'pem',
     },
   })
+}
+
+export function getRandomUuid () {
+  return randomUUID().replaceAll('-', '') as CouchUuid
 }

@@ -1,16 +1,19 @@
 import 'should'
 import { map } from 'lodash-es'
 import { createHuman, createWorkWithAuthor } from '#fixtures/entities'
+import { federatedMode } from '#server/config'
 import { getByUris } from '#tests/api/utils/entities'
 import { search, waitForIndexation } from '#tests/api/utils/search'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
+import type { WdEntityUri } from '#types/entity'
 
 const someOtherAuthorUri = 'inv:00000000000000000000000000000000'
-const wikidataUris = [ 'wd:Q1345582', 'wd:Q18120925' ]
+const wikidataUris = [ 'wd:Q1345582', 'wd:Q18120925' ] as WdEntityUri[]
 
 describe('search:entities:by-claim', async () => {
   let workAuthor, workWithAuthor
-  before(async () => {
+  before(async function () {
+    if (federatedMode) this.skip()
     workAuthor = await createHuman()
     workWithAuthor = await createWorkWithAuthor(workAuthor)
     await Promise.all([

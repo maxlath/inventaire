@@ -8,6 +8,7 @@ import type { ImageHash, UserImagePath } from '#types/image'
 import type { ReadonlyDeep } from 'type-fest'
 
 export type UserId = CouchUuid
+export type AnonymizableUserId = CouchUuid
 export type Email = `${string}@${string}`
 
 export interface UserSettings {
@@ -62,6 +63,8 @@ export type AbuseReport = SpamReport
 
 export type Username = string
 
+export type UserOAuth = Partial<Record<OAuthProvider, OAuthProviderTokens>>
+
 export interface User extends CouchDoc {
   _id: UserId
   type: 'user'
@@ -69,6 +72,7 @@ export interface User extends CouchDoc {
   stableUsername?: Username
   created: EpochTimeStamp
   email?: Email
+  anonymizableId: AnonymizableUserId
   password?: string | StringifiedHashedSecretData
   picture?: UserImagePath
   language?: string
@@ -85,7 +89,7 @@ export interface User extends CouchDoc {
   snapshot?: UserDataSnapshot
   deleted?: EpochTimeStamp
   resetPassword?: EpochTimeStamp
-  oauth?: Partial<Record<OAuthProvider, OAuthProviderTokens>>
+  oauth?: UserOAuth
   undeliveredEmail?: number
   lastSummary?: EpochTimeStamp
   lastNews?: string
@@ -93,12 +97,15 @@ export interface User extends CouchDoc {
 }
 
 export interface SpecialUser extends ReadonlyDeep<typeof specialUserDocBase> {
-  _id: `00000000000000000000000000000${number}`
+  _id: CouchUuid
   _rev: CouchRevId
   type: 'special'
+  anonymizableId: AnonymizableUserId
   username: string
   stableUsername: never
   roles: never
+  // Not used currently, but required to avoid type errors when typing user as (User | SpecialUser)
+  oauth?: UserOAuth
 }
 
 export interface DeletedUser extends Pick<User, typeof userAttributes.critical[number]> {
@@ -116,3 +123,4 @@ export interface InvitedUser extends CouchDoc {
 
 export type DocInUserDb = User | InvitedUser | DeletedUser | SpecialUser
 export type DocWithUsernameInUserDb = User | DeletedUser | SpecialUser
+export type DocWithAnonymizableId = User | DeletedUser | SpecialUser

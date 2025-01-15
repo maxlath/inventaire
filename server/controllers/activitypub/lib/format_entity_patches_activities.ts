@@ -1,4 +1,4 @@
-import { getEntitiesList } from '#controllers/entities/lib/get_entities_list'
+import { getEntitiesList } from '#controllers/entities/lib/federation/instance_agnostic_entities'
 import { getFirstClaimValue } from '#controllers/entities/lib/inv_claims_utils'
 import { prefixifyInv } from '#controllers/entities/lib/prefix'
 import { i18n } from '#lib/emails/i18n/i18n'

@@ -2,6 +2,7 @@ import 'should'
 import automergeAuthorWorks from '#controllers/tasks/lib/automerge_author_works'
 import { createHuman, createWorkWithAuthor, addSerie } from '#fixtures/entities'
 import { wait } from '#lib/promises'
+import { federatedMode } from '#server/config'
 import { getByUris, findOrIndexEntities } from '#tests/api/utils/entities'
 import { checkEntities } from '#tests/api/utils/tasks'
 import type { EntityUri } from '#types/entity'
@@ -13,7 +14,9 @@ describe('automerge_author_works: only from inv works to wd works', () => {
     await findOrIndexEntities(wikidataUris)
   })
 
-  it('should automerge inv works to a wd work', async () => {
+  it('should automerge inv works to a wd work', async function () {
+    // Test not available in federated mode due to dependency to automergeAuthorWorks
+    if (federatedMode) this.skip()
     const authorUri = 'wd:Q205739' // Alan Moore uri
     const workLabel = 'Voice of the Fire'
     const workWdUri = 'wd:Q3825051' // 'Voice of the Fire' uri
@@ -29,7 +32,8 @@ describe('automerge_author_works: only from inv works to wd works', () => {
     redirects[work2.uri].should.equal(workWdUri)
   })
 
-  it('should automerge if suspect and suggestion wd and inv short works labels match', async () => {
+  it('should automerge if suspect and suggestion wd and inv short works labels match', async function () {
+    if (federatedMode) this.skip()
     const humanLabel = 'Michael Crichton'
     const workLabel = 'Timeline' // wd:Q732060
     const workWdUri = 'wd:Q732060'

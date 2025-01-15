@@ -1,8 +1,11 @@
 import { createTasksInBulk } from '#controllers/tasks/lib/tasks'
+import { newError } from '#lib/error/error'
+import { buildLocalUserAcct } from '#lib/federation/remote_user'
+import { federatedMode } from '#server/config'
 import { getByIds } from '#tests/api/utils/tasks'
 import type { EntityUri, EntityType } from '#types/entity'
+import type { UserAccountUri } from '#types/server'
 import type { TaskType } from '#types/task'
-import type { UserId } from '#types/user'
 import { createHuman, createWork } from './entities.js'
 
 interface TaskDoc {
@@ -13,12 +16,12 @@ interface TaskDoc {
   lexicalScore?: number
   relationScore?: number
   entitiesType?: EntityType
-  reporter?: UserId
+  reporter?: UserAccountUri
   externalSourcesOccurrences?: any
   clue?: string
 }
 
-export async function createTask (params?: TaskDoc = {}) {
+export async function createTask (params: TaskDoc = {}) {
   let taskDoc = await createTaskBase(params)
   if (taskDoc.entitiesType && taskDoc.entitiesType === 'work') {
     taskDoc = await createWorkTaskDoc(params)
@@ -34,7 +37,7 @@ const createWorkTaskDoc = async (params: TaskDoc) => {
   const taskDoc: TaskDoc = await createTaskBase(params)
   taskDoc.suggestionUri = params.suggestionUri || 'wd:Q104889737'
   const userId = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-  taskDoc.reporter = userId
+  taskDoc.reporter = buildLocalUserAcct(userId)
   const isbn = '978-1-59184-233-0'
   taskDoc.clue = isbn
   return taskDoc
@@ -74,5 +77,6 @@ async function createTaskBase (params: TaskDoc) {
 }
 
 const createTasks = taskDocs => {
+  if (federatedMode) throw newError('Tests relying on creating tasks directly in the database are not available in federated mode', 500)
   return createTasksInBulk(taskDocs)
 }

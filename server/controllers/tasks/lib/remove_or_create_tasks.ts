@@ -5,16 +5,16 @@ import { removeEntitiesByInvId } from '#controllers/entities/lib/remove_entities
 import { getClaimsWithThisUri, verifyThatEntitiesCanBeRemoved } from '#controllers/entities/lib/verify_that_entities_can_be_removed'
 import { getClaimsValuesUris, updateTasks, getTasksBySuspectUris, createTasksInBulk } from '#controllers/tasks/lib/tasks'
 import { isNonEmptyArray, isNonEmptyPlainObject } from '#lib/boolean_validations'
+import type { UserWithAcct } from '#lib/federation/remote_user'
 import { log } from '#lib/utils/logs'
 import type { EntityUri } from '#types/entity'
-import type { User } from '#types/user'
 
-export async function removeOrCreateOrUpdateTasks (user: User, uris: EntityUri[]) {
+export async function removeOrCreateOrUpdateTasks (user: UserWithAcct, uris: EntityUri[]) {
   const [ entitiesRes, existingTasks ] = await Promise.all([
     getEntitiesByUris({ uris }),
     getTasksBySuspectUris(uris, { index: true }),
   ])
-  const { _id: userId } = user
+  const { acct: userAcct } = user
 
   const tasksIdsToUpdate = []
   const tasksToCreate = []
@@ -45,7 +45,7 @@ export async function removeOrCreateOrUpdateTasks (user: User, uris: EntityUri[]
         const task = existingTasks[uri][0]
         tasksIdsToUpdate.push(task._id)
       } else {
-        tasksToCreate.push(buildCreateTask(uri, entitiesType, userId))
+        tasksToCreate.push(buildCreateTask(uri, entitiesType, userAcct))
       }
     } else {
       entitiesUrisToRemove.push(uri)
@@ -59,7 +59,7 @@ export async function removeOrCreateOrUpdateTasks (user: User, uris: EntityUri[]
     await updateTasks({
       ids: tasksIdsToUpdate,
       attribute: 'reporter',
-      newValue: userId,
+      newValue: userAcct,
     })
   }
   if (isNonEmptyArray(tasksToCreate)) {
@@ -76,11 +76,11 @@ export async function removeOrCreateOrUpdateTasks (user: User, uris: EntityUri[]
   }
 }
 
-function buildCreateTask (suspectUri, entitiesType, userId) {
+function buildCreateTask (suspectUri, entitiesType, userAcct) {
   return {
     type: 'delete',
     entitiesType,
     suspectUri,
-    reporter: userId,
+    reporter: userAcct,
   }
 }

@@ -1,4 +1,4 @@
-import { pick } from 'lodash-es'
+import { get, pick } from 'lodash-es'
 import { getUserAccessLevels, type AccessLevel } from '#lib/user_access_levels'
 import userAttributes from '#models/attributes/user'
 import type { DeletedUser, DocWithUsernameInUserDb, SpecialUser, User, UserId } from '#types/user'
@@ -27,7 +27,17 @@ export function ownerSafeData (user: User | DeletedUser) {
 // Adapts the result to the requester authorization level
 export type UserExtraAttribute = 'email' | 'reports'
 
-export function omitPrivateData (reqUserId?: UserId, networkIds: UserId[] = [], extraAttribute?: UserExtraAttribute) {
+interface OmitPrivateDataParams {
+  networkIds?: UserId[]
+  reqUserId?: UserId
+  extraAttribute?: UserExtraAttribute
+  reqUserHasAdminAccess?: boolean
+}
+
+export function omitPrivateData (params: OmitPrivateDataParams) {
+  const { extraAttribute, reqUserId, reqUserHasAdminAccess } = params
+  let { networkIds } = params
+  networkIds ??= []
   const attributes = getAttributes(extraAttribute)
   return (userDoc: DocWithUsernameInUserDb) => {
     if (userDoc.type === 'deleted') return userDoc
@@ -39,6 +49,12 @@ export function omitPrivateData (reqUserId?: UserId, networkIds: UserId[] = [], 
     }
 
     const formattedUserDoc = pick(userDoc, attributes)
+    const anonymize = get(userDoc, 'settings.contributions.anonymize', true)
+    if (reqUserHasAdminAccess || !anonymize) {
+      // Sending the anonymizableId allows to request the user's contributions by acct
+      formattedUserDoc.anonymizableId = userDoc.anonymizableId
+    }
+
     if ('snapshot' in formattedUserDoc) {
       if ('private' in formattedUserDoc.snapshot) delete formattedUserDoc.snapshot.private
     }

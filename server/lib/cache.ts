@@ -18,7 +18,7 @@ const dbBatch = promisify(db.batch)
 const dbGetMany = promisify(db.getMany.bind(db))
 // It's convenient in tests to have the guaranty that the cached value was saved
 // but in production, that means delaying API responses in case LevelDB writes get slow
-const alwaysWaitForSavedValue = config.env.startsWith('tests')
+const alwaysWaitForSavedValue = config.env.includes('tests')
 
 interface CacheGetCommonParams {
   refresh?: boolean

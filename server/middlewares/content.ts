@@ -1,6 +1,7 @@
 import bodyParser from 'body-parser'
 import parseUrl from 'parseurl'
 import { bundleError } from '#lib/error/pre_filled'
+import { httpMethodHasBody } from '#lib/requests'
 import { getHashCode } from '#lib/utils/base'
 import { log } from '#lib/utils/logs'
 import config from '#server/config'
@@ -28,7 +29,7 @@ export function deduplicateRequests (req, res, next) {
   if (!dedupRequests) return next()
 
   const { method, url } = req
-  if (!methodsWithBody.includes(method)) return next()
+  if (!httpMethodHasBody(method)) return next()
 
   const { pathname } = parseUrl(req)
   if (ignorePathname.includes(pathname)) return next()
@@ -73,7 +74,6 @@ function temporaryLock (key, data) {
 // can be problematic in cluster mode as it won't be shared between instances
 const requestsCache = {}
 
-const methodsWithBody = [ 'POST', 'PUT' ]
 const ignorePathname = [
   '/api/reports',
 ]

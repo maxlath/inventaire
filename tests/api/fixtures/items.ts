@@ -13,19 +13,19 @@ const getEditionUri = async (lang = 'en') => {
   return uri
 }
 
-const createItemWithEntities = createEntityFn => async (user, itemData = {}) => {
+const createItemWithEntities = createEntityFn => async (user?, itemData = {}) => {
   const { uri } = await createEntityFn()
   itemData.entity = uri
   return createItem(user, itemData)
 }
 
-export const createItems = async (user, itemsData = []) => {
+export const createItems = async (user?, itemsData = []) => {
   user = user || getUser()
   const items = await Promise.all(itemsData.map(addDefaultEntity))
   return customAuthReq(user, 'post', '/api/items', items)
 }
 
-export async function createItem (user, itemData?) {
+export async function createItem (user?, itemData?) {
   user = user || getUser()
   itemData = itemData || {}
   itemData.visibility = itemData.visibility || [ 'public' ]

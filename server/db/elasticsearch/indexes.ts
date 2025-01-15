@@ -1,6 +1,6 @@
 import { keyBy, map, mapValues, pick, property } from 'lodash-es'
 import { extendedTypesAliases } from '#lib/wikidata/extended_aliases'
-import config from '#server/config'
+import config, { federatedMode } from '#server/config'
 import type { InvEntityDoc } from '#types/entity'
 import type { Group } from '#types/group'
 import type { Item } from '#types/item'
@@ -10,14 +10,17 @@ import type { User } from '#types/user'
 
 // Using CouchDB database names + environment suffix as indexes names
 const indexesData = [
-  { indexBaseName: 'wikidata', index: 'wikidata', sync: false },
-  // Match CouchDB database names
-  { indexBaseName: 'entities', index: config.db.name('entities'), sync: true },
   { indexBaseName: 'items', index: config.db.name('items'), sync: true },
   { indexBaseName: 'groups', index: config.db.name('groups'), sync: true },
   { indexBaseName: 'users', index: config.db.name('users'), sync: true },
   { indexBaseName: 'shelves', index: config.db.name('shelves'), sync: true },
   { indexBaseName: 'lists', index: config.db.name('lists'), sync: true },
+  ...(federatedMode
+    ? []
+    : [
+      { indexBaseName: 'wikidata', index: 'wikidata', sync: false },
+      { indexBaseName: 'entities', index: config.db.name('entities'), sync: true },
+    ]),
 ] as const
 
 export const indexes = keyBy(indexesData, 'indexBaseName')

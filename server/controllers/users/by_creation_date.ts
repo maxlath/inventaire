@@ -21,7 +21,7 @@ async function controller ({ limit, offset, filter, reqUserId }: SanitizedParame
     withReportsOnly: filter === 'with-reports',
   })
   return {
-    users: users.map(omitPrivateData(reqUserId, [], extraAttribute)),
+    users: users.map(omitPrivateData({ reqUserId, extraAttribute })),
   }
 }
 

@@ -1,10 +1,11 @@
 import { checkSpamContent } from '#controllers/user/lib/spam'
 import { newError } from '#lib/error/error'
+import { getMaybeRemoteReqUser } from '#lib/federation/remote_user'
 import type { SanitizedParameters } from '#types/controllers_input_sanitization_parameters'
-import type { AuthentifiedReq } from '#types/server'
+import type { AuthentifiedReq, RemoteUserAuthentifiedReq } from '#types/server'
 import { unprefixify } from './lib/prefix.js'
 import inv from './lib/update_inv_label.js'
-import wd from './lib/update_wd_label.js'
+import { updateWdLabel } from './lib/update_wd_label.js'
 
 const sanitization = {
   uri: { optional: true },
@@ -13,7 +14,7 @@ const sanitization = {
   value: { type: 'string' },
 }
 
-async function controller (params: SanitizedParameters, req: AuthentifiedReq) {
+async function controller (params: SanitizedParameters, req: AuthentifiedReq | RemoteUserAuthentifiedReq) {
   let { uri, id, value, lang } = params
 
   const prefix = getPrefix(uri, id)
@@ -23,13 +24,14 @@ async function controller (params: SanitizedParameters, req: AuthentifiedReq) {
 
   if (value === '') throw newError('invalid value', 400, params)
 
-  await checkSpamContent(req.user, value)
+  const user = getMaybeRemoteReqUser(req)
+  await checkSpamContent(user, value)
 
   if (updater == null) {
     throw newError(`unsupported uri prefix: ${prefix}`, 400, params)
   }
 
-  await updater(req.user, id, lang, value)
+  await updater(user, id, lang, value)
   return { ok: true }
 }
 
@@ -40,7 +42,7 @@ function getPrefix (uri, id) {
 
 export const labelUpdatersByPrefix = {
   inv,
-  wd,
+  wd: updateWdLabel,
 }
 
 export default { sanitization, controller }

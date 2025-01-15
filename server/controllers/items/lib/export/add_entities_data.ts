@@ -1,7 +1,6 @@
 import { uniq } from 'lodash-es'
 import { getWorksAuthorsUris } from '#controllers/entities/lib/entities'
-import { getEntitiesList } from '#controllers/entities/lib/get_entities_list'
-import { getEntityByUri } from '#controllers/entities/lib/get_entity_by_uri'
+import { getEntitiesList, getEntityByUri } from '#controllers/entities/lib/federation/instance_agnostic_entities'
 import { getFirstClaimValue } from '#controllers/entities/lib/inv_claims_utils'
 import { newError } from '#lib/error/error'
 

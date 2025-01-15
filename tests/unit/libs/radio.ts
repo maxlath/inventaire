@@ -4,7 +4,7 @@ import { emit, radio } from '#lib/radio'
 import config from '#server/config'
 
 // Do not run without having set NODE_ENV
-config.env.should.startWith('tests')
+config.env.should.containEql('tests')
 
 describe('radio', () => {
   describe('emit [in test environment]', () => {

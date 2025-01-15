@@ -5,11 +5,12 @@ import { mergeOrCreateOrUpdateTask } from '#controllers/tasks/lib/merge_or_creat
 import { validateThatEntitiesAreNotRelated, validateAbsenceOfConflictingProperties } from '#controllers/tasks/lib/merge_validation'
 import { isIsbnEntityUri, isInvEntityUri } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
+import { getMaybeRemoteReqUser } from '#lib/federation/remote_user'
 import { hasDataadminAccess } from '#lib/user_access_levels'
 import { log } from '#lib/utils/logs'
 import type { SanitizedParameters } from '#types/controllers_input_sanitization_parameters'
 import type { EntityUri, SerializedEntity } from '#types/entity'
-import type { AuthentifiedReq } from '#types/server'
+import type { AuthentifiedReq, RemoteUserAuthentifiedReq } from '#types/server'
 import mergeEntities from './lib/merge_entities.js'
 
 const sanitization = {
@@ -27,8 +28,8 @@ const sanitization = {
 // Only inv entities can be merged yet
 const validFromUriPrefix = [ 'inv', 'isbn' ]
 
-async function controller (params: SanitizedParameters, req: AuthentifiedReq) {
-  let { from: fromUri, to: toUri } = params
+async function controller (params: SanitizedParameters, req: AuthentifiedReq | RemoteUserAuthentifiedReq) {
+  let { from: fromUri, to: toUri, reqUserAcct } = params
   const [ fromPrefix ] = fromUri.split(':')
 
   if (!validFromUriPrefix.includes(fromPrefix)) {
@@ -37,13 +38,12 @@ async function controller (params: SanitizedParameters, req: AuthentifiedReq) {
     throw newError(message, 400, params)
   }
 
-  const { user } = req
-  const { _id: userId } = user
+  const user = getMaybeRemoteReqUser(req)
   const isDataadmin = hasDataadminAccess(user)
 
   log({
     merge: params,
-    user: userId,
+    user: reqUserAcct,
     isDataadmin,
   }, 'entity merge request')
 
@@ -58,10 +58,10 @@ async function controller (params: SanitizedParameters, req: AuthentifiedReq) {
   validateThatEntitiesAreNotRelated(fromEntity, toEntity)
 
   if (isDataadmin) {
-    await mergeEntities({ userId, fromUri, toUri })
+    await mergeEntities({ userAcct: reqUserAcct, fromUri, toUri })
     return { ok: true }
   } else {
-    return mergeOrCreateOrUpdateTask(entitiesType, fromUri, toUri, fromEntity, toEntity, userId)
+    return mergeOrCreateOrUpdateTask(entitiesType, fromUri, toUri, fromEntity, toEntity, reqUserAcct)
   }
 }
 

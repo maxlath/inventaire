@@ -9,6 +9,7 @@ import {
   createWork,
 } from '#fixtures/entities'
 import { humanName } from '#fixtures/text'
+import { federatedMode } from '#server/config'
 import { getByUri, getByUris, getHistory } from '#tests/api/utils/entities'
 import { authReq } from '#tests/api/utils/utils'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
@@ -155,7 +156,8 @@ describe('entities:resolve:create-unresolved', () => {
     newWorkClaimValue.should.equal(goodReadsId)
   })
 
-  it('should add a batch timestamp to patches', async () => {
+  it('should add a batch timestamp to patches', async function () {
+    if (federatedMode) this.skip()
     const startTime = Date.now()
     const entry = {
       edition: { isbn: generateIsbn13() },

@@ -3,21 +3,26 @@ import { unprefixify } from '#controllers/entities/lib/prefix'
 import { indexesNamesByBaseNames } from '#db/elasticsearch/indexes'
 import { getSomeWdEditionUri } from '#fixtures/entities'
 import { wait } from '#lib/promises'
-import config from '#server/config'
+import config, { federatedMode } from '#server/config'
 import { addClaim, getByUri } from '#tests/api/utils/entities'
 import { getIndexedDoc, deindex, indexPlaceholder } from '#tests/api/utils/search'
 import { getAdminUser } from '#tests/api/utils/utils'
+import type { EntityUri } from '#types/entity'
 
 const { wikidata: wikidataIndex } = indexesNamesByBaseNames
 const { updateDelay: elasticsearchUpdateDelay } = config.elasticsearch
 
 describe('indexation:wikidata', () => {
+  before(function () {
+    // Entities are not indexed locally in federated mode
+    if (federatedMode) this.skip()
+  })
   // Flaky tests: seen to fail when called within the whole test suite
   // Running `lev db/leveldb-tests --prefix '!job'` revealed that jobs
   // were waiting in the queue for some reason
   it('should index a wikidata entity when refreshed [flaky]', async () => {
     const id = 'Q94973707'
-    const uri = `wd:${id}`
+    const uri: EntityUri = `wd:${id}`
     await deindex(wikidataIndex, id)
     await getByUri(uri, true)
     await wait(elasticsearchUpdateDelay)
@@ -28,7 +33,7 @@ describe('indexation:wikidata', () => {
 
   it('should not index a wikidata entity of type meta', async () => {
     const id = 'Q2348445'
-    const uri = `wd:${id}`
+    const uri: EntityUri = `wd:${id}`
     await deindex(wikidataIndex, id)
     await getByUri(uri, true)
     await wait(elasticsearchUpdateDelay)
@@ -38,7 +43,7 @@ describe('indexation:wikidata', () => {
 
   it('should not index a wikidata entity of unknown type', async () => {
     const id = 'Q15026'
-    const uri = `wd:${id}`
+    const uri: EntityUri = `wd:${id}`
     await deindex(wikidataIndex, id)
     await getByUri(uri, true)
     await wait(elasticsearchUpdateDelay)
@@ -48,7 +53,7 @@ describe('indexation:wikidata', () => {
 
   it('should index the popularity [flaky]', async () => {
     const id = 'Q94973707'
-    const uri = `wd:${id}`
+    const uri: EntityUri = `wd:${id}`
     await deindex(wikidataIndex, id)
     await getByUri(uri, true)
     await wait(elasticsearchUpdateDelay)

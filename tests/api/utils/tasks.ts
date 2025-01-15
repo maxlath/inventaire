@@ -1,5 +1,7 @@
 import { values } from 'lodash-es'
+import { newError } from '#lib/error/error'
 import { forceArray } from '#lib/utils/base'
+import { federatedMode } from '#server/config'
 import type { Url } from '#types/common'
 import type { EntityType } from '#types/entity'
 import type { TaskType } from '#types/task'
@@ -47,10 +49,16 @@ export async function getByEntitiesType ({ type, entitiesType, limit, offset }: 
 }
 
 export function update (id, attribute?: string, value?: string) {
+  if (federatedMode) {
+    throw newError('Tests relying on special roles are not available in federated mode yet', 500)
+  }
   return adminReq('put', `${endpoint}update`, { id, attribute, value })
 }
 
 export async function checkEntities (uris) {
+  if (federatedMode) {
+    throw newError('Tests relying on special roles are not available in federated mode yet', 500)
+  }
   uris = forceArray(uris)
   await adminReq('post', `${endpoint}check-human-duplicates`, { uris })
   const getTasksBySuspectUris = await getBySuspectUris(uris)

@@ -17,7 +17,7 @@ export default {
     authentified: {
       create,
       // TODO: harmonize with other endpoints to have 'update'
-      // and assimilated actions use the PUT verb
+      // and assimilated actions use the PUT method
       update,
       'add-items': addItems,
       'remove-items': removeItems,

@@ -15,6 +15,8 @@ import entitiesQueryBuilder from './entities_query_builder.js'
 import socialQueryBuilder from './social_query_builder.js'
 
 const { origin: elasticOrigin } = config.elasticsearch
+const { remoteEntitiesOrigin } = config.federation
+const federatedMode = remoteEntitiesOrigin != null
 
 const indexedTypesSet = new Set(indexedTypes)
 
@@ -32,6 +34,10 @@ export async function typeSearch (params) {
   if (hasSocialTypes) {
     if (exact) typeParameterError('exact', types)
     if (claim != null) typeParameterError('exact', types)
+  }
+
+  if (hasEntityTypes && federatedMode) {
+    throw newError('entities should be searched on remote instance', 400, { types, remoteEntitiesOrigin })
   }
 
   // Query must be either social (user, group) or entities related

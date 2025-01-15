@@ -1,5 +1,6 @@
 {
   "name": "inventaire",
+  "version": "3.0.0-alpha",
   "type": "module",
   "homepage": "https://inventaire.io",
   "description": "a libre collaborative resources mapper powered by open-knowledge (server-side)",
@@ -37,6 +38,7 @@
     "start-built-server": "./scripts/typescript/start_built_server.sh",
     "start-tests-server": "./scripts/tests/api/start_tests_server.sh",
     "test": "./scripts/tests/run_tests.sh",
+    "test-federated": "export INV_FEDERATED_TESTS=true ; ./scripts/tests/run_tests.sh",
     "test-api": "./scripts/tests/run_api_slow_tests.sh",
     "test-api-quick": "./scripts/tests/run_api_quick_tests.sh",
     "test-integration": "./scripts/tests/run_integration_tests.sh",
@@ -44,6 +46,7 @@
     "update-i18n": "./scripts/update_i18n.sh",
     "update-toc": "./scripts/update_toc.sh",
     "watch": "./scripts/start_dev_server.sh",
+    "watch-federated": "export NODE_ENV=dev ; ./scripts/watch_federated_server.sh",
     "watch-types": "tsc  --project ./tsconfig.build.json --watch"
   },
   "license": "AGPL-3.0",

@@ -1,5 +1,4 @@
 import should from 'should'
-import { getWorksFromAuthorsUris } from '#controllers/entities/lib/resolver/get_works_from_authors_uris'
 import {
   createWork,
   createHuman,
@@ -14,7 +13,8 @@ import {
 } from '#fixtures/entities'
 import { wait } from '#lib/promises'
 import { forceArray } from '#lib/utils/base'
-import { addClaim, getByUri } from '#tests/api/utils/entities'
+import { federatedMode } from '#server/config'
+import { addClaim, getAuthorWorks, getByUri } from '#tests/api/utils/entities'
 import { waitForIndexation } from '#tests/api/utils/search'
 import { authReq } from '#tests/api/utils/utils'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
@@ -407,6 +407,7 @@ describe('entities:resolve:in-context', () => {
 describe('entities:resolve:on-labels', () => {
   let author, workLabel, authorLabel, work
   before(async () => {
+    if (federatedMode) return
     author = await createHuman()
     workLabel = randomLabel()
     authorLabel = author.labels.en
@@ -414,26 +415,30 @@ describe('entities:resolve:on-labels', () => {
     await waitForIndexation('entities', work._id)
   })
 
-  it('should resolve work pair on exact match', async () => {
+  it('should resolve work pair on exact match', async function () {
+    if (federatedMode) this.skip()
     const { entries } = await resolve(basicEntry(workLabel, authorLabel))
     entries[0].works[0].uri.should.equal(work.uri)
     entries[0].authors[0].uri.should.equal(author.uri)
   })
 
-  it('should resolve work pair with case insentive labels', async () => {
+  it('should resolve work pair with case insentive labels', async function () {
+    if (federatedMode) this.skip()
     const upperWorkLabel = workLabel.toUpperCase()
     const { entries: entries2 } = await resolve(basicEntry(upperWorkLabel, authorLabel))
     entries2[0].works[0].uri.should.equal(work.uri)
     entries2[0].authors[0].uri.should.equal(author.uri)
   })
 
-  it('should not resolve work pair if no labels match', async () => {
+  it('should not resolve work pair if no labels match', async function () {
+    if (federatedMode) this.skip()
     const randomWorkLabel = randomLabel()
     const { entries: entries3 } = await resolve(basicEntry(randomWorkLabel, authorLabel))
     should(entries3[0].works[0].uri).not.be.ok()
   })
 
-  it('should not resolve when several homonym works exist', async () => {
+  it('should not resolve when several homonym works exist', async function () {
+    if (federatedMode) this.skip()
     const sameLabelAuthor = await createHuman({ labels: author.labels })
     const workB = await createWorkWithAuthor(sameLabelAuthor, workLabel)
     await waitForIndexation('entities', workB._id)
@@ -442,7 +447,8 @@ describe('entities:resolve:on-labels', () => {
     should(entries[0].authors[0].uri).not.be.ok()
   })
 
-  it('should resolve when an author has several works but only one matches', async () => {
+  it('should resolve when an author has several works but only one matches', async function () {
+    if (federatedMode) this.skip()
     const author = await createHuman()
     const workLabel = randomLabel()
     const [ workA, workB ] = await Promise.all([
@@ -466,7 +472,7 @@ describe('entities:resolve:on-external-terms', () => {
     const workLabel = "Mémoires d'outre-espace"
     const authorLabel = 'Enki Bilal'
 
-    const works = await getWorksFromAuthorsUris([ 'wd:Q333668' ])
+    const works = await getAuthorWorks('wd:Q333668')
     const matchingWdWork = works
       .filter(work => work.uri.startsWith('wd'))
       .find(work => Object.values(work.labels).join(' ').includes('outre-espace'))

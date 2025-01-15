@@ -1,10 +1,13 @@
 import { oneDay } from '#lib/time'
 import { simpleDay } from '#lib/utils/base'
+import { federatedMode } from '#server/config'
 import { adminReq } from '#tests/api/utils/utils'
 
 const endpoint = '/api/entities?action=contributions-count'
 
 describe('entities:activity', () => {
+  before(function () { if (federatedMode) this.skip() })
+
   it('should return global contributions count', async () => {
     const { contributions } = await adminReq('get', endpoint)
     contributions.forEach(contribution => {

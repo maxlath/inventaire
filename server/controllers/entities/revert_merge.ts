@@ -9,7 +9,7 @@ const sanitization = {
 }
 
 async function controller (params: SanitizedParameters) {
-  const { from: fromUri, reqUserId } = params
+  const { from: fromUri, reqUserAcct } = params
   const [ fromPrefix, fromId ] = fromUri.split(':')
 
   if ((fromPrefix !== 'inv') || !isInvEntityId(fromId)) {
@@ -17,7 +17,7 @@ async function controller (params: SanitizedParameters) {
     throw newError(message, 400, params)
   }
 
-  const result = await revertMerge(reqUserId, fromId)
+  const result = await revertMerge(reqUserAcct, fromId)
   await emit('entity:revert:merge', fromUri)
   return result
 }

@@ -4,6 +4,9 @@ import { cloneDeep } from 'lodash-es'
 import { putInvEntityUpdate } from '#controllers/entities/lib/entities'
 import { prefixifyIsbn } from '#controllers/entities/lib/prefix'
 import { generateIsbn13, createHuman, createWorkWithAuthor, randomLabel, createEdition } from '#fixtures/entities'
+import { newError } from '#lib/error/error'
+import { buildLocalUserAcct } from '#lib/federation/remote_user'
+import { federatedMode } from '#server/config'
 import { getByUris, findOrIndexEntities, deleteByUris } from '#tests/api/utils/entities'
 import { checkEntities } from '#tests/api/utils/tasks'
 import type { EntityUri } from '#types/entity'
@@ -15,7 +18,8 @@ describe('tasks:automerge', () => {
     await findOrIndexEntities(wikidataUris)
   })
 
-  it('should automerge if author has homonyms but only one has occurrences', async () => {
+  it('should automerge if author has homonyms but only one has occurrences', async function () {
+    if (federatedMode) this.skip()
     const humanLabel = 'Alan Moore' // homonyms wd:Q205739, wd:Q1748845
     const wdUri = 'wd:Q205739'
     const workLabel = 'Voice of the Fire' // wd:Q3825051, Alan Moore's work
@@ -28,7 +32,8 @@ describe('tasks:automerge', () => {
     entities[wdUri].should.be.ok()
   })
 
-  it('should automerge if suspect and suggestion inv works labels match', async () => {
+  it('should automerge if suspect and suggestion inv works labels match', async function () {
+    if (federatedMode) this.skip()
     const humanLabel = 'Alain Damasio' // wd:Q2829704
     const wikidataUri = 'wd:Q2829704'
     const workLabel = randomLabel()
@@ -42,7 +47,8 @@ describe('tasks:automerge', () => {
     entities[wikidataUri].should.be.ok()
   })
 
-  it('should not automerge if author name is in work title', async () => {
+  it('should not automerge if author name is in work title', async function () {
+    if (federatedMode) this.skip()
     const humanLabel = 'Frédéric Lordon' // wd:Q2300248
     const workLabel = humanLabel
     const human = await createHuman({ labels: { en: humanLabel } })
@@ -53,7 +59,8 @@ describe('tasks:automerge', () => {
     firstOccurenceMatch.should.equal(normalize(humanLabel))
   })
 
-  it('should not automerge if work title found in unstructured data source is too short', async () => {
+  it('should not automerge if work title found in unstructured data source is too short', async function () {
+    if (federatedMode) this.skip()
     const humanLabel = 'Penelope Curtis' // wd:Q20630876
     // string that should reasonably appear in a wikipedia article
     const shortWorkLabel = 'The'
@@ -64,7 +71,8 @@ describe('tasks:automerge', () => {
     entities[human.uri].should.be.ok()
   })
 
-  it('should automerge if authors have same external id', async () => {
+  it('should automerge if authors have same external id', async function () {
+    if (federatedMode) this.skip()
     const wikidataUri = 'wd:Q259507'
     const humanLabel = 'bell hooks' // label from wd:Q259507
     const claims = {
@@ -78,7 +86,8 @@ describe('tasks:automerge', () => {
     entities[wikidataUri].should.be.ok()
   })
 
-  it('should automerge author if ISBN is found on a Wikipedia article', async () => {
+  it('should automerge author if ISBN is found on a Wikipedia article', async function () {
+    if (federatedMode) this.skip()
     const wikidataUri = 'wd:Q259507'
     const humanLabel = 'bell hooks' // label from wd:Q259507
     const labels = { en: humanLabel }
@@ -99,7 +108,8 @@ describe('tasks:automerge', () => {
     entities[wikidataUri].should.be.ok()
   })
 
-  it('should not automerge author if ISBN is not found on a Wikipedia article', async () => {
+  it('should not automerge author if ISBN is not found on a Wikipedia article', async function () {
+    if (federatedMode) this.skip()
     const humanLabel = 'bell hooks' // label from wd:Q259507
     const labels = { en: humanLabel }
     const isbn = generateIsbn13()
@@ -123,6 +133,7 @@ describe('tasks:automerge', () => {
 const normalize = (str: string) => ASCIIFolder.foldMaintaining(str.toLowerCase().normalize())
 
 async function forceUpdateEntityClaims (entity, claims, userId = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab') {
+  if (federatedMode) throw newError('Tests relying on updating entities directly in the database are not available in federated mode', 500)
   // By pass API entity validations,
   // to create another entity with same claims
   const updatedDoc = cloneDeep(entity)
@@ -131,6 +142,6 @@ async function forceUpdateEntityClaims (entity, claims, userId = 'aaaaaaaaaaaaaa
   await putInvEntityUpdate({
     currentDoc: entity,
     updatedDoc,
-    userId,
+    userAcct: buildLocalUserAcct(userId),
   })
 }

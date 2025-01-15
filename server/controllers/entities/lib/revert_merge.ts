@@ -5,11 +5,11 @@ import updateItemEntity from '#controllers/items/lib/update_entity'
 import { newError } from '#lib/error/error'
 import type { EntityUri, InvEntityId, InvEntityUri, RemovedPlaceholdersIds } from '#types/entity'
 import type { Patch } from '#types/patch'
-import type { UserId } from '#types/user'
+import type { UserAccountUri } from '#types/server'
 import { recoverPlaceholder } from './placeholders.js'
 import { revertFromPatchDoc } from './revert_edit.js'
 
-export default async function (userId: UserId, fromId: InvEntityId) {
+export default async function (userAcct: UserAccountUri, fromId: InvEntityId) {
   const patches = await getPatchesWithSnapshots(fromId)
   const targetVersion = await findVersionBeforeRedirect(patches)
   const currentVersion = await getEntityById(fromId)
@@ -21,15 +21,15 @@ export default async function (userId: UserId, fromId: InvEntityId) {
     targetVersion.version = currentVersion.version
 
     const updateRes = await putInvEntityUpdate({
-      userId,
+      userAcct,
       currentDoc: currentVersion,
       updatedDoc: targetVersion,
     })
 
     await updateItemEntity.afterRevert(fromUri, toUri)
-    await recoverPlaceholders(userId, currentVersion.removedPlaceholdersIds)
-    await revertMergePatch(userId, fromUri, toUri)
-    await revertClaimsRedirections(userId, fromUri)
+    await recoverPlaceholders(userAcct, currentVersion.removedPlaceholdersIds)
+    await revertMergePatch(userAcct, fromUri, toUri)
+    await revertClaimsRedirections(userAcct, fromUri)
 
     return updateRes
   } else {
@@ -52,14 +52,14 @@ function findVersionBeforeRedirect (patches: Patch[]) {
 
 const isntRedirection = version => version.redirect == null
 
-async function recoverPlaceholders (userId: UserId, removedPlaceholdersIds: RemovedPlaceholdersIds) {
+async function recoverPlaceholders (userAcct: UserAccountUri, removedPlaceholdersIds: RemovedPlaceholdersIds) {
   if (removedPlaceholdersIds == null || removedPlaceholdersIds.length === 0) return
 
-  const recoverFn = recoverPlaceholder.bind(null, userId)
+  const recoverFn = recoverPlaceholder.bind(null, userAcct)
   return Promise.all(removedPlaceholdersIds.map(recoverFn))
 }
 
-async function revertMergePatch (userId: UserId, fromUri: InvEntityUri, toUri: EntityUri) {
+async function revertMergePatch (userAcct: UserAccountUri, fromUri: InvEntityUri, toUri: EntityUri) {
   const [ prefix, toId ] = toUri.split(':')
   if (prefix !== 'inv') return
 
@@ -72,11 +72,11 @@ async function revertMergePatch (userId: UserId, fromUri: InvEntityUri, toUri: E
   // There might be no mergePatch: that happens when the merged entity didn't bring
   // any label or claim value that the merge target hadn't already
   if (mergePatch) {
-    return revertFromPatchDoc(mergePatch, userId)
+    return revertFromPatchDoc(mergePatch, userAcct)
   }
 }
 
-async function revertClaimsRedirections (userId: UserId, fromUri: EntityUri) {
+async function revertClaimsRedirections (userAcct: UserAccountUri, fromUri: EntityUri) {
   const patches = await getPatchesByRedirectUri(fromUri)
-  return Promise.all(patches.map(patch => revertFromPatchDoc(patch, userId)))
+  return Promise.all(patches.map(patch => revertFromPatchDoc(patch, userAcct)))
 }

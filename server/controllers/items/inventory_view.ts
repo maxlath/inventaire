@@ -1,5 +1,5 @@
 import { map, uniq } from 'lodash-es'
-import { getEntitiesByUris } from '#controllers/entities/lib/get_entities_by_uris'
+import { getEntitiesByUris } from '#controllers/entities/lib/federation/instance_agnostic_entities'
 import { getAuthorizedItemsByGroup, getAuthorizedItemsByShelves, getAuthorizedItemsByUsers } from '#controllers/items/lib/get_authorized_items'
 import { getShelfById } from '#controllers/shelves/lib/shelves'
 import { newMissingQueryError } from '#lib/error/pre_filled'

@@ -58,8 +58,14 @@ export function resetBanData (host: Host) {
   lazyBackup()
 }
 
-export function recordPossibleTimeoutError (host: Host, err: ContextualizedError) {
-  if (err.type === 'request-timeout' || err.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE') {
+interface ConditionallyDeclareHostErrorOptions {
+  noHostBanOnTimeout?: boolean
+}
+
+export function conditionallyDeclareHostError (host: Host, err: ContextualizedError, options: ConditionallyDeclareHostErrorOptions = {}) {
+  if (err.type === 'request-timeout') {
+    if (!options.noHostBanOnTimeout) declareHostError(host)
+  } else if (err.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' || err.code === 'ECONNREFUSED') {
     declareHostError(host)
   }
 }

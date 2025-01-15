@@ -1,5 +1,8 @@
+import should from 'should'
 import { createTask } from '#fixtures/tasks'
-import 'should'
+import { createUser } from '#fixtures/users'
+import { getLocalUserAcct } from '#lib/federation/remote_user'
+import { federatedMode } from '#server/config'
 import {
   createCollection,
   createEdition,
@@ -113,13 +116,17 @@ describe('entities:merge:as:user', () => {
       const tasks = await getMergeTaskBySuspectUri(human.uri)
       tasks.length.should.aboveOrEqual(1)
       const user = await getUser()
+      const userAcct = await getLocalUserAcct(user)
       const task = tasks[0]
       task.type.should.equal('merge')
-      task.reporters.should.deepEqual([ user._id ])
+      task.reporters.should.deepEqual([ userAcct ])
       res.taskId.should.equal(task._id)
     })
 
-    it('should update existing task and accept several reporters', async () => {
+    it('should update existing task and accept several reporters', async function () {
+      // Disabled in federated mode as the test relies on directly calling createTask
+      // which operates on the local tasks database, and not on the remote one
+      if (federatedMode) this.skip()
       const humanLabel = randomLabel()
       const workLabel = randomLabel()
       const workLabel2 = randomLabel()
@@ -132,13 +139,14 @@ describe('entities:merge:as:user', () => {
         createWorkWithAuthor(human2, workLabel2),
         createWorkWithAuthor(human3, workLabel3),
       ])
-      const firstReporterId = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+      const reporter = await createUser()
+      const reporterAcct = await getLocalUserAcct(reporter)
       const task = await createTask({
         type: 'merge',
         entitiesType: 'human',
         suspectUri: human.uri,
         suggestionUri: human2.uri,
-        reporter: firstReporterId,
+        reporter: reporterAcct,
       })
 
       const res = await userMerge(human.uri, human2.uri)
@@ -146,8 +154,9 @@ describe('entities:merge:as:user', () => {
       tasks2.length.should.equal(1)
 
       const user = await getUser()
+      const userAcct = await getLocalUserAcct(user)
       tasks2[0].reporters.length.should.equal(2)
-      tasks2[0].reporters.should.deepEqual([ firstReporterId, user._id ])
+      tasks2[0].reporters.should.deepEqual([ reporterAcct, userAcct ])
       res.taskId.should.equal(task._id)
 
       // should not add an existing userId

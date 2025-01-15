@@ -1,33 +1,33 @@
-import { map, uniq } from 'lodash-es'
-import { getUsersByIds } from '#controllers/user/lib/user'
+import { map, property, uniq } from 'lodash-es'
+import type { InstanceAgnosticContributor } from '#controllers/user/lib/anonymizable_user'
+import { getUsersByAccts } from '#lib/federation/remote_user'
 import { userShouldBeAnonymized } from '#models/user'
 import type { Patch } from '#types/patch'
-import type { UserId } from '#types/user'
+import type { UserAccountUri } from '#types/server'
 
 interface AnonymizePatchesParams {
   patches: Patch[]
-  reqUserId: UserId
+  reqUserAcct: UserAccountUri
 }
 
-export async function anonymizePatches ({ patches, reqUserId }: AnonymizePatchesParams) {
-  const usersIds = uniq(map(patches, 'user'))
-  const users = await getUsersByIds(usersIds)
-  const deanonymizedUsersIds = getDeanonymizedUsersIds(users)
+export async function anonymizePatches ({ patches, reqUserAcct }: AnonymizePatchesParams) {
+  const usersAccts = uniq(map(patches, 'user'))
+  const users = await getUsersByAccts(usersAccts)
+  const deanonymizedUsersAccts = getDeanonymizedUsersAccts(users)
   patches.forEach(patch => {
-    if (patch.user === reqUserId) return
-    if (deanonymizedUsersIds.has(patch.user)) return
+    if (patch.user === reqUserAcct) return
+    if (deanonymizedUsersAccts.has(patch.user)) return
     anonymizePatch(patch)
   })
 }
 
-function getDeanonymizedUsersIds (users) {
-  const deanonymizedUsersIds = []
-  for (const user of users) {
-    if (!userShouldBeAnonymized(user)) deanonymizedUsersIds.push(user._id)
-  }
-  return new Set(deanonymizedUsersIds)
+function getDeanonymizedUsersAccts (users: InstanceAgnosticContributor[]) {
+  const deanonymizedUsersAccts = users
+    .filter(user => !userShouldBeAnonymized(user))
+    .map(property('acct'))
+  return new Set(deanonymizedUsersAccts)
 }
 
-function anonymizePatch (patch) {
+function anonymizePatch (patch: Patch) {
   delete patch.user
 }

@@ -1,8 +1,9 @@
 import { map } from 'lodash-es'
+import should from 'should'
 import { createUser, getTwoFriends } from '#fixtures/users'
 import { customAuthReq } from '#tests/api/utils/request'
 import { deleteUser } from '#tests/api/utils/users'
-import { publicReq, authReq, getUser, getUserB } from '#tests/api/utils/utils'
+import { publicReq, authReq, getUser, getUserB, getDeanonymizedUser, adminReq } from '#tests/api/utils/utils'
 import { shouldNotBeCalled, rethrowShouldNotBeCalledErrors } from '#tests/unit/utils/utils'
 
 const endpoint = '/api/users?action=by-ids'
@@ -60,5 +61,32 @@ describe('users:by-ids', () => {
     await deleteUser(user)
     const res = await publicReq('get', `${endpoint}&ids=${user._id}`)
     res.users[user._id].should.be.ok()
+  })
+
+  describe('anonymizable id', () => {
+    it('should not get the anonymizableId of an anonymized user', async () => {
+      const { _id: userId } = await createUser()
+      const { users } = await authReq('get', `${endpoint}&ids=${userId}`)
+      should(users[userId].anonymizableId).not.be.ok()
+    })
+
+    it('should get the anonymizableId of an anonymized user, when requested by the user', async () => {
+      const user = await createUser()
+      const { _id: userId } = user
+      const { users } = await customAuthReq(user, 'get', `${endpoint}&ids=${userId}`)
+      users[userId].anonymizableId.should.be.a.String()
+    })
+
+    it('should get the anonymizableId of a deanonymized user', async () => {
+      const { _id: userId } = await getDeanonymizedUser()
+      const { users } = await publicReq('get', `${endpoint}&ids=${userId}`)
+      users[userId].anonymizableId.should.be.a.String()
+    })
+
+    it('should get the anonymizableId of an anonymized user, when requested as admin', async () => {
+      const { _id: userId } = await createUser()
+      const { users } = await adminReq('get', `${endpoint}&ids=${userId}`)
+      users[userId].anonymizableId.should.be.a.String()
+    })
   })
 })

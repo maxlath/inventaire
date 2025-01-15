@@ -1,8 +1,9 @@
 import should from 'should'
-import type { ResolverEntry } from '#server/types/resolver'
+import { federatedMode } from '#server/config'
 import { deleteByUris, deleteByExternalId } from '#tests/api/utils/entities'
 import { uploadSomeImage } from '#tests/api/utils/images'
 import { authReq } from '#tests/api/utils/utils'
+import type { ResolverEntry } from '#types/resolver'
 
 describe('entities:resolve:create-and-enrich', () => {
   // This tests requires to have config.dataseed.enabled = true
@@ -53,7 +54,8 @@ describe('entities:resolve:create-and-enrich', () => {
     edition.claims['invp:P2'].should.deepEqual([ hash ])
   })
 
-  it('should not crash if no isbn is set', async () => {
+  it('should not crash if no isbn is set', async function () {
+    if (federatedMode) this.skip()
     const goodreadsEditionIdProperty = 'wdt:P2969'
     const goodreadsEditionId = '32687007'
     await deleteByExternalId(goodreadsEditionIdProperty, goodreadsEditionId)

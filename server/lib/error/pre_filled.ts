@@ -3,6 +3,7 @@ import { pick } from 'lodash-es'
 import { isAuthentifiedReq } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
 import { errorHandler } from '#lib/error/error_handler'
+import type { ErrorContext } from '#lib/error/format_error'
 import { typeOf } from '#lib/utils/types'
 import type { Req, Res } from '#types/server'
 
@@ -34,6 +35,10 @@ export function newInvalidError (parameter: string, value: unknown) {
 export const newMissingQueryError = newMissingError.bind(null, 'query')
 export const newMissingBodyError = newMissingError.bind(null, 'body')
 
+export function newUnauthorizedApiAccessError (statusCode: 401 | 403, context?: ErrorContext) {
+  return newError('unauthorized api access', statusCode, context)
+}
+
 const Bundle = newErrorFn => (req: Req, res: Res, ...args) => {
   // First create the new error
   const err = newErrorFn(...args)
@@ -46,9 +51,10 @@ export const bundleMissingQueryError = Bundle(newMissingQueryError)
 export const bundleMissingBodyError = Bundle(newMissingBodyError)
 export const bundleInvalidError = Bundle(newInvalidError)
 
-export function bundleUnauthorizedApiAccess (req: Req, res: Res, context?) {
+export function bundleUnauthorizedApiAccess (req: Req, res: Res, context?: ErrorContext) {
   const statusCode = isAuthentifiedReq(req) ? 403 : 401
-  return bundleError(req, res, 'unauthorized api access', statusCode, context)
+  const err = newUnauthorizedApiAccessError(statusCode, context)
+  return errorHandler(req, res, err)
 }
 
 // A standardized way to return a 400 unknown action

@@ -3,12 +3,12 @@ import { isItemId as isWikidataItemId } from 'wikibase-sdk'
 import * as regex_ from '#lib/regex'
 import config from '#server/config'
 import type { LocalActorUrl } from '#types/activity'
-import type { AbsoluteUrl, ColorHexCode } from '#types/common'
+import type { AbsoluteUrl, ColorHexCode, RelativeUrl } from '#types/common'
 import type { CouchUuid } from '#types/couchdb'
 import type { InvEntityUri, IsbnEntityUri, WdEntityUri, EntityUri, PropertyUri, InvPropertyUri, WdPropertyUri, WdEntityId } from '#types/entity'
 import type { AssetImagePath, EntityImagePath, GroupImagePath, ImageHash, ImagePath, UserImagePath } from '#types/image'
 import type { PatchId } from '#types/patch'
-import type { AuthentifiedReq, Req } from '#types/server'
+import type { AuthentifiedReq, Req, UserAccountUri } from '#types/server'
 import type { Email, Username } from '#types/user'
 import type { VisibilityGroupKey } from '#types/visibility'
 import { isNormalizedIsbn } from './isbn/isbn.js'
@@ -35,6 +35,12 @@ export function isUrl (url: unknown): url is AbsoluteUrl {
     else throw err
   }
   return true
+}
+
+export const isAbsoluteUrl = isUrl
+
+export function isRelativeUrl (url: unknown): url is RelativeUrl {
+  return isUrl(`${publicOrigin}${url}`)
 }
 
 export const isCouchUuid = bindedTest<CouchUuid>('CouchUuid')
@@ -84,6 +90,22 @@ export function isExpandedEntityUri (uri) {
   // Accept alias URIs.
   // Ex: twitter:Bouletcorp -> wd:Q1524522
   return isNonEmptyString(prefix) && isNonEmptyString(id)
+}
+
+function isHost (str: string) {
+  try {
+    const { host } = new URL(`http://${str}`)
+    return str === host
+  } catch (err) {
+    if (err.code !== 'ERR_INVALID_URL') throw err
+    return false
+  }
+}
+
+export function isUserAcct (str: unknown): str is UserAccountUri {
+  if (typeof str !== 'string') return false
+  const [ handle, host ] = str.split('@')
+  return isUserId(handle) && isHost(host)
 }
 
 export function isSimpleDay (str) {

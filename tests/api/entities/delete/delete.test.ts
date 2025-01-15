@@ -7,7 +7,7 @@ import {
   createEditionWithIsbn,
 } from '#fixtures/entities'
 import { wait } from '#lib/promises'
-import config from '#server/config'
+import config, { federatedMode } from '#server/config'
 import { getByUri, getByUris, deleteByUris } from '#tests/api/utils/entities'
 import { getItemById } from '#tests/api/utils/items'
 import { authReq } from '#tests/api/utils/utils'
@@ -35,7 +35,8 @@ describe('entities:delete', () => {
     })
   })
 
-  it('should reject non-inv URIs', async () => {
+  it('should reject non-inv URIs', async function () {
+    if (federatedMode) this.skip()
     await deleteByUris([ 'wd:Q535' ])
     .then(shouldNotBeCalled)
     .catch(err => {
@@ -44,14 +45,16 @@ describe('entities:delete', () => {
     })
   })
 
-  it('should turn entity into removed:placeholder', async () => {
+  it('should turn entity into removed:placeholder', async function () {
+    if (federatedMode) this.skip()
     const { uri } = await createHuman()
     await deleteByUris([ uri ])
     const entity = await getByUri(uri) as SerializedInvEntity
     entity._meta_type.should.equal('removed:placeholder')
   })
 
-  it('should remove several entities', async () => {
+  it('should remove several entities', async function () {
+    if (federatedMode) this.skip()
     const [ entityA, entityB ] = await Promise.all([
       createHuman(),
       createWork(),
@@ -63,7 +66,8 @@ describe('entities:delete', () => {
     entities[0]._meta_type.should.equal('removed:placeholder')
   })
 
-  it('should delete claims where the entity is the value', async () => {
+  it('should delete claims where the entity is the value', async function () {
+    if (federatedMode) this.skip()
     const work = await createWorkWithAuthor()
     const authorUri = work.claims['wdt:P50'][0]
     await deleteByUris([ authorUri ])
@@ -72,7 +76,8 @@ describe('entities:delete', () => {
   })
 
   // Entities with more than one claim should be turned into redirections
-  it('should reject when values are in more than one claim', async () => {
+  it('should reject when values are in more than one claim', async function () {
+    if (federatedMode) this.skip()
     const author = await createHuman()
     const [ workA, workB ] = await Promise.all([
       createWorkWithAuthor(author),
@@ -96,23 +101,27 @@ describe('entities:delete', () => {
     })
   })
 
-  it('should remove edition entities without an ISBN', async () => {
+  it('should remove edition entities without an ISBN', async function () {
+    if (federatedMode) this.skip()
     const edition = await createEdition()
     const invUri: EntityUri = `inv:${edition._id}`
     await deleteByUris([ invUri ])
   })
 
-  it('should remove edition entities with an ISBN from its inv uri', async () => {
+  it('should remove edition entities with an ISBN from its inv uri', async function () {
+    if (federatedMode) this.skip()
     const { invUri } = await createEditionWithIsbn()
     await deleteByUris([ invUri ])
   })
 
-  it('should remove edition entities with an ISBN from its isbn uri', async () => {
+  it('should remove edition entities with an ISBN from its isbn uri', async function () {
+    if (federatedMode) this.skip()
     const { uri } = await createEditionWithIsbn()
     await deleteByUris([ uri ])
   })
 
-  it('should refuse to delete a work that is depend on by an edition', async () => {
+  it('should refuse to delete a work that is depend on by an edition', async function () {
+    if (federatedMode) this.skip()
     const edition = await createEdition()
     const property = 'wdt:P629'
     const workUri = edition.claims[property][0]
@@ -127,7 +136,8 @@ describe('entities:delete', () => {
     })
   })
 
-  it('should remove deleted entities from items snapshot', async () => {
+  it('should remove deleted entities from items snapshot', async function () {
+    if (federatedMode) this.skip()
     const author = await createHuman()
     const work = await createWorkWithAuthor(author)
     const item = await authReq('post', '/api/items', { entity: work.uri })
@@ -140,7 +150,8 @@ describe('entities:delete', () => {
     should(updatedItem.snapshot['entity:authors']).not.be.ok()
   })
 
-  it('should ignore entities that where already turned into removed:placeholder', async () => {
+  it('should ignore entities that where already turned into removed:placeholder', async function () {
+    if (federatedMode) this.skip()
     const { uri } = await createHuman()
     await deleteByUris([ uri ])
     const entity = await getByUri(uri) as SerializedInvEntity
@@ -148,7 +159,8 @@ describe('entities:delete', () => {
     await deleteByUris([ uri ])
   })
 
-  it('should not deleted entities that are the entity of an item', async () => {
+  it('should not deleted entities that are the entity of an item', async function () {
+    if (federatedMode) this.skip()
     const work = await createWork()
     await authReq('post', '/api/items', { entity: work.uri })
     await deleteByUris([ work.uri ])
@@ -159,7 +171,8 @@ describe('entities:delete', () => {
     })
   })
 
-  it('should not remove editions with an ISBN and an item', async () => {
+  it('should not remove editions with an ISBN and an item', async function () {
+    if (federatedMode) this.skip()
     const { invUri, uri } = await createEditionWithIsbn()
     await authReq('post', '/api/items', { entity: uri })
     // Using the inv URI, as the isbn one would be rejected

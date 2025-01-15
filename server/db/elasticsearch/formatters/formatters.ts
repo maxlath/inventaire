@@ -6,11 +6,11 @@ import shelves from './shelf.js'
 import users from './user.js'
 
 export default {
-  entities,
   groups,
   items,
   shelves,
   lists,
   users,
   wikidata: entities,
+  entities,
 }

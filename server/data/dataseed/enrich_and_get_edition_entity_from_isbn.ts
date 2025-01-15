@@ -1,15 +1,18 @@
 import { getEntityByUri } from '#controllers/entities/lib/get_entity_by_uri'
 import { resolvePublisher } from '#controllers/entities/lib/resolver/resolve_publisher'
 import { resolveUpdateAndCreate } from '#controllers/entities/lib/resolver/resolve_update_and_create'
+import type { ResolverParams } from '#controllers/entities/resolve'
 import { getAuthoritiesAggregatedEntry } from '#data/dataseed/get_authorities_aggregated_entry'
 import { hardCodedUsers } from '#db/couchdb/hard_coded_documents'
+import { buildLocalUserAcct } from '#lib/federation/remote_user'
 import { parseIsbn } from '#lib/isbn/parse'
 import temporarilyMemoize from '#lib/temporarily_memoize'
 import { logError } from '#lib/utils/logs'
 import config from '#server/config'
+import type { ResolverEntry } from '#types/resolver'
 import { getSeedsByIsbns, type DataSeed } from './dataseed.js'
 
-const { _id: seedUserId } = hardCodedUsers.seed
+const seedUserAcct = buildLocalUserAcct(hardCodedUsers.seed.anonymizableId)
 
 const { enabled: dataseedEnabled } = config.dataseed
 
@@ -18,8 +21,8 @@ const resolverParams = {
   update: true,
   strict: true,
   enrich: true,
-  reqUserId: seedUserId,
-}
+  reqUserAcct: seedUserAcct,
+} satisfies Omit<ResolverParams, 'entries'>
 
 async function _enrichAndGetEditionEntityFromIsbn (isbn: string) {
   try {
@@ -48,7 +51,7 @@ export const enrichAndGetEditionEntityFromIsbn = temporarilyMemoize({
   ttlAfterFunctionCallReturned: 2000,
 })
 
-async function enrichAndGetEditionEntityFromEntry (entry) {
+async function enrichAndGetEditionEntityFromEntry (entry: ResolverEntry) {
   const { resolvedEntries } = await resolveUpdateAndCreate({ entries: [ entry ], ...resolverParams })
   const [ resolvedEntry ] = resolvedEntries
   if (resolvedEntry) {

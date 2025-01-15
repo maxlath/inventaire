@@ -5,7 +5,7 @@ import { createItem, createItems } from '#fixtures/items'
 import { createShelf, createShelfWithItem } from '#fixtures/shelves'
 import { createUser } from '#fixtures/users'
 import { wait } from '#lib/promises'
-import config from '#server/config'
+import config, { federatedMode } from '#server/config'
 import { updateItems } from '#tests/api/utils/items'
 import { customAuthReq } from '#tests/api/utils/request'
 import { getActorName } from '#tests/api/utils/shelves'
@@ -192,6 +192,8 @@ describe('outbox', () => {
   })
 
   describe('entities', () => {
+    before(function () { if (federatedMode) this.skip() })
+
     it('should return a first page URL', async () => {
       const { uri: authorUri } = await createHuman()
       const { uri: workUri } = await createWork()

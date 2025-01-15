@@ -22,9 +22,9 @@ export function initExpress () {
 
   for (const endpoint in routes) {
     const controllers = routes[endpoint]
-    for (const verb in controllers) {
-      const controller = controllers[verb]
-      app[verb](`/${endpoint}`, controller)
+    for (const method in controllers) {
+      const controller = controllers[method]
+      app[method](`/${endpoint}`, controller)
     }
   }
 

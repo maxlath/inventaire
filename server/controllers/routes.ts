@@ -6,9 +6,9 @@ import oauthClients from '#controllers/auth/oauth_clients'
 import oauthServer from '#controllers/auth/oauth_server'
 import authToken from '#controllers/auth/token'
 import configEndpoint from '#controllers/config'
-import data from '#controllers/data/data'
+import { federatedDataControllers, localDataControllers } from '#controllers/data/data'
 import { AddRoute } from '#controllers/endpoint'
-import entities from '#controllers/entities/entities'
+import { localEntitiesControllers, federatedEntitiesControllers } from '#controllers/entities/entities'
 import extensionsRedirections from '#controllers/extensions_redirections'
 import feedback from '#controllers/feedback'
 import feeds from '#controllers/feeds/feeds'
@@ -26,12 +26,12 @@ import relations from '#controllers/relations/relations'
 import reports from '#controllers/reports/reports'
 import search from '#controllers/search/search'
 import shelves from '#controllers/shelves/shelves'
-import tasks from '#controllers/tasks/tasks'
+import { localTasksControllers, federatedTasksControllers } from '#controllers/tasks/tasks'
 import tests from '#controllers/tests'
 import transactions from '#controllers/transactions/transactions'
 import user from '#controllers/user/user'
 import users from '#controllers/users/users'
-import config from '#server/config'
+import config, { federatedMode } from '#server/config'
 
 // Routes structure:
 // 1 - api is the default prefix for server-side routes
@@ -43,8 +43,6 @@ const addRoute = AddRoute(routes)
 
 addRoute('api/auth', auth)
 addRoute('api/config', configEndpoint)
-addRoute('api/data', data)
-addRoute('api/entities', entities)
 addRoute('api/feedback', feedback)
 addRoute('api/feeds', feeds)
 addRoute('api/groups', groups)
@@ -61,7 +59,6 @@ addRoute('api/reports', reports)
 addRoute('api/search', search)
 addRoute('api/shelves', shelves)
 addRoute('api/submit', fakeSubmit)
-addRoute('api/tasks', tasks)
 addRoute('api/tests*', tests)
 addRoute('api/token', authToken)
 addRoute('api/transactions', transactions)
@@ -70,6 +67,16 @@ addRoute('api/users', users)
 addRoute('api/activitypub', activitypub)
 addRoute('img/*', resizeImages)
 addRoute('.well-known/webfinger', webfinger)
+
+if (federatedMode) {
+  addRoute('api/data', federatedDataControllers)
+  addRoute('api/entities', federatedEntitiesControllers)
+  addRoute('api/tasks', federatedTasksControllers)
+} else {
+  addRoute('api/data', localDataControllers)
+  addRoute('api/entities', localEntitiesControllers)
+  addRoute('api/tasks', localTasksControllers)
+}
 
 if (config.i18n.autofix) {
   addRoute('api/i18n', i18n)

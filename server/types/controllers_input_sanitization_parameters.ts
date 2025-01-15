@@ -7,6 +7,7 @@ import type { ImageHash } from '#types/image'
 import type { ItemId } from '#types/item'
 import type { ListingId } from '#types/listing'
 import type { PatchId } from '#types/patch'
+import type { UserAccountUri } from '#types/server'
 import type { ShelfId } from '#types/shelf'
 import type { TransactionId } from '#types/transaction'
 import type { Email, UserId, Username } from '#types/user'
@@ -19,6 +20,7 @@ import type { VisibilityKey } from '#types/visibility'
 // Match the keys in sanitizationParameters from server/lib/sanitize/parameters.ts
 interface WellknownSanitizedParameters {
   '@context': Context[]
+  accts: UserAccountUri[]
   actor: string
   attribute: string
   attributes: string[]
@@ -87,14 +89,15 @@ interface WellknownSanitizedParameters {
 }
 
 interface GenericsBasedSanitizedParameters {
+  claims: Claims
+  container: string
   height: number
+  labels: Labels
   open: boolean
   redirect: boolean
   searchable: boolean
   sort: boolean
   width: number
-  labels: Labels
-  claims: Claims
 }
 
 type ClassicDocId = Exclude<string, 'patch'>
@@ -105,6 +108,7 @@ interface PatternedSanitizedParameters {
   [key: `strict${string}`]: boolean
   [key: `with${string}`]: boolean
   [key: `${ClassicDocId}Id`]: CouchUuid
+  [key: `${string}Acct`]: UserAccountUri
 }
 
 interface AliasedSanitizedParameters {
@@ -121,6 +125,7 @@ interface OtherSanitizedParameters {
 
 interface RequestParameters {
   reqUserId: UserId
+  reqUserAcct: UserAccountUri
 }
 
 // TODO: accept `typeof sanitization` as type parameter to customize the controller `params` types

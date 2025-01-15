@@ -15,11 +15,13 @@ import {
 import { humanName, randomLongWord, randomWords } from '#fixtures/text'
 import { assertNumber } from '#lib/utils/assert_types'
 import { getRandomString } from '#lib/utils/random_string'
+import { federatedMode } from '#server/config'
 import { getByUris } from '#tests/api/utils/entities'
 import { search, waitForIndexation, getIndexedDoc } from '#tests/api/utils/search'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
+import type { WdEntityUri } from '#types/entity'
 
-const wikidataUris = [ 'wd:Q184226', 'wd:Q180736', 'wd:Q27536277', 'wd:Q225946', 'wd:Q3409094', 'wd:Q3236382' ]
+const wikidataUris = [ 'wd:Q184226', 'wd:Q180736', 'wd:Q27536277', 'wd:Q225946', 'wd:Q3409094', 'wd:Q3236382' ] as WdEntityUri[]
 const { max_gram: maxGram } = elasticsearchSettings.analysis.filter.edge_ngram
 
 assertNumber(maxGram)
@@ -27,8 +29,11 @@ assertNumber(maxGram)
 describe('search:entities', () => {
   let human, work, serie, collection, publisher
 
-  before(async () => {
-    [ human, work, serie, publisher, collection ] = await Promise.all([
+  before(async function () {
+    // Entities are not indexed locally in federated mode
+    if (federatedMode) this.skip()
+
+    ;[ human, work, serie, publisher, collection ] = await Promise.all([
       // create and index all entities
       createHuman(),
       createWork(),

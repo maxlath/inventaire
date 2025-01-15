@@ -1,16 +1,21 @@
 import 'should'
+import { multipartFormContentType } from '#controllers/images/lib/parse_form'
 import { isImageHash } from '#lib/boolean_validations'
+import { buildUrl } from '#lib/utils/url'
 import { uploadSomeImage } from '#tests/api/utils/images'
 import { authReq } from '#tests/api/utils/utils'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
 
-const endpoint = '/api/images?action=upload'
+function postForm (container: string) {
+  const url = buildUrl('/api/images', { action: 'upload', container })
+  return authReq('post', url, null, { 'content-type': multipartFormContentType })
+}
 
 describe('images:upload', () => {
   // Uploads on the assets container are done directly by an instance admin
   // without passing by this endpoint
   it('reject uploads on assets container', async () => {
-    await authReq('post', `${endpoint}&container=assets`)
+    await postForm('assets')
     .then(shouldNotBeCalled)
     .catch(err => {
       err.body.status_verbose.should.startWith('invalid container')
@@ -21,7 +26,7 @@ describe('images:upload', () => {
   // but it's not a real object storage container: source files
   // aren't fetched from the object storage but from remote URLs
   it('reject uploads on remote container', async () => {
-    await authReq('post', `${endpoint}&container=remote`)
+    await postForm('remote')
     .then(shouldNotBeCalled)
     .catch(err => {
       err.body.status_verbose.should.startWith('invalid container')
@@ -29,7 +34,7 @@ describe('images:upload', () => {
   })
 
   it('reject uploads on an unknown container', async () => {
-    await authReq('post', `${endpoint}&container=foo`)
+    await postForm('foo')
     .then(shouldNotBeCalled)
     .catch(err => {
       err.body.status_verbose.should.startWith('invalid container')
@@ -37,26 +42,26 @@ describe('images:upload', () => {
   })
 
   it('should accept uploads on entities container', async () => {
-    await authReq('post', `${endpoint}&container=entities`)
+    await postForm('entities')
     .then(shouldNotBeCalled)
     .catch(err => {
-      err.body.status_verbose.should.startWith('missing form data')
+      err.body.status_verbose.should.startWith('no file provided')
     })
   })
 
   it('should accept uploads on users container', async () => {
-    await authReq('post', `${endpoint}&container=users`)
+    await postForm('users')
     .then(shouldNotBeCalled)
     .catch(err => {
-      err.body.status_verbose.should.startWith('missing form data')
+      err.body.status_verbose.should.startWith('no file provided')
     })
   })
 
   it('should accept uploads on groups container', async () => {
-    await authReq('post', `${endpoint}&container=groups`)
+    await postForm('groups')
     .then(shouldNotBeCalled)
     .catch(err => {
-      err.body.status_verbose.should.startWith('missing form data')
+      err.body.status_verbose.should.startWith('no file provided')
     })
   })
 

@@ -1,6 +1,7 @@
 import { createWork } from '#fixtures/entities'
 import { createElement } from '#fixtures/listings'
 import type { AwaitableUserWithCookie } from '#fixtures/users'
+import { federatedMode } from '#server/config'
 import { merge } from '#tests/api/utils/entities'
 import { customAuthReq } from '#tests/api/utils/request'
 import { getUser, getUserB, publicReq } from '#tests/api/utils/utils'
@@ -62,7 +63,9 @@ describe('listings:by-element-id', () => {
   })
 
   describe('redirects hook', () => {
-    it('should update element uri after merging entities', async () => {
+    it('should update element uri after merging entities', async function () {
+      // Disabled in federated mode yet as this test relies on a special role
+      if (federatedMode) this.skip()
       const work = await createWork()
       const { uri, element: reqElement } = await createElement({})
       await merge(uri, work.uri)

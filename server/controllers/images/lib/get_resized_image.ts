@@ -4,7 +4,7 @@ import { errorHandler } from '#lib/error/error_handler'
 import { bundleError } from '#lib/error/pre_filled'
 import { applyImageLimits, shrinkAndFormatStream } from '#lib/images'
 import { endReqTimer, startReqTimer, userAgent, type RequestTimer } from '#lib/requests'
-import { declareHostError, recordPossibleTimeoutError, resetBanData } from '#lib/requests_temporary_host_ban'
+import { declareHostError, conditionallyDeclareHostError, resetBanData } from '#lib/requests_temporary_host_ban'
 import { logError } from '#lib/utils/logs'
 import config from '#server/config'
 import type { Url } from '#types/common'
@@ -38,7 +38,7 @@ export async function getResizedImage (req: Req, res: Res, url: Url, dimensions?
     response = await fetch(url, fetchOptions)
     timer.processingResponseStream = true
   } catch (err) {
-    recordPossibleTimeoutError(host, err)
+    conditionallyDeclareHostError(host, err)
     errorCode = err.code || err.type || err.name || err.message
     err.statusCode = 500
     err.context = { url }

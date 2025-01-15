@@ -1,5 +1,5 @@
 import { isArray, isBoolean, isNumber, isObject, isString } from 'lodash-es'
-import { isCouchUuid, isEmail, isEntityUri, isGroupId, isImageHash, isItemId, isLang, isLocalImg, isPatchId, isTransactionId, isUrl, isUserId, isUserImg, isUsername } from '#lib/boolean_validations'
+import { isCouchUuid, isEmail, isEntityUri, isGroupId, isImageHash, isItemId, isLang, isLocalImg, isPatchId, isTransactionId, isUrl, isUserAcct, isUserId, isUserImg, isUsername } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
 import { newInvalidError } from '#lib/error/pre_filled'
 
@@ -30,6 +30,7 @@ const commonValidations = {
   patchId: isPatchId,
   transactionId: isTransactionId,
   userId: isUserId,
+  userAcct: isUserAcct,
   userImg: image => {
     // Allow a user to delete their picture by passing a null value
     if (image === null) return true

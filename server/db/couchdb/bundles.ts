@@ -8,9 +8,9 @@ import type getDbApi from './cot_base.js'
 import type { MaybeIdentifiedDocument } from 'blue-cot/types/nano.js'
 
 export function couchdbBundlesFactory (db: ReturnType<typeof getDbApi> & DbInfo) {
-  async function actionAndReturn <D> (verb: string, doc: D) {
+  async function actionAndReturn <D> (method: string, doc: D) {
     assertObject(doc)
-    const couchRes = await db[verb](doc)
+    const couchRes = await db[method](doc)
     // @ts-expect-error
     if (!doc._id) doc._id = couchRes.id
     // @ts-expect-error

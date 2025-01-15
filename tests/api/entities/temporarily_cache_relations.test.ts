@@ -4,6 +4,7 @@ import entitiesRelationsTemporaryCache from '#controllers/entities/lib/entities_
 import { cacheEntityRelations, getCachedRelations, redirectCachedRelations } from '#controllers/entities/lib/temporarily_cache_relations'
 import { createWork, createWorkWithAuthor, createWorkWithSerie, someFakeUri } from '#fixtures/entities'
 import { wait } from '#lib/promises'
+import { federatedMode } from '#server/config'
 import { addClaim, merge } from '#tests/api/utils/entities'
 import { publicReq } from '#tests/api/utils/utils'
 
@@ -13,6 +14,8 @@ import { publicReq } from '#tests/api/utils/utils'
 // Due to this feature being primarily used to keep data after edits on Wikidata,
 // and due to the revalidation on primary data, it's quite hard to test from the API itself.
 describe('temporarily cache relations', () => {
+  before(function () { if (federatedMode) this.skip() })
+
   it('should add author relation to cache', async () => {
     const someAuthorUri = 'wd:Q1345582'
     const { uri: workUri } = await createWorkWithAuthor({ uri: someAuthorUri })

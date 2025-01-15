@@ -5,6 +5,7 @@ import { prefixifyWd } from '#controllers/entities/lib/prefix'
 import type { AwaitableUserWithCookie } from '#fixtures/users'
 import { isEntityUri } from '#lib/boolean_validations'
 import { sha1 } from '#lib/crypto'
+import { newError } from '#lib/error/error'
 import { isValidIsbn, toIsbn13h } from '#lib/isbn/isbn'
 import { forceArray, objectValues } from '#lib/utils/base'
 import { requireJson } from '#lib/utils/json'
@@ -16,11 +17,11 @@ import type {
   Claims,
   EntityType,
   EntityUri,
-  ExpandedSerializedWdEntity,
   InvEntityUri,
   Labels,
   PropertyUri,
   SerializedEntity,
+  SerializedWdEntity,
   WdEntityUri,
 } from '#types/entity'
 import type { ImageHash } from '#types/image'
@@ -303,7 +304,20 @@ export async function getSomeWdEditionUri () {
   return edition.uri
 }
 
-export async function getSomeRemoteEditionWithALocalLayer () {
+export async function getSomeWdEditionUriWithoutLocalLayer (attempt = 0) {
+  const edition = await getSomeWdEdition()
+  if (edition.claims['invp:P1'] != null) {
+    if (attempt > 10) {
+      throw newError('could not get a wd edition without a local layer', 500, { edition, attempt })
+    } else {
+      return getSomeWdEditionUriWithoutLocalLayer(++attempt)
+    }
+  } else {
+    return edition.uri
+  }
+}
+
+export async function getSomeRemoteEditionWithALocalImage () {
   const uri = await getSomeWdEditionUri()
   const imageHash = someRandomImageHash()
   let edition = await getByUri(uri)
@@ -311,7 +325,7 @@ export async function getSomeRemoteEditionWithALocalLayer () {
     await addClaim({ uri, property: 'invp:P2', value: imageHash })
     edition = await getByUri(uri)
   }
-  return edition as ExpandedSerializedWdEntity
+  return edition as SerializedWdEntity
 }
 
 interface ExistsOrCreateParams {

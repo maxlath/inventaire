@@ -1,13 +1,14 @@
 import { isArray, isNumber, isPlainObject, isString, uniq } from 'lodash-es'
-import { isNonEmptyArray, isLocalActivityPubActorUrl, isLang, isCollection, isPositiveIntegerString, isStrictlyPositiveInteger, isNonEmptyString, isColorHexCode, isPatchId, isPropertyUri } from '#lib/boolean_validations'
+import { isNonEmptyArray, isLocalActivityPubActorUrl, isLang, isCollection, isPositiveIntegerString, isStrictlyPositiveInteger, isNonEmptyString, isColorHexCode, isPatchId, isPropertyUri, isUserAcct, isCouchUuid, isUserId } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
+import { buildLocalUserAcct } from '#lib/federation/remote_user'
 import { truncateLatLng } from '#lib/geo'
 import { isValidIsbn } from '#lib/isbn/isbn'
 import { normalizeString, parseBooleanString } from '#lib/utils/base'
 import { typeOf } from '#lib/utils/types'
 import { isWikimediaLanguageCode } from '#lib/wikimedia'
 import common from '#models/validations/common'
-import user from '#models/validations/user'
+import userValidations from '#models/validations/user'
 import { isVisibilityKey, isVisibilityKeyArray } from '#models/validations/visibility'
 import { publicHost, publicOrigin } from '#server/config'
 
@@ -19,7 +20,7 @@ import { publicHost, publicOrigin } from '#server/config'
 
 const validations = {
   common,
-  user,
+  user: userValidations,
   visibility: isVisibilityKeyArray,
 }
 
@@ -190,6 +191,27 @@ const langs = {
   validate: arrayOfAType(lang.validate),
 }
 
+const user = {
+  format: (value, name, config) => {
+    if (config.type === 'acct' && isUserId(value)) return buildLocalUserAcct(value)
+    else return value
+  },
+  validate: (value, name, config) => {
+    if (config.type === 'acct') {
+      return isUserAcct(value)
+    } else {
+      return isCouchUuid(value)
+    }
+  },
+  rename: (name, config) => {
+    if (config.type === 'acct') {
+      return `${name}Acct`
+    } else {
+      return `${name}Id`
+    }
+  },
+}
+
 export const genericParameters = {
   allowlist: {
     validate: (value, name, config) => config.allowlist.includes(value),
@@ -233,6 +255,10 @@ export const genericParameters = {
 
 export const sanitizationParameters = {
   '@context': allowlistedStrings,
+  accts: {
+    format: arrayOrPipedString,
+    validate: arrayOfAType(isUserAcct),
+  },
   actor: nonEmptyString,
   attribute: nonEmptyString,
   attributes: allowlistedStrings,
@@ -362,7 +388,7 @@ export const sanitizationParameters = {
   uri: entityUri,
   uris: entityUris,
   url: imgUrl,
-  user: couchUuid,
+  user,
   users: couchUuids,
   username: {
     format: normalizeString,

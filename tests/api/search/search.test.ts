@@ -5,6 +5,7 @@ import { createListing } from '#fixtures/listings'
 import { createShelf } from '#fixtures/shelves'
 import { createUser } from '#fixtures/users'
 import { getGroupVisibilityKey } from '#lib/visibility/visibility'
+import { federatedMode } from '#server/config'
 import { makeFriends } from '#tests/api/utils/relations'
 import { search, waitForIndexation, firstNWords, customAuthSearch } from '#tests/api/utils/search'
 import { publicReq, getUser, getUserB } from '#tests/api/utils/utils'
@@ -21,7 +22,9 @@ describe('search:global', () => {
       }
     })
 
-    it('should not crashed when the search contains special characters', async () => {
+    it('should not crashed when the search contains special characters', async function () {
+      // Entities are not indexed locally in federated mode
+      if (federatedMode) this.skip()
       const query = encodeURIComponent("L'eau d\\o~uc/e/-e[n] ~pé*ril!~*")
       const { results } = await publicReq('get', `/api/search?lang=en&types=works&search=${query}`)
       results.should.be.an.Array()
@@ -38,7 +41,8 @@ describe('search:global', () => {
       }
     })
 
-    it('should reject invalid types', async () => {
+    it('should reject invalid types', async function () {
+      if (federatedMode) this.skip()
       try {
         await search('da', 'yo').then(shouldNotBeCalled)
       } catch (err) {
@@ -47,7 +51,9 @@ describe('search:global', () => {
       }
     })
 
-    it('should reject queries mixing social and entities types', async () => {
+    it('should reject queries mixing social and entities types', async function () {
+      // Entities are not indexed locally in federated mode
+      if (federatedMode) this.skip()
       try {
         await search([ 'users', 'humans' ], 'foo').then(shouldNotBeCalled)
       } catch (err) {

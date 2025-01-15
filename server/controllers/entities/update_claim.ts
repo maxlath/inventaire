@@ -4,10 +4,11 @@ import { checkSpamContent } from '#controllers/user/lib/spam'
 import { isInvEntityId, isNonEmptyString } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
 import { newMissingBodyError } from '#lib/error/pre_filled'
+import { getMaybeRemoteReqUser, parseReqLocalOrRemoteUser } from '#lib/federation/remote_user'
 import { log } from '#lib/utils/logs'
 import type { SanitizedParameters } from '#types/controllers_input_sanitization_parameters'
 import type { IsbnEntityUri } from '#types/entity'
-import type { AuthentifiedReq } from '#types/server'
+import type { AuthentifiedReq, RemoteUserAuthentifiedReq } from '#types/server'
 import { updateInvClaim } from './lib/update_inv_claim.js'
 import { updateWdClaim } from './lib/update_wd_claim.js'
 
@@ -19,7 +20,7 @@ const sanitization = {
   'new-value': { optional: true },
 }
 
-async function controller (params: SanitizedParameters, req: AuthentifiedReq) {
+async function controller (params: SanitizedParameters, req: AuthentifiedReq | RemoteUserAuthentifiedReq) {
   let { id, uri, property, oldValue, newValue } = params
   let prefix
   log(params, 'update claim input')
@@ -34,7 +35,10 @@ async function controller (params: SanitizedParameters, req: AuthentifiedReq) {
   oldValue = parseEmptyValue(oldValue)
   newValue = parseEmptyValue(newValue)
 
-  if (isNonEmptyString(newValue)) await checkSpamContent(req.user, newValue)
+  if (isNonEmptyString(newValue)) {
+    const user = getMaybeRemoteReqUser(req)
+    await checkSpamContent(user, newValue)
+  }
 
   ;[ prefix, id ] = uri.split(':')
 
@@ -48,7 +52,8 @@ async function controller (params: SanitizedParameters, req: AuthentifiedReq) {
     throw newError(`unsupported uri prefix: ${prefix}`, 400, { uri })
   }
 
-  await updater(req.user, id, property, oldValue, newValue)
+  const user = parseReqLocalOrRemoteUser(req)
+  await updater(user, id, property, oldValue, newValue)
   return { ok: true }
 }
 

@@ -11,12 +11,12 @@ import { emit } from '#lib/radio'
 import { warn } from '#lib/utils/logs'
 import { convertEntityDocToPlaceholder, recoverEntityDocFromPlaceholder } from '#models/entity'
 import type { InvEntityDoc, InvEntityId, RemovedPlaceholderEntity } from '#types/entity'
-import type { UserId } from '#types/user'
+import type { UserAccountUri } from '#types/server'
 
 const db = await dbFactory('entities')
 
 function PlaceholderHandler (actionName, modelFn) {
-  return async (userId: UserId, entityId: InvEntityId) => {
+  return async (userAcct: UserAccountUri, entityId: InvEntityId) => {
     warn(entityId, `${actionName} placeholder entity`)
     // Using db.get anticipates a possible future where db.byId filters-out
     // non type='entity' docs, thus making type='removed:placeholder' not accessible
@@ -39,7 +39,7 @@ function PlaceholderHandler (actionName, modelFn) {
       }
     }
 
-    await putInvEntityUpdate<RemovedPlaceholderEntity>({ userId, currentDoc, updatedDoc })
+    await putInvEntityUpdate<RemovedPlaceholderEntity>({ userAcct, currentDoc, updatedDoc })
     await emit(`entity:${actionName}`, `inv:${entityId}`)
     return currentDoc._id
   }

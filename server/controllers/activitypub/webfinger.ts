@@ -1,5 +1,5 @@
 import { makeUrl, getEntityUriFromActorName, getEntityActorName } from '#controllers/activitypub/lib/helpers'
-import { getEntityByUri } from '#controllers/entities/lib/get_entity_by_uri'
+import { getEntityByUri } from '#controllers/entities/lib/federation/instance_agnostic_entities'
 import { isEntityUri, isUsername } from '#lib/boolean_validations'
 import { ControllerWrapper } from '#lib/controller_wrapper'
 import { notFoundError } from '#lib/error/error'

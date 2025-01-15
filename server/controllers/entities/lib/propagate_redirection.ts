@@ -2,12 +2,12 @@ import { redirectCachedRelations } from '#controllers/entities/lib/temporarily_c
 import updateItemEntity from '#controllers/items/lib/update_entity'
 import { updateElementsUris } from '#controllers/listings/lib/update_element_uri'
 import type { EntityUri } from '#types/entity'
-import type { UserId } from '#types/user'
+import type { UserAccountUri } from '#types/server'
 import { redirectClaims } from './redirect_claims.js'
 
-export default (userId: UserId, fromUri: EntityUri, toUri: EntityUri, previousToUri?: EntityUri) => {
+export default (userAcct: UserAccountUri, fromUri: EntityUri, toUri: EntityUri, previousToUri?: EntityUri) => {
   const actions = [
-    redirectClaims(userId, fromUri, toUri),
+    redirectClaims(userAcct, fromUri, toUri),
     updateItemEntity.afterMerge(fromUri, toUri),
     redirectCachedRelations(fromUri, toUri),
     updateElementsUris(fromUri, toUri),

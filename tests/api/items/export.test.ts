@@ -10,10 +10,11 @@ import {
 } from '#fixtures/entities'
 import { createItem } from '#fixtures/items'
 import { createShelf } from '#fixtures/shelves'
-import { createUser } from '#fixtures/users'
+import { createUser, type AwaitableUserWithCookie } from '#fixtures/users'
 import config from '#server/config'
 import { getByUri, addClaim, parseLabel, updateLabel } from '#tests/api/utils/entities'
 import { customAuthReq, rawCustomAuthReq } from '#tests/api/utils/request'
+import type { ItemId } from '#types/item'
 
 const { parse } = papaparse
 
@@ -25,7 +26,7 @@ const generateEntityUrl = uri => generateUrl(`/entity/${uri}`)
 const generateEntitiesUrls = uris => uris.map(generateEntityUrl)
 const userPromise = createUser()
 
-const reqAndParse = async (itemId, user) => {
+async function reqAndParse (itemId: ItemId, user?: AwaitableUserWithCookie) {
   user = user || userPromise
   const { body } = await rawCustomAuthReq({ user, method: 'get', url: endpoint })
   const { data, errors } = parse(body, { header: true })

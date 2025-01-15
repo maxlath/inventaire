@@ -1,6 +1,6 @@
 import type { CouchDoc, CouchUuid } from '#types/couchdb'
 import type { SerializedEntity, EntityUri } from '#types/entity'
-import type { UserId } from '#types/user'
+import type { UserAccountUri } from '#types/server'
 import type { EntityType } from 'wikibase-sdk'
 
 export type TaskId = CouchUuid
@@ -18,7 +18,7 @@ export type Suggestion = SerializedEntity & {
   relationScore?: number
   entitiesType: EntityType
   occurrences?: externalSourceOccurrence[]
-  reporter?: UserId
+  reporter?: UserAccountUri
   clue?: string
 }
 
@@ -34,6 +34,6 @@ export interface Task extends CouchDoc {
   relationScore?: number
   entitiesType: EntityType
   externalSourcesOccurrences?: externalSourceOccurrence[]
-  reporters?: UserId[]
+  reporters?: UserAccountUri[]
   clue?: string
 }

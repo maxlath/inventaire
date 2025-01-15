@@ -1,16 +1,19 @@
 // An endpoint to list entities edits made by a user
-import { getPatchesByDate, getPatchesByUserId, getPatchesByUserIdAndFilter } from '#controllers/entities/lib/patches/patches'
-import { getUserById } from '#controllers/user/lib/user'
+import { getPatchesByDate, getPatchesByUserAcct, getPatchesByUserAcctAndFilter } from '#controllers/entities/lib/patches/patches'
 import { isPropertyUri, isLang } from '#lib/boolean_validations'
 import { newError } from '#lib/error/error'
+import { getUserByAcct, parseReqLocalOrRemoteUser } from '#lib/federation/remote_user'
 import { hasAdminAccess } from '#lib/user_access_levels'
 import { userShouldBeAnonymized } from '#models/user'
 import type { SanitizedParameters } from '#types/controllers_input_sanitization_parameters'
-import type { AuthentifiedReq } from '#types/server'
+import type { AuthentifiedReq, RemoteUserAuthentifiedReq, UserAccountUri } from '#types/server'
 import { anonymizePatches } from './lib/anonymize_patches.js'
 
 const sanitization = {
-  user: { optional: true },
+  user: {
+    type: 'acct',
+    optional: true,
+  },
   limit: { default: 100, max: 1000 },
   offset: { default: 0 },
   filter: {
@@ -19,40 +22,41 @@ const sanitization = {
   },
 }
 
-async function controller (params: SanitizedParameters, req: AuthentifiedReq) {
-  const { userId, limit, offset, filter, reqUserId } = params
-  const reqUserHasAdminAccess = hasAdminAccess(req.user)
+async function controller (params: SanitizedParameters, req: AuthentifiedReq | RemoteUserAuthentifiedReq) {
+  const { userAcct, limit, offset, filter, reqUserAcct } = params
+  const user = parseReqLocalOrRemoteUser(req)
+  const reqUserHasAdminAccess = hasAdminAccess(user)
 
   if (filter != null && !(isPropertyUri(filter) || isLang(filter))) {
     throw newError('invalid filter', 400, params)
   }
 
-  if (userId != null && !reqUserHasAdminAccess) await checkPublicContributionsStatus({ userId, reqUserId })
+  if (userAcct != null && !reqUserHasAdminAccess) await checkPublicContributionsStatus({ userAcct, reqUserAcct })
 
-  const patchesPage = await getPatchesPage({ userId, limit, offset, filter })
+  const patchesPage = await getPatchesPage({ userAcct, limit, offset, filter })
   const { patches } = patchesPage
-  if (!reqUserHasAdminAccess) await anonymizePatches({ patches, reqUserId })
+  if (!reqUserHasAdminAccess) await anonymizePatches({ patches, reqUserAcct })
 
   return patchesPage
 }
 
-async function getPatchesPage ({ userId, limit, offset, filter }) {
-  if (userId != null) {
+async function getPatchesPage ({ userAcct, limit, offset, filter }: { userAcct: UserAccountUri, limit: number, offset: number, filter: string }) {
+  if (userAcct != null) {
     if (filter != null) {
-      return getPatchesByUserIdAndFilter({ userId, filter, limit, offset })
+      return getPatchesByUserAcctAndFilter({ userAcct, filter, limit, offset })
     } else {
-      return getPatchesByUserId({ userId, limit, offset })
+      return getPatchesByUserAcct({ userAcct, limit, offset })
     }
   } else {
     return getPatchesByDate({ limit, offset })
   }
 }
 
-async function checkPublicContributionsStatus ({ userId, reqUserId }) {
-  if (userId === reqUserId) return
-  const user = await getUserById(userId)
+async function checkPublicContributionsStatus ({ userAcct, reqUserAcct }) {
+  if (userAcct === reqUserAcct) return
+  const user = await getUserByAcct(userAcct)
   if (userShouldBeAnonymized(user)) {
-    throw newError('non-public contributions', 403, { userId })
+    throw newError('non-public contributions', 403, { userAcct, reqUserAcct })
   }
 }
 

@@ -3,14 +3,14 @@ import { logError } from '#lib/utils/logs'
 import { createPatchDoc, getPatchDiff, revertPatch } from '#models/patch'
 import type { InvEntityDoc, NewInvEntity } from '#types/entity'
 import type { BatchId, NewPatch, Patch, PatchContext, PatchOperation } from '#types/patch'
-import type { UserId } from '#types/user'
+import type { UserAccountUri } from '#types/server'
 import { getEntityLastPatches } from './patches.js'
 
 const designDocName = 'patches'
 const db = await dbFactory('patches', designDocName)
 
 interface PatchCreationParams {
-  userId: UserId
+  userAcct: UserAccountUri
   currentDoc: NewInvEntity | InvEntityDoc
   updatedDoc: InvEntityDoc
   batchId?: BatchId
@@ -18,13 +18,13 @@ interface PatchCreationParams {
 }
 
 export async function createPatch (params: PatchCreationParams) {
-  const { currentDoc, updatedDoc, userId } = params
+  const { currentDoc, updatedDoc, userAcct } = params
   const newPatchDoc = createPatchDoc(params)
 
   try {
     if (entityHasPreviousVersions(currentDoc)) {
       const [ previousPatchDoc ] = await getEntityLastPatches(currentDoc._id)
-      if (lastPatchWasFromSameUser(previousPatchDoc, userId)) {
+      if (lastPatchWasFromSameUser(previousPatchDoc, userAcct)) {
         const aggregatedOperations = getAggregatedOperations(currentDoc, updatedDoc, previousPatchDoc)
         if (isNotSpecialPatch(previousPatchDoc)) {
           if (aggregatedOperationsAreEmpty(aggregatedOperations)) {
@@ -47,8 +47,8 @@ function entityHasPreviousVersions (currentDoc: NewInvEntity | InvEntityDoc): cu
   return '_id' in currentDoc && currentDoc.version > 1
 }
 
-function lastPatchWasFromSameUser (previousPatchDoc: Patch, userId: UserId) {
-  return previousPatchDoc && previousPatchDoc.user === userId
+function lastPatchWasFromSameUser (previousPatchDoc: Patch, userAcct: UserAccountUri) {
+  return previousPatchDoc && previousPatchDoc.user === userAcct
 }
 
 function getAggregatedOperations (currentDoc: InvEntityDoc, updatedDoc: InvEntityDoc, previousPatchDoc: Patch) {

@@ -24,4 +24,6 @@ async function controller (params: SanitizedParameters) {
   return { uris }
 }
 
+export type GetReverseClaimsResponse = Awaited<ReturnType<typeof controller>>
+
 export default { sanitization, controller }

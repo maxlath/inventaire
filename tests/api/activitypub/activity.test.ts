@@ -5,7 +5,7 @@ import { createItem } from '#fixtures/items'
 import { createShelfWithItem } from '#fixtures/shelves'
 import { createUser } from '#fixtures/users'
 import { wait } from '#lib/promises'
-import config from '#server/config'
+import config, { federatedMode } from '#server/config'
 import { getActorName } from '#tests/api/utils/shelves'
 import { publicReq, getFediversableUser } from '#tests/api/utils/utils'
 
@@ -32,7 +32,8 @@ describe('activity', () => {
   })
 
   describe('entities', () => {
-    it('should get an activity', async () => {
+    it('should get an activity', async function () {
+      if (federatedMode) this.skip()
       const { uri: authorUri } = await createHuman()
       const { uri: workUri } = await createWork()
       await addAuthor(workUri, authorUri)

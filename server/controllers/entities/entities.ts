@@ -1,5 +1,7 @@
 import removeLabel from '#controllers/entities/remove_label'
-import { actionsControllersFactory } from '#lib/actions_controllers'
+import { methodAndActionsControllersFactory } from '#lib/actions_controllers'
+import { buildProxiedControllers } from '#lib/federation/build_proxied_controllers'
+import type { MethodsAndActionsControllers } from '#types/controllers'
 import byUrisGet from './by_uris_get.js'
 import contributions from './contributions.js'
 import contributionsCount from './contributions_count.js'
@@ -20,8 +22,8 @@ import revertMerge from './revert_merge.js'
 import updateClaim from './update_claim.js'
 import updateLabel from './update_label.js'
 
-export default {
-  get: actionsControllersFactory({
+const localEntitiesControllersParams = {
+  get: {
     public: {
       'by-uris': byUrisGet,
       'reverse-claims': reverseClaims,
@@ -39,9 +41,9 @@ export default {
     admin: {
       'contributions-count': contributionsCount,
     },
-  }),
+  },
 
-  post: actionsControllersFactory({
+  post: {
     public: {
       'by-uris': byUrisGet,
     },
@@ -50,9 +52,9 @@ export default {
       resolve,
       delete: delet,
     },
-  }),
+  },
 
-  put: actionsControllersFactory({
+  put: {
     authentified: {
       'update-claim': updateClaim,
       'update-label': updateLabel,
@@ -65,5 +67,8 @@ export default {
     dataadmin: {
       'revert-merge': revertMerge,
     },
-  }),
-}
+  },
+} satisfies MethodsAndActionsControllers
+
+export const localEntitiesControllers = methodAndActionsControllersFactory(localEntitiesControllersParams)
+export const federatedEntitiesControllers = buildProxiedControllers('/api/entities', localEntitiesControllersParams)

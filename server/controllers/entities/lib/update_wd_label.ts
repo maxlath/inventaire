@@ -2,14 +2,18 @@ import { triggerSubjectEntityCacheRefresh } from '#controllers/entities/lib/enti
 import { prefixifyWd } from '#controllers/entities/lib/prefix'
 import { getWikidataOAuthCredentials, validateWikidataOAuth } from '#controllers/entities/lib/wikidata_oauth'
 import { isWdEntityId } from '#lib/boolean_validations'
+import { newError } from '#lib/error/error'
 import { newInvalidError } from '#lib/error/pre_filled'
+import { isRemoteUser } from '#lib/federation/remote_user'
+import type { MinimalRemoteUser } from '#lib/federation/remote_user'
 import wdEdit from '#lib/wikidata/edit'
 import type { Label, WdEntityId } from '#types/entity'
 import type { User } from '#types/user'
 import type { WikimediaLanguageCode } from 'wikibase-sdk'
 
-export default async function (user: User, id: WdEntityId, language: WikimediaLanguageCode, value: Label) {
+export async function updateWdLabel (user: User | MinimalRemoteUser, id: WdEntityId, language: WikimediaLanguageCode, value: Label) {
   if (!isWdEntityId(id)) throw newInvalidError('id', id)
+  if (isRemoteUser(user)) throw newError('remote users can not update wd label yet', 400)
 
   validateWikidataOAuth(user)
   const credentials = getWikidataOAuthCredentials(user)

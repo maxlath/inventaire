@@ -9,25 +9,25 @@ import { logError, warn } from '#lib/utils/logs'
 import type { Claims, EntityType, InvSimplifiedPropertyClaims, PropertyUri } from '#types/entity'
 import type { BatchId } from '#types/patch'
 import type { EditionSeed, EntitySeed } from '#types/resolver'
-import type { UserId } from '#types/user'
+import type { UserAccountUri } from '#types/server'
 import { createInvEntity } from '../create_inv_entity.js'
 import { propertiesValuesConstraints as properties } from '../properties/properties_values_constraints.js'
 
-export const createAuthor = (userId: UserId, batchId: BatchId) => (author: EntitySeed) => {
+export const createAuthor = (userAcct: UserAccountUri, batchId: BatchId) => (author: EntitySeed) => {
   if (author.uri != null) return author
   addClaimIfValid(author.claims, 'wdt:P31', [ 'wd:Q5' ], 'human')
-  return createEntityFromSeed({ seed: author, userId, batchId })
+  return createEntityFromSeed({ seed: author, userAcct, batchId })
 }
 
-export const createWork = (userId: UserId, batchId: BatchId, authors: EntitySeed[]) => (work: EntitySeed) => {
+export const createWork = (userAcct: UserAccountUri, batchId: BatchId, authors: EntitySeed[]) => (work: EntitySeed) => {
   if (work.uri != null) return work
   const authorsUris = compact(map(authors, 'uri'))
   addClaimIfValid(work.claims, 'wdt:P31', [ 'wd:Q47461344' ], 'work')
   addClaimIfValid(work.claims, 'wdt:P50', authorsUris)
-  return createEntityFromSeed({ seed: work, userId, batchId })
+  return createEntityFromSeed({ seed: work, userAcct, batchId })
 }
 
-export async function createEdition (edition: EditionSeed, works: EntitySeed[], userId: UserId, batchId: BatchId, enrich?: boolean) {
+export async function createEdition (edition: EditionSeed, works: EntitySeed[], userAcct: UserAccountUri, batchId: BatchId, enrich?: boolean) {
   if (edition.uri != null) return
 
   const { isbn } = edition
@@ -72,7 +72,7 @@ export async function createEdition (edition: EditionSeed, works: EntitySeed[], 
     if (imageHash) edition.claims['invp:P2'] = [ imageHash ]
   }
 
-  return createEntityFromSeed({ seed: edition, userId, batchId })
+  return createEntityFromSeed({ seed: edition, userAcct, batchId })
 }
 
 // An entity type is required only for properties with validation functions requiring a type
@@ -88,13 +88,13 @@ function addClaimIfValid (claims: Claims, property: PropertyUri, values: InvSimp
   }
 }
 
-async function createEntityFromSeed ({ seed, userId, batchId }: { seed: EntitySeed, userId: UserId, batchId: BatchId }) {
+async function createEntityFromSeed ({ seed, userAcct, batchId }: { seed: EntitySeed, userAcct: UserAccountUri, batchId: BatchId }) {
   let entity
   try {
     entity = await createInvEntity({
       labels: seed.labels,
       claims: seed.claims,
-      userId,
+      userAcct,
       batchId,
     })
   } catch (err) {
@@ -104,7 +104,7 @@ async function createEntityFromSeed ({ seed, userId, batchId }: { seed: EntitySe
       if (invalidClaim && !nonRecoverableProperties.has(property)) {
         warn(err, 'InvalidClaimValueError: removing invalid claim')
         seed.claims[property] = seed.claims[property].filter(claim => claim !== invalidClaim)
-        return createEntityFromSeed({ seed, userId, batchId })
+        return createEntityFromSeed({ seed, userAcct, batchId })
       } else {
         logError(err, 'invalid claim not found, cant recover seed')
       }

@@ -6,6 +6,7 @@ import { createElement, createListing } from '#fixtures/listings'
 import { createShelf } from '#fixtures/shelves'
 import { createTransaction } from '#fixtures/transactions'
 import { getRefreshedUser, getRandomPosition, createUser } from '#fixtures/users'
+import { federatedMode } from '#server/config'
 import { getGroup } from '#tests/api/utils/groups'
 import { getItem } from '#tests/api/utils/items'
 import { getListingById } from '#tests/api/utils/listings'
@@ -90,7 +91,8 @@ describe('user:delete', () => {
       map(rerefreshedGroup.admins, 'user').should.not.containEql(user._id)
     })
 
-    it('should delete the group when the user was the last member', async () => {
+    it('should delete the group when the user was the last member', async function () {
+      if (federatedMode) this.skip()
       const user = await createUser()
       const group = await createGroup({ user })
       map(group.admins, 'user').should.containEql(user._id)

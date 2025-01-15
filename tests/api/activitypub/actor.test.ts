@@ -234,6 +234,17 @@ describe('activitypub:actor', () => {
       headers.location.should.equal(`${publicOrigin}/shelves/${shelf._id}`)
     })
   })
+
+  describe('instance', () => {
+    it('should return the instance actor', async () => {
+      const actorUrl = makeUrl({ params: { action: 'actor', name: 'instance' } })
+      const res = await publicReq('get', actorUrl)
+      res.type.should.equal('Service')
+      res.id.should.equal(actorUrl)
+      res.publicKey.id.should.startWith(`${actorUrl}#`)
+      res.publicKey.owner.should.equal(actorUrl)
+    })
+  })
 })
 
 const getHtml = url => {

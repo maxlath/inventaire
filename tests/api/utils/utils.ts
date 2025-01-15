@@ -1,5 +1,7 @@
 import 'should'
-import { getOrCreateUser, getRefreshedUser } from '#fixtures/users'
+import { getOrCreateUser, getRefreshedUser, type CustomUserData } from '#fixtures/users'
+import { newError } from '#lib/error/error'
+import { federatedMode } from '#server/config'
 import type { UserRole } from '#types/user'
 import { request, customAuthReq, rawCustomAuthReq } from './request.js'
 import type { ArrayTail } from 'type-fest'
@@ -7,6 +9,9 @@ import type { ArrayTail } from 'type-fest'
 const userPromises = {}
 
 export const getUserGetter = (key: string, role?: UserRole, customData?: CustomUserData) => () => {
+  if (federatedMode && role === 'dataadmin') {
+    throw newError('Tests relying on the dataadmin role are not available in federated mode yet', 500, { role })
+  }
   if (userPromises[key] == null) {
     userPromises[key] = getOrCreateUser(customData, role)
   }

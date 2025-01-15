@@ -10,11 +10,13 @@ filter_files(){
 
 {
   if [ -z "$1" ]; then
-    # If no test file is passed as argument, run all tests
-    echo "Starting unit tests"
-    ./scripts/tests/run_unit_tests.sh
-    echo "Starting integration tests"
-    ./scripts/tests/run_integration_tests.sh
+    # If no test file is passed as argument, run all tests (except if INV_FEDERATED_TESTS is set)
+    if [ "$INV_FEDERATED_TESTS" == "" ]; then
+      echo "Starting unit tests"
+      ./scripts/tests/run_unit_tests.sh
+      echo "Starting integration tests"
+      ./scripts/tests/run_integration_tests.sh
+    fi
     echo "Starting API tests"
     ./scripts/tests/run_api_slow_tests.sh
   else

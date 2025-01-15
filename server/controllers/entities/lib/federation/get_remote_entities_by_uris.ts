@@ -4,7 +4,6 @@ import type { GetEntitiesByUrisParams } from '#controllers/entities/lib/get_enti
 import type { ReverseClaimsParams } from '#controllers/entities/lib/reverse_claims'
 import type { GetReverseClaimsResponse } from '#controllers/entities/reverse_claims'
 import { federatedRequest } from '#lib/federation/federated_requests'
-import { assertString } from '#lib/utils/assert_types'
 import { buildUrl } from '#lib/utils/url'
 import type { EntityUri, SerializedEntity } from '#types/entity'
 
@@ -23,7 +22,6 @@ export async function getRemoteEntitiesList (uris: EntityUri[]) {
 }
 
 export async function getRemoteEntityByUri ({ uri }: { uri: EntityUri }) {
-  assertString(uri)
   const [ entity ] = await getRemoteEntitiesList([ uri ])
   return entity
 }

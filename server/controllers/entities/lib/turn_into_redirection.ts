@@ -3,7 +3,6 @@ import { getInvClaimsByClaimValue, getEntityById, putInvEntityUpdate, wdEntityHa
 import { getClaimValue, hasLocalClaims } from '#controllers/entities/lib/inv_claims_utils'
 import { removePlaceholder } from '#controllers/entities/lib/placeholders'
 import { isInvEntityUri, isWdEntityUri } from '#lib/boolean_validations'
-import { assertStrings, assertString } from '#lib/utils/assert_types'
 import { log } from '#lib/utils/logs'
 import { convertEntityDocIntoARedirection, preventRedirectionEdit, convertEntityDocIntoALocalLayer, preventLocalLayerEdit, preventRemovedPlaceholderEdit } from '#models/entity'
 import type { Claims, EntityUri, InvEntity, InvEntityId, InvEntityUri, PropertyUri } from '#types/entity'
@@ -12,9 +11,6 @@ import type { UserAccountUri } from '#types/server'
 import propagateRedirection from './propagate_redirection.js'
 
 export async function turnIntoRedirectionOrLocalLayer ({ userAcct, fromId, toUri, previousToUri, context }: { userAcct: UserAccountUri, fromId: InvEntityId, toUri: EntityUri, previousToUri?: EntityUri, context?: PatchContext }) {
-  assertStrings([ userAcct, fromId, toUri ])
-  if (previousToUri != null) assertString(previousToUri)
-
   const fromUri = `inv:${fromId}` as InvEntityUri
 
   const currentFromDoc = await getEntityById(fromId)

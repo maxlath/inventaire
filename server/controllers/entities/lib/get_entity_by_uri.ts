@@ -1,3 +1,4 @@
+import { newError } from '#lib/error/error'
 import { assertString } from '#lib/utils/assert_types'
 import type { EntityUri } from '#types/entity'
 import { getEntitiesByUris, getExpandedEntitiesByUris, type EntitiesGetterParams } from './get_entities_by_uris.js'
@@ -10,7 +11,9 @@ export async function getEntityByUri ({ uri, refresh, dry }: GetEntityByUriArgs)
   assertString(uri)
   const uris = [ uri ]
   const { entities } = await getEntitiesByUris({ uris, refresh, dry })
-  return Object.values(entities)[0]
+  const entity = Object.values(entities)[0]
+  if (entity) return entity
+  else throw newError('entity not found', 404, { uri })
 }
 
 export async function getExpandedEntityByUri ({ uri, refresh, dry }: GetEntityByUriArgs) {

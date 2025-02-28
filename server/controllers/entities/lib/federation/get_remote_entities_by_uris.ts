@@ -5,6 +5,7 @@ import type { GetEntityByUriArgs } from '#controllers/entities/lib/get_entity_by
 import type { ReverseClaimsParams } from '#controllers/entities/lib/reverse_claims'
 import type { GetReverseClaimsResponse } from '#controllers/entities/reverse_claims'
 import { cache_ } from '#lib/cache'
+import { newError } from '#lib/error/error'
 import { updateEntitiesRevisionsCache } from '#lib/federation/entities_revisions_cache'
 import { federatedRequest } from '#lib/federation/federated_requests'
 import { radio } from '#lib/radio'
@@ -70,7 +71,8 @@ export async function getRemoteEntitiesList (uris: EntityUri[], params: Partial<
 
 export async function getRemoteEntityByUri ({ uri, refresh }: GetEntityByUriArgs) {
   const [ entity ] = await getRemoteEntitiesList([ uri ], { refresh })
-  return entity
+  if (entity) return entity
+  else throw newError('entity not found', 404, { uri })
 }
 
 export async function getRemoteReverseClaims (params: ReverseClaimsParams) {

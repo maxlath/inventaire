@@ -13,9 +13,9 @@ This folder hosts the main **technical documentation** about Inventaire, includi
 
 ### Install
 
-What you need to install will depend on if you are trying to setup a development or a production environment:
-* In **development**, you will need the server and client repositories of course, and their dependencies: CouchDB, Elasticsearch, GraphicsMagick
-* In **production**, in addition to those dependencies, you will need a reverse proxy, typically Nginx, to handle TLS termination, image resizing and caching, etc
+What you need to install will depend on if you are trying to set up a development or a production environment:
+* In **development**, you will need the server and client repositories of course, and their dependencies: **CouchDB**, **Elasticsearch**, **GraphicsMagick**
+* In **production**, in addition to those dependencies, you will need a reverse proxy, typically **Nginx**, to handle TLS termination, image resizing and caching, etc
 
 For details on how to install all of those:
 * See [installation](./installation) procedure for Debian-based systems.

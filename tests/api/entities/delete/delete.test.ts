@@ -7,15 +7,12 @@ import {
   createEditionWithIsbn,
 } from '#fixtures/entities'
 import { createElement } from '#fixtures/listings'
-import { wait } from '#lib/promises'
-import config, { federatedMode } from '#server/config'
+import { federatedMode } from '#server/config'
 import { getByUri, getByUris, deleteByUris, merge } from '#tests/api/utils/entities'
 import { getItemById } from '#tests/api/utils/items'
 import { authReq } from '#tests/api/utils/utils'
 import { shouldNotBeCalled } from '#tests/unit/utils/utils'
 import type { SerializedInvEntity, EntityUri } from '#types/entity'
-
-const debounceDelay = config.snapshotsDebounceTime + 100
 
 describe('entities:delete', () => {
   it('should reject without uris', async () => {
@@ -149,7 +146,6 @@ describe('entities:delete', () => {
     await deleteByUris([ author.uri ])
     // Trigger the entity revision refresh
     if (federatedMode) await getByUri(work.uri)
-    await wait(debounceDelay)
     const updatedItem = await getItemById(item._id)
     updatedItem.snapshot['entity:title'].should.equal(work.labels.en)
     should(updatedItem.snapshot['entity:authors']).not.be.ok()

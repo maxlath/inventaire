@@ -1,26 +1,9 @@
 import { chain } from 'lodash-es'
-import { getInvEntityType } from '#controllers/entities/lib/get_entity_type'
-import { getInvEntityCanonicalUri } from '#controllers/entities/lib/get_inv_entity_canonical_uri'
 import { isNonEmptyArray } from '#lib/boolean_validations'
 import { getBestLangValue } from '#lib/get_best_lang_value'
 import { assertArray, assertString } from '#lib/utils/assert_types'
 import { warn } from '#lib/utils/logs'
-import type { InvEntityDoc, PropertyUri, SerializedEntity } from '#types/entity'
-
-export function getEntityUriAndType (entity: InvEntityDoc | SerializedEntity) {
-  // Case when a serialized entity is passed
-  if ('uri' in entity) {
-    const { uri, type } = entity
-    return { uri, type }
-  }
-
-  // Case when a raw entity doc is passed,
-  // which can only be an inv entity doc
-  const uri = getInvEntityCanonicalUri(entity)
-  let type
-  if ('claims' in entity) type = getInvEntityType(entity.claims['wdt:P31'])
-  return { uri, type }
-}
+import type { PropertyUri, SerializedEntity } from '#types/entity'
 
 export function getNames (preferedLang, entities) {
   if (!isNonEmptyArray(entities)) return

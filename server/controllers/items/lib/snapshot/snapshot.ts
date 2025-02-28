@@ -11,20 +11,18 @@
 // (or works in case of a multi-works edition), the work(s) authors, the serie(s)
 // the work(s) might be part of.
 // Being able to have a succint version of those data accessible from the cache
-// allows to display basic data or filter large lists of items by text
-// without having to query from 3 to 10+ entities per item
+// would allows to display basic data or filter large lists of items by text
+// without having to query from 3 to 10+ entities per item.
+// But unfortunately, knowing wish entity snapshot to cache and invalidating that cache
+// proved to be challanging, in particular in federated mode, thus the current implementation
+// relying on the entities cache, rather than a cache dedicated to items snapshots
 
-import pTimeout from 'p-timeout'
-import { refreshSnapshotFromUri } from '#controllers/items/lib/snapshot/refresh_snapshot'
-import { leveldbFactory } from '#db/level/get_sub_db'
-import { formatBatchOps } from '#db/level/utils'
-import { newError } from '#lib/error/error'
+import { getEntityByUri } from '#controllers/entities/lib/federation/instance_agnostic_entities'
+import { getSnapshotByType } from '#controllers/items/lib/snapshot/refresh_snapshot'
 import { assertString } from '#lib/utils/assert_types'
 import { logError } from '#lib/utils/logs'
 import type { EntityUri } from '#types/entity'
 import type { ItemSnapshot, SerializedItem } from '#types/item'
-
-const db = leveldbFactory('snapshot', 'json')
 
 export async function addSnapshotToItem (item: SerializedItem) {
   if (item.snapshot) return item
@@ -33,49 +31,19 @@ export async function addSnapshotToItem (item: SerializedItem) {
     assertString(item.entity)
     item.snapshot = await getSnapshot(item.entity)
   } catch (err) {
-    err.context = err.context || {}
+    err.context ??= {}
     err.context.item = item
     logError(err, 'addSnapshotToItem error')
-    item.snapshot = item.snapshot || {}
+    item.snapshot ??= {}
   }
 
   return item
 }
 
-export interface SnapshotOperation {
-  key: EntityUri
-  value: ItemSnapshot
-}
-export const saveSnapshotsInBatch = (ops: SnapshotOperation[]) => db.batch(formatBatchOps(ops))
-
-async function getSnapshot (uri: EntityUri, preventLoop?: boolean) {
-  // Setting a timeout as it happened in the past that leveldb would hang without responding.
-  // This problem might have been fixed by updating leveldb dependencies,
-  // but in case this happens again, this timeout would save a good hour of debugging
-  // To be removed once this bug is long gone
-  let snapshot
-  try {
-    snapshot = await pTimeout(db.get(uri), 50000)
-  } catch (err) {
-    if (err.name === 'TimeoutError') logError(err, `getSnapshot db.get(${uri}) TimeoutError`)
-    if (!(err.notFound || err.name === 'TimeoutError')) throw err
-  }
-
-  if (snapshot != null) return snapshot
-
-  if (preventLoop === true) {
-    // Known case: addSnapshotToItem was called for an item which entity is a serie
-    // thus, the related works and editions were refreshed but as series aren't
-    // supposed to be associated to items, no snapshot was created for the serie itself
-    const err = newError("couldn't refresh item snapshot", 500, { uri })
-    logError(err, 'getSnapshot err')
-    return {}
-  }
-
-  return refreshAndGetSnapshot(uri)
-}
-
-async function refreshAndGetSnapshot (uri: EntityUri) {
-  await refreshSnapshotFromUri(uri)
-  return getSnapshot(uri, true)
+async function getSnapshot (uri: EntityUri) {
+  const entity = await getEntityByUri({ uri })
+  const { type } = entity
+  if (getSnapshotByType[type] == null) return {}
+  const { value: snapshot } = await getSnapshotByType[type](uri)
+  return snapshot as ItemSnapshot
 }

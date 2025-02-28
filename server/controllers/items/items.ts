@@ -1,4 +1,3 @@
-import { updateSnapshotOnEntityChange } from '#controllers/items/lib/snapshot/update_snapshot_on_entity_change'
 import { actionsControllersFactory } from '#lib/actions_controllers'
 import bulkUpdate from './bulk_update.js'
 import byBbox from './by_bbox.js'
@@ -13,7 +12,6 @@ import inventoryView from './inventory_view.js'
 import lastPublic from './last_public.js'
 import nearby from './nearby.js'
 import recentPublic from './recent_public.js'
-import refreshSnapshot from './refresh_snapshot.js'
 import search from './search.js'
 import update from './update.js'
 
@@ -41,9 +39,6 @@ export default {
       default: create,
       'delete-by-ids': deleteByIds,
     },
-    admin: {
-      'refresh-snapshot': refreshSnapshot,
-    },
   }),
 
   put: actionsControllersFactory({
@@ -53,5 +48,3 @@ export default {
     },
   }),
 }
-
-updateSnapshotOnEntityChange()

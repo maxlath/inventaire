@@ -1,4 +1,4 @@
-# How to setup a development OAuth setup for Wikidata
+# How to set up a development OAuth setup for Wikidata
 
 ## Purpose
 

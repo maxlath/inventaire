@@ -23,7 +23,7 @@ sudo apt update
 You will be prompted for some setups:
 * cluster or standalone: standalone should be fine
 * set an 'admin' user password
-* host ip: set to 0.0.0.0 if you want to setup [replication](../administration/couchdb_backup_and_restore.md#automatic-backup) from a remote server
+* host ip: set to 0.0.0.0 if you want to set up [replication](../administration/couchdb_backup_and_restore.md#automatic-backup) from a remote server
 
 ```sh
 sudo apt install couchdb
@@ -60,4 +60,4 @@ sudo systemctl restart couchdb
 ```
 
 Databases will then be created by the nodejs server at first startup
-You still got to setup [database replication](https://docs.couchdb.org/en/stable/replication/intro.html) on your backup server
+You still got to set up [database replication](https://docs.couchdb.org/en/stable/replication/intro.html) on your backup server

@@ -13,7 +13,7 @@ The only offical documentation is with Ngnix, but other reverse proxy should wor
 
 ### Download templates
 
-You may prefer to setup a "light" Nginx setup done for the Docker repository.
+You may prefer to set up a "light" Nginx setup done for the Docker repository.
 
 ```sh
 wget https://git.inventaire.io/docker-inventaire/blob/main/nginx/templates/default.conf.template

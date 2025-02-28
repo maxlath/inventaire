@@ -1,6 +1,6 @@
 # Documentation
 
-This folder hosts the main **technical documentation** about Inventaire, including how to setup a development or a production environment.
+This folder hosts the main **technical documentation** about Inventaire, including how to set up a development or a production environment.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->

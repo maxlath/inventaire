@@ -27,7 +27,7 @@ export async function prepareFormParse (req, res, next) {
 
 export async function parseReqForm (req: Req) {
   const form = formidable({ uploadDir })
-  // Leave form.parse the time to setup req event listeners,
+  // Leave form.parse the time to set up req event listeners,
   // after `await this.writeHeaders(req.headers)`
   // See https://github.com/node-formidable/formidable/issues/959
   setImmediate(() => req.resume())

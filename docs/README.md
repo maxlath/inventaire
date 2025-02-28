@@ -20,7 +20,7 @@ What you need to install will depend on if you are trying to setup a development
 For details on how to install all of those:
 * See [installation](./installation) procedure for Debian-based systems.
 * See [Docker Inventaire Suite](https://git.inventaire.io/docker-inventaire) for a fully packaged federated production-ready instance
-* For other operating systems and setups, see [install on another OS](./installation/install.md#install-on-other-operating-systems)
+* For other operating systems and setups, see [install on another OS](./installation/README.md#install-on-other-operating-systems)
 
 ### Configure
 

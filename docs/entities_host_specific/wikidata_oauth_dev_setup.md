@@ -6,7 +6,7 @@ To test or develop locally, one may need to connect a Wikidata account on their 
 
 ## Caution
 
-Editing Wikidata items shall not be done uncarefully, please consider editing accurate values, or edit the [sandbox item Q4115189](https://www.wikidata.org/wiki/Q4115189).
+Editing Wikidata entities (known as items in Wikidata's lexic) shall not be done uncarefully, please consider editing accurate values, or edit [one of the sandbox items](https://www.wikidata.org/wiki/Q4115189).
 
 ## Prerequisite
 
@@ -16,7 +16,7 @@ Editing Wikidata items shall not be done uncarefully, please consider editing ac
 ## Setup
 
 - In `config/local.cjs` paste the OAuth application credentials:
-```
+```js
 wikidataOAuth: {
   consumer_key: 'key',
   consumer_secret: 'secret',
@@ -25,7 +25,7 @@ wikidataOAuth: {
 
 - Temporarly bridge the server port to http://localhost, ie. with a local nginx server (and do not forget to disable your firewall) :
 
-```
+```nginx
 server {
   listen 80 default_server;
   listen [::]:80 default_server;
@@ -35,6 +35,6 @@ server {
 }
 ```
 
-- Log in you local server and navigate to wikidata entity edit page (ie. http://localhost:[localPort]/entity/wd:Q2833411/edit`) and click on `Connect to Wikidata` to fetch some OAuth token
+- Log in you local server and navigate to wikidata entity edit page (ie. `http://localhost:[localPort]/entity/wd:Q2833411/edit`) and click on `Connect to Wikidata` to fetch some OAuth token
 
 - Once OAuth token are retrived, you may disable nginx setup, and start editing Wikidata from your local inventaire instance.

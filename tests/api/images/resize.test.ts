@@ -14,7 +14,7 @@ describe('images:resize', () => {
     body.length.should.be.below(1000)
   })
 
-  // Requires config.remoteImages.useProdCachedImages = false
+  // Requires config.remoteImages.useEntitiesHostCachedImages = false
   xit('should return a resized remote image from a trusted domain', async () => {
     const remoteUrl = 'https://commons.wikimedia.org/wiki/Special:FilePath/Linet%2C%20martha.jpg?width=100'
     const urlHash = getHashCode(remoteUrl)
@@ -37,7 +37,7 @@ describe('images:resize', () => {
     })
   })
 
-  // Requires config.remoteImages.useProdCachedImages = false
+  // Requires config.remoteImages.useEntitiesHostCachedImages = false
   xit('should return a resized remote image from a trusted domain', async () => {
     const remoteUrl = 'https://static.mamot.fr/accounts/avatars/000/066/589/original/7234e39fa914ed2b.jpg'
     const urlHash = getHashCode(remoteUrl)

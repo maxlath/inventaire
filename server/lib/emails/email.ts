@@ -27,6 +27,16 @@ export default {
     }
   },
 
+  mailerTest: destinationEmail => {
+    const message = 'This email is a test email'
+    return {
+      to: destinationEmail,
+      subject: 'Test email',
+      template: 'mailer_test',
+      context: { message, origin },
+    }
+  },
+
   resetPassword: (user, token) => {
     // purposedly not checking notifications settings
     const { email, language } = user

@@ -30,23 +30,7 @@ mkdir -p ./storage/users ./storage/groups ./storage/entities
 
 npm run install-client
 
-if [ ! -f ./config/local.cjs ]; then
-  # Create a local config file
-  emptyConfigFile="
-  // Override settings from ./default.cjs in this file
-  module.exports = {
-    db: {
-      username: 'yourcouchdbusername',
-      password: 'yourcouchdbpassword',
-      port: 5984,
-    }
-  }
-  "
-  echo "$emptyConfigFile" >> ./config/local.cjs
-  chmod 600 ./config/local.cjs
-else
-  echo './config/local.cjs file already exist: skipping creation'
-fi
+npm run generate-local-config-from-env
 
 # See https://git-scm.com/docs/git-config#Documentation/git-config.txt-blameignoreRevsFile
 git config blame.ignoreRevsFile .git-blame-ignore-revs

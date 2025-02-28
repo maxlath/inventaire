@@ -24,7 +24,7 @@ Suggested workflow to apply transformations to documents in a CouchDB database
 ```sh
 db_host="http://${db_username}:${db_password}@localhost:5984"
 curljson () {
-	curl -s -H "Content-Type: application/json" -H 'Accept: application/json' $@
+  curl -s -H "Content-Type: application/json" -H 'Accept: application/json' $@
 }
 ```
 

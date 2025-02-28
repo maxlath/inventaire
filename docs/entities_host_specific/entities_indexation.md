@@ -1,4 +1,8 @@
-# Indexation
+# Entities indexation
+
+Like for [other databases](../administration/indexation.md), local entities are synced from CouchDB to Elasticsearch (by [`server/db/elasticsearch/reindex_on_change.ts`](https://git.inventaire.io/inventaire/tree/main/server/db/elasticsearch/reindex_on_change.ts). Wikidata entites are also kept up-to-date in Elasticsearch (by [reindexing each Wikidata entity when encountering a cache miss](https://git.inventaire.io/inventaire/blob/19fecd3/server/controllers/entities/lib/get_wikidata_enriched_entities.ts).
+
+It is sometimes useful to be able to reindex every local or Wikidata entities, typically when restarting an instance from scratch. This can be done with the following commands:
 
 Environment:
 ```sh
@@ -10,43 +14,10 @@ Environment:
 export NODE_ENV=production
 ```
 
-## Items
-```sh
-npm run indexation:load-from-couchdb items
-```
-
-## Users
-```sh
-npm run indexation:load-from-couchdb users
-```
-
-## Groups
-```sh
-npm run indexation:load-from-couchdb groups
-```
-
-## Shelves
-```sh
-npm run indexation:load-from-couchdb shelves
-```
-
-## Lists
-```sh
-npm run indexation:load-from-couchdb lists
-```
-
-## Entities
-### Wikidata entities
+## Wikidata entities
 ```sh
 npm run indexation:wikidata:load-from-dump
 ```
-
-### Inventaire entities
-Index Inventaire entities after having indexed Wikidata entities so that Wikidata entities with local Inventaire layers can be reindexed, without being overwritten by the entities from the Wikidata dump (which ignore the existance of local layers)
-```sh
-npm run indexation:load-from-couchdb entities
-```
-
 
 Alternatively, a subset of Wikidata entities can be indexed from a SPARQL query, using [`wikibase-cli`](https://github.com/maxlath/wikibase-cli). For instance, to reindex all languages:
 
@@ -63,4 +34,10 @@ SELECT DISTINCT ?item {
 # 2 - get the entities JSON from the Wikidata API
 # 3 - format and load in Elasticsearch wikidata index
 wd sparql ./languages.rq | wd data | ./scripts/indexation/load.ts wikidata
+```
+
+## Inventaire entities
+Index Inventaire entities after having indexed Wikidata entities so that Wikidata entities with local Inventaire layers can be reindexed, without being overwritten by the entities from the Wikidata dump (which ignore the existance of local layers)
+```sh
+npm run indexation:load-from-couchdb entities
 ```

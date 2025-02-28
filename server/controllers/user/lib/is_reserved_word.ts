@@ -4,7 +4,7 @@ import { objectKeys } from '#lib/utils/types'
 const singularize = str => str.replace(/s$/, '')
 const singularizedDatabasesNames = objectKeys(databases).map(singularize)
 
-// Additionnaly all 1 letter strings are reserved words
+// Additionally all 1 letter strings are reserved words
 // but the restriction is handled by the username regex
 const reservedWords = new Set([
   ...singularizedDatabasesNames,

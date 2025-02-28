@@ -19,7 +19,7 @@ gzip --decompress entities.ndjson.gz
 cat entities.ndjson |
   # Drop _rev ids if restoring on a new database
   sed --regexp-extended 's/,"_rev":"[0-9]+-[0-9a-f]{32}"//'  |
-  couchdb-bulk2 "http://${couchdb_username}:${couchdb_password}@localhost:5984/entities" > "entities_upload.success" 2> "entities_upload.errors"
+  couchdb-bulk2 "http://${couchdb_username}:${couchdb_password}@localhost:5984/entities"
 ```
 
 ## Troubleshooting

@@ -15,6 +15,11 @@ export default {
     .catch(LogError('validationEmail'))
   },
 
+  mailerTest: destinationEmail => {
+    const email = email_.mailerTest(destinationEmail)
+    return sendMail(email)
+  },
+
   resetPassword: (userData, token) => {
     userData = serializeUserData(userData)
     const email = email_.resetPassword(userData, token)

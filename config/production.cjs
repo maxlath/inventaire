@@ -31,7 +31,7 @@ const config = {
     disabled: false,
   },
   remoteImages: {
-    useProdCachedImages: false,
+    useEntitiesHostCachedImages: false,
   },
 }
 

@@ -15,10 +15,10 @@ import { getResizedImage } from './lib/get_resized_image.js'
 const { env } = config
 const { offline } = config
 const containersList = Object.keys(containers)
-const { useProdCachedImages } = config.remoteImages
+const { useEntitiesHostCachedImages } = config.remoteImages
 
-if (env === 'production' && useProdCachedImages) {
-  throw new Error("useProdCachedImages can not be true when env is 'production'")
+if (env === 'production' && useEntitiesHostCachedImages) {
+  throw new Error("useEntitiesHostCachedImages can not be true when env is 'production'")
 }
 
 // resized images urls looks like
@@ -76,9 +76,9 @@ export default {
       }
 
       // As resized remote images are not cached in development, each request reaches remote services,
-      // typically Wikimedia Commons. By setting useProdCachedImages=true, the images are taken from the inventaire.io
+      // typically Wikimedia Commons. By setting useEntitiesHostCachedImages=true, the images are taken from the inventaire.io
       // which should be much faster as it likely already have those resized images in Nginx cache
-      if (useProdCachedImages) {
+      if (useEntitiesHostCachedImages) {
         const prodUrl = `https://inventaire.io${req.url}`
         return res.redirect(prodUrl)
       }

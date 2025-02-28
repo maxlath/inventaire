@@ -4,17 +4,6 @@ Hereafter, `lev` refers to the executable provided by https://github.com/maxlath
 ```sh
 npm i -g lev2
 ```
-## Summary
-
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
-- [Export](#export)
-- [Import](#import)
-- [Delete entries in bulk](#delete-entries-in-bulk)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 
 ## Export
 ```sh

@@ -1,16 +1,20 @@
+<div align="center">
+
 # Inventaire
 
-Libre collaborative resource mapper powered by open-knowledge<br>
+**[Visit inventaire.io](https://inventaire.io) | [Create an instance](https://git.inventaire.io/inventaire/tree/main/docs) | [Wiki](https://wiki.inventaire.io) | [Contact us](https://wiki.inventaire.io/wiki/Communication_channels) | [Donate](https://wiki.inventaire.io/wiki/Funding#Donations)**
+
 [![License](https://img.shields.io/badge/license-AGPL3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)
 [![Node](https://img.shields.io/badge/node->=v4-brightgreen.svg)](https://nodejs.org)
 [![Code Climate](https://codeclimate.com/github/inventaire/inventaire/badges/gpa.svg)](https://codeclimate.com/github/inventaire/inventaire)<br>
-<br>
-[![chat](https://img.shields.io/badge/chat-%23inventaire-ffd402.svg)](https://riot.im/app/#/room/#freenode_#inventaire:matrix.org)
-[![wiki](https://img.shields.io/badge/wiki-general-319cc2.svg)](https://wiki.inventaire.io)
+
+</div>
+
+Inventaire is a libre/open webapp to make inventories and lists of books, powered by open-knowledge.
 
 [![inventory screenshot](https://github.com/inventaire/inventaire/assets/1596934/844c04ff-a216-48dc-b3b9-c33a106b8fbe)](https://inventaire.io)
 
-This repository hosts [Inventaire.io](https://inventaire.io) source code. Its a collaborative resources mapper project, while yet only focused on exploring books mapping with [wikidata](https://wikidata.org/) and [ISBNs](https://en.wikipedia.org/wiki/International_Standard_Book_Number)
+This repository hosts the server-side code of the [Inventaire association](https://wiki.inventaire.io/wiki/Association), a collaborative resources mapper project, while yet only focused on exploring books mapping with [Wikidata](https://wikidata.org/) and [ISBNs](https://en.wikipedia.org/wiki/International_Standard_Book_Number). The flagship instance is https://inventaire.io and anyone may [create their own federated instance](https://git.inventaire.io/inventaire/tree/main/docs).
 
 This repository tracks server-side developments, while the (heavy) [client-side can be found here](https://github.com/inventaire/inventaire-client). Client-related technical issues should go in the client repo, while this repo gathers all other technical issues. Non-technical discussions, such as feature requests, should preferably happen in the [chat](https://wiki.inventaire.io/wiki/Communication_channels#Chat).
 
@@ -44,7 +48,7 @@ This repository tracks server-side developments, while the (heavy) [client-side 
 
 ## Installation
 
-*This is the installation documentation for a developement environment. For production setup, see*: [inventaire-deploy](https://github.com/inventaire/inventaire-deploy)
+*This is the installation documentation for a developement environment. For production setup, see*: [docs](https://git.inventaire.io/inventaire/tree/main/docs)
 
 ### Dependencies to install manually
 - [git](https://git-scm.com/), [curl](https://curl.haxx.se) (used in some installation scripts), [graphicsmagick](www.graphicsmagick.org/README.html) (used to resize images), [inotify-tools](https://github.com/rvoicilas/inotify-tools) (used in API tests scripts):
@@ -52,7 +56,7 @@ This repository tracks server-side developments, while the (heavy) [client-side 
 - a [CouchDB](https://couchdb.apache.org/) (>=3.1) instance (on port 5984 for default config)
 - an [Elasticsearch](https://www.elastic.co/fr/products/elasticsearch) (>=7.10) instance (on port 9200 for default config)
 
-To install all this those dependencies on Ubuntu 20.04:
+To install all this those dependencies on Debian/Ubuntu:
 
 For packages available in Ubuntu default repositories:
 ```sh
@@ -62,7 +66,7 @@ sudo apt-get install git curl wget graphicsmagick inotify-tools
 For packages that need a more elaborated installation, see their own documentation:
 * [Install NodeJS latest LTS via NVM](https://github.com/nvm-sh/nvm#installing-and-updating)
 * [Install CouchDB](https://docs.couchdb.org/en/stable/install/unix.html)
-* [Install ElasticSearch](https://www.elastic.co/guide/en/elasticsearch/reference/7.14/deb.html)
+* [Install ElasticSearch](https://www.elastic.co/guide/en/elasticsearch/reference/current/install-elasticsearch.html)
 
 Alternatively, CouchDB and Elasticsearch could be run in Docker, see [docker-inventaire](https://github.com/inventaire/docker-inventaire)
 
@@ -127,46 +131,41 @@ npm run watch
 - [**main**](https://github.com/inventaire/inventaire-client/tree/main): the stable branch. Unstable work should happen in feature-specific branches and trigger pull requests when ready to be merged in the main branch. See [Code Contributor Guidelines](https://github.com/inventaire/inventaire/wiki/Code-Contributor-Guidelines).
 
 #### [i18n](https://github.com/inventaire/inventaire-i18n)
-The repository tracking strings used in the server (for emails, activitypub) and client (for the web UI) in all the supported languages. For helping to translate, see the [Inventaire Weblate project](https://weblate.framasoft.org/engage/inventaire/)
+The repository tracking strings used in the server (for emails, activitypub) and client (for the web UI) in all the supported languages. To contribute to translations, see the [Inventaire Weblate project](https://weblate.framasoft.org/engage/inventaire/)
 - [**main**](https://github.com/inventaire/inventaire-i18n/tree/main): tracking translations fetched from [Weblate](https://weblate.framasoft.org/engage/inventaire/) and build scripts
 
 #### [deploy](https://github.com/inventaire/inventaire-deploy)
-tracking installation scripts and documentation to run inventaire in production
-- [**main**](https://github.com/inventaire/inventaire-deploy/tree/main): the main implementation targeting Ubuntu 16.04. Additional branches can be started to document installation on other environments
+tracking installation scripts to run inventaire in production (for production documentation, see [docs](https://git.inventaire.io/inventaire/tree/main/docs))
+- [**main**](https://github.com/inventaire/inventaire-deploy/tree/main): the main implementation for Debian/Ubuntu systems. Additional branches can be started to document installation on other environments
 
 #### [docker](https://github.com/inventaire/docker-inventaire)
-- [**main**](https://github.com/inventaire/docker-inventaire/tree/main): tracking docker installation files for development and testing use
+- [**main**](https://github.com/inventaire/docker-inventaire/tree/main): tracking docker installation files
 
 ## Stack Map
 This repository correspond to the the "Server" section in the [stack map](https://inventaire.github.io/stack/)
 
 ## Concepts map
-the app has a few core concepts:
-- Users
-- Entities : which can be authors (ex: [wd:Q353](https://inventaire.io/entity/wd:Q535)), books (ex: [wd:Q393018](https://inventaire.io/entity/wd:Q393018)) and books' specific editions (ex: [isbn:9782070389162](https://inventaire.io/entity/isbn:9782070389162)). The term *entities* comes from wikidata terminology. See the [entities map](https://inventaire.github.io/entities-map/).
-- Items : instances of book entities that a user says they have. It can be an instance of a work or a specific edition of a work.
-- Transactions : discussion between two users about a specific item with an open transaction mode (giving, lending, selling). Transactions have effects on items: giving and selling an item make it move from the owner to the requester inventory; lending an item shows it as unavailable.
-- Groups: groups of users with one or more admins
 
-![concepts map](https://raw.githubusercontent.com/inventaire/inventaire/main/docs/visualizations/concepts.jpg)
-
-![entities map](https://raw.githubusercontent.com/inventaire/entities-map/main/screenshots/entities-map-2.png)
+The app has a few core concepts, see the [Glossary](https://wiki.inventaire.io/wiki/Glossary) for more detailed information
 
 ## Contribute
 For code-related contributions, see [*How to contribute* on wiki.inventaire.io](https://wiki.inventaire.io/wiki/Technic#How_to_contribute).
 
 ## Documentation
-see [docs](https://github.com/inventaire/inventaire/tree/main/docs/)
 
-## Wiki
-see [wiki.inventaire.io](https://wiki.inventaire.io)
-You may want to directly go to the [technical wiki page](https://wiki.inventaire.io/wiki/Technic)
+### User documentation
 
-## API
-see wiki: [API](https://wiki.inventaire.io/wiki/Technic#About_the_API)
+Most of the user doc is on the [wiki](https://wiki.inventaire.io), especially in the [help section](https://wiki.inventaire.io/wiki/Help).
 
-## Administration
-see [Administration](./docs/administration.md)
+### Admin documentation
+
+See the [production documentation](https://git.inventaire.io/inventaire/tree/main/docs).
+
+### Technical documentation
+
+The [technical wiki page](https://wiki.inventaire.io/wiki/Technic) gives a detailed explanation of the architectural choices.
+
+See our not exhaustive [API](https://api.inventaire.io) documentation
 
 ## License
 Inventaire is an open-sourced project licensed under [AGPLv3](./LICENSES/AGPL-3.0-only.txt).

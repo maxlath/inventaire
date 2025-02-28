@@ -28,7 +28,7 @@ const leveldownOptions = {
   //
   // (see https://singztechmusings.wordpress.com/2011/07/11/ulimit-how-to-permanently-set-kernel-limits-in-linux/)
   //
-  // Additionnaly, the process itself should be given a higher limit
+  // Additionally, the process itself should be given a higher limit
   // See https://github.com/inventaire/inventaire-deploy/commit/0ad6e2a
   // This limit can be checked by inspecting `cat /proc/${pid}/limits | grep 'Max open files'`
   maxOpenFiles: Infinity,

@@ -2,6 +2,15 @@
 // Override by creating per-environment files following the same structure in this same folder
 // The file priority order can be found here https://github.com/node-config/node-config/wiki/Configuration-Files#file-load-order
 
+// For example, create a specific file named `local.cjs`
+// which looks like :
+//   const config = {
+//     instanceName: 'My Inventaire Instance',
+//     orgName: 'Example Organization',
+//     orgUrl: 'https://inventaire.example.org',
+//     contactAddress: 'contact@inventaire.example.org',
+//   }
+
 /** @typedef { import('../types/types.ts').Config } Config */
 
 // Summary
@@ -18,6 +27,7 @@
 // - Test and development environments tweaks
 
 /** @type {Config} */
+
 const config = {
   // Environment definition,
   // set in production.cjs, development.cjs and tests-*.cjs
@@ -26,6 +36,7 @@ const config = {
   // ~~~~~~~
   // Instance general information
   // ~~~~~~~
+  // As an instance admin, this section values must be changed in config/local.cjs
 
   // Will be displayed as menu title on large screens
   instanceName: 'My Inventaire Instance',
@@ -40,6 +51,9 @@ const config = {
   // ~~~~~~~
   // Instance specifics
   // ~~~~~~~
+
+  // Displayed in userAgent and in local logs
+  softwareName: 'inventaire',
 
   // Only http is supported: in production, TLS is delegated to Nginx
   // See http://github.com/inventaire/inventaire-deploy
@@ -110,6 +124,7 @@ const config = {
       if (this.suffix != null) return `${dbBaseName}-${this.suffix}`
       else return dbBaseName
     },
+    // Watch couchdb activity. See server/lib/follow.ts
     follow: {
       // Make external indexes restart from the first seq
       reset: false,
@@ -118,7 +133,7 @@ const config = {
       freeze: false,
       delay: 5000,
     },
-    // logs Couchdb requests parameters
+    // logs CouchDB requests parameters
     debug: false,
     backupFolder: 'backups/couchdb',
   },
@@ -283,9 +298,9 @@ const config = {
 
   remoteImages: {
     // As resized remote images are not cached in development, each request reaches remote services,
-    // typically Wikimedia Commons. By setting this flag to true, the images are taken from the inventaire.io
+    // typically Wikimedia Commons. By setting this flag to true, the images are taken from the entities host (inventaire.io)
     // which should be much faster as it likely already have those resized images in Nginx cache
-    useProdCachedImages: true,
+    useEntitiesHostCachedImages: true,
   },
 
   // ~~~~~~~
@@ -337,15 +352,19 @@ const config = {
   // Jobs are stored in LevelDB using https://www.npmjs.com/package/level-jobs
   // See server/db/level/jobs.ts
   jobs: {
+    // Allow to collect entities duplicates, only useful for entities host
     'inv:deduplicate': {
       run: true,
     },
+    // Build entity popularity, only useful for entities host
     'entity:popularity': {
       run: true,
     },
+    // Synchronises wikidata databases of both CouchDB and Elasticsearch
     'wd:entity:indexation': {
       run: true,
     },
+    // Post an acitivity to the fediverse
     'post:activity': {
       run: true,
     },

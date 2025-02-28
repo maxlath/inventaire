@@ -54,11 +54,11 @@ npm install -g --production lev2 couchdb-bulk2
 
 ### CouchDB
 
-See https://git.inventaire.io/inventaire/docs/installation/install_couchdb.md
+See [./install_couchdb.md](./install_couchdb.md)
 
 ### Elasticsearch
 
-See https://git.inventaire.io/inventaire/docs/installation/install_elasticsearch.md
+See [./install_elasticsearch.md](./install_elasticsearch.md)
 
 ### Inventaire
 
@@ -77,7 +77,7 @@ PROJECT_ROOT=$PWD
 
 ### Reverse proxy
 
-See https://git.inventaire.io/inventaire/docs/installation/install_reverse_proxy.md
+See [./install_reverse_proxy.md](./install_reverse_proxy.md)
 
 ### Usage
 
@@ -94,7 +94,14 @@ npm run start-built-server
 ./scripts/typescript/start_built_server.sh
 ```
 
-If you feel like setup systemd configuration, you may check : https://git.inventaire.io/inventaire-deploy/install_inventaire
+For a setup with systemd, see https://git.inventaire.io/inventaire-deploy/install_inventaire
+
+## Install in Docker
+
+See [Inventaire Suite in Docker](https://github.com/inventaire/docker-inventaire).
+
+Note that while this [`docker-compose.yml`](https://github.com/inventaire/docker-inventaire/blob/main/docker-compose.yml) is optimized for production, a popular setup for development is to use it with only the `couchdb` and `elasticsearch` services up, while having the server and client installed outside of Docker. This has the advantage to let you get exactly the desired CouchDB and Elasticsearch version, while still being able to run the Inventaire server and client in dev mode, make git commits, etc, outside of Docker.
+
 
 ## Install on other operating systems
 

@@ -9,7 +9,7 @@ import { newError } from '#lib/error/error'
 import { updateEntitiesRevisionsCache } from '#lib/federation/entities_revisions_cache'
 import { federatedRequest } from '#lib/federation/federated_requests'
 import { radio } from '#lib/radio'
-import { objectFromEntries } from '#lib/utils/base'
+import { objectFromEntries, objectValues } from '#lib/utils/base'
 import { info, logError } from '#lib/utils/logs'
 import { buildUrl } from '#lib/utils/url'
 import type { EntityUri, MaybeExpandedSerializedEntity, SerializedEntitiesByUris, SerializedEntity } from '#types/entity'
@@ -66,7 +66,7 @@ export async function getRemoteEntitiesList (uris: EntityUri[], params: Partial<
   uris = compact(uris)
   if (uris.length === 0) return [] as SerializedEntity[]
   const { entities } = await getRemoteEntitiesByUris({ uris, ...params })
-  return Object.values(entities)
+  return objectValues(entities)
 }
 
 export async function getRemoteEntityByUri ({ uri, refresh }: GetEntityByUriArgs) {

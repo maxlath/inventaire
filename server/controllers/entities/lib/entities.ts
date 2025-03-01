@@ -192,6 +192,14 @@ export function getAggregatedPropertiesValues (claims: Claims, properties: Prope
   return uniq(Object.values(pick(claims, properties)).flat().map(getClaimValue))
 }
 
+export function getEntitiesAggregatedPropertiesValues (entities: SerializedEntity[], properties: PropertyUri[]) {
+  const entitiesClaimsValues = entities.map(entity => {
+    const propertiesClaims = pick(entity.claims, properties)
+    return Object.values(propertiesClaims).flat().map(getClaimValue)
+  }).flat()
+  return uniq(entitiesClaimsValues.flat())
+}
+
 export function getWorksAuthorsUris (works: SerializedEntity[]) {
   const uris: EntityUri[] = works.map(getWorkAuthorsUris).flat()
   return uniq(uris)

@@ -1,5 +1,5 @@
 import { map, uniq } from 'lodash-es'
-import { addSnapshotToItem } from '#controllers/items/lib/snapshot/snapshot'
+import { addItemsSnapshots } from '#controllers/items/lib/snapshot/snapshot'
 import { getShelvesByIds } from '#controllers/shelves/lib/shelves'
 import { setItemsBusyFlag } from '#controllers/transactions/lib/transactions'
 import { getUsersAuthorizedDataByIds } from '#controllers/user/lib/user'
@@ -22,10 +22,6 @@ async function addUsersData (page, reqParams) {
   const users = await getUsersAuthorizedDataByIds(ownersIds, { reqUserId })
   page.users = users
   return page
-}
-
-export function addItemsSnapshots (items) {
-  return Promise.all(items.map(addSnapshotToItem))
 }
 
 export async function addAssociatedData (page, reqParams) {

@@ -17,11 +17,14 @@
 // proved to be challanging, in particular in federated mode, thus the current implementation
 // relying on the entities cache, rather than a cache dedicated to items snapshots
 
-import { getEntityByUri } from '#controllers/entities/lib/federation/instance_agnostic_entities'
-import { getSnapshotByType } from '#controllers/items/lib/snapshot/refresh_snapshot'
+import { keyBy, map, partition, uniq } from 'lodash-es'
+import { getEntitiesAggregatedPropertiesValues } from '#controllers/entities/lib/entities'
+import { getEntityByUri, getEntitiesList } from '#controllers/entities/lib/federation/instance_agnostic_entities'
+import { editionAuthorRelationsProperties, workAuthorRelationsProperties } from '#controllers/entities/lib/properties/properties'
+import { buildSnapshotFromEntitiesByType, getSnapshotByType } from '#controllers/items/lib/snapshot/refresh_snapshot'
 import { assertString } from '#lib/utils/assert_types'
-import { logError } from '#lib/utils/logs'
-import type { EntityUri } from '#types/entity'
+import { logError, warn } from '#lib/utils/logs'
+import type { EntityUri, SerializedEntitiesByUris, SerializedEntity } from '#types/entity'
 import type { ItemSnapshot, SerializedItem } from '#types/item'
 
 export async function addSnapshotToItem (item: SerializedItem) {
@@ -46,4 +49,51 @@ async function getSnapshot (uri: EntityUri) {
   if (getSnapshotByType[type] == null) return {}
   const { value: snapshot } = await getSnapshotByType[type](uri)
   return snapshot as ItemSnapshot
+}
+
+export async function addItemsSnapshots (items: SerializedItem[]) {
+  const itemsEntitiesUris = uniq(map(items, 'entity'))
+  // Bundle items related entities requests, to reduce requests overhead
+  // Especially in federated mode
+  const entitiesByUris = await getAggregatedItemsRelatedEntities(itemsEntitiesUris)
+  for (const item of items) {
+    item.snapshot = addSnapshotFromEntities(item, entitiesByUris)
+  }
+  return items
+}
+
+async function getAggregatedItemsRelatedEntities (itemsEntitiesUris: EntityUri[]) {
+  const itemsEntities = (await getEntitiesList(itemsEntitiesUris)) as SerializedEntity[]
+  const [ itemsEditions, itemsWorks ] = partition(itemsEntities, entity => entity.type === 'edition')
+  const worksUris = getEntitiesAggregatedPropertiesValues(itemsEditions, [ 'wdt:P629' ]) as EntityUri[]
+  const works = (await getEntitiesList(worksUris)) as SerializedEntity[]
+  const allWorks = works.concat(itemsWorks)
+  const authorsAndSeriesUris = getEntitiesAggregatedPropertiesValues(allWorks, [ 'wdt:P179', ...workAuthorRelationsProperties ]) as EntityUri[]
+  const editionsAuthorsUris = getEntitiesAggregatedPropertiesValues(itemsEditions, editionAuthorRelationsProperties) as EntityUri[]
+  const authorsAndSeries = (await getEntitiesList(authorsAndSeriesUris.concat(editionsAuthorsUris))) as SerializedEntity[]
+  const allEntities = itemsEntities.concat(works, authorsAndSeries)
+  return keyBy(allEntities, 'uri') as SerializedEntitiesByUris
+}
+
+function addSnapshotFromEntities (item: SerializedItem, entitiesByUris: SerializedEntitiesByUris) {
+  const entity = entitiesByUris[item.entity]
+  if (!entity) {
+    warn(`item entity not found: ${item.entity}`)
+    return {}
+  }
+  const { type } = entity
+  if (getSnapshotByType[type] == null) {
+    warn(`invalid item entity type: ${type} (uri: ${item.entity})`)
+    return {}
+  }
+  try {
+    const { value: snapshot } = buildSnapshotFromEntitiesByType[type](entity, entitiesByUris)
+    return snapshot as ItemSnapshot
+  } catch (err) {
+    err.context ??= {}
+    err.context.item = item._id
+    err.context.entity = item.entity
+    logError(err, 'failed to build item snapshot')
+    return {}
+  }
 }

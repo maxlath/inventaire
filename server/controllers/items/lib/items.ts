@@ -1,5 +1,5 @@
 import { difference, map, union } from 'lodash-es'
-import { addItemsSnapshots } from '#controllers/items/lib/queries_commons'
+import { addItemsSnapshots } from '#controllers/items/lib/snapshot/snapshot'
 import { dbFactory } from '#db/couchdb/base'
 import { newError } from '#lib/error/error'
 import { emit } from '#lib/radio'
